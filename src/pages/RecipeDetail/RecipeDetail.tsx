@@ -1,0 +1,128 @@
+
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { recipeApi } from '../../services/recipeApi';
+import { Recipe } from '../../types/recipe.types';
+import Loader from '../../components/Loader/Loader';
+import './RecipeDetail.css';
+
+function RecipeDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null); 
+
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      if (!id) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const fetchedRecipe = await recipeApi.getRecipeById(id);
+        if (fetchedRecipe) {
+          setRecipe(fetchedRecipe);
+        } else {
+          setError('Recipe not found');
+        }
+      } catch (err) {
+        setError('Failed to fetch recipe details. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipe();
+  }, [id]);
+
+  if(loading) {
+    return <Loader message="Loading recipe details..." />;
+  }
+
+  if (error || !recipe) {
+    return (
+      <div className="recipe-detail__error">
+        <h2>{error || 'Recipe not found'}</h2>
+        <button onClick={() => navigate('/recipes')} className="recipe-detail__back-button">
+          Back to Recipes
+        </button>
+      </div>
+    );
+  }
+
+  
+
+  return (
+    <div className="recipe-detail">
+      <button
+        onClick={() => navigate(-1)}
+        className="recipe-detail__back-button"
+      >
+        ← Back to Recipes
+      </button>
+
+      <div className="recipe-detail__content">
+        <img 
+          src={recipe.image}
+          alt={recipe.title}
+          className="recipe-detail__image"
+        />
+
+        <div className="recipe-detail__info">
+          <h1 className="recipe-detail__title">{recipe.title}</h1>
+          <p className="recipe-detail__description">{recipe.description}</p>
+          {/* Metadata tags */}
+          <div className="recipe-detail__meta">
+            {recipe.category && (
+              <span className="recipe-detail__tag">{recipe.category}</span>
+            )}
+            {recipe.area && (
+              <span className="recipe-detail__tag">{recipe.area}</span>
+            )}
+            {recipe.tags && recipe.tags.map( tag =>(
+              <span key={tag} className="recipe-detail__tag">{tag}</span>
+            ))}
+          </div>
+          <div className="recipe-detail__section">
+            <h2 className="recipe-detail__section-title">Ingredients</h2>
+            <ul className="recipe-detail__ingredients-list">
+              {recipe.ingredients.map((ingredient, index) => (
+                <li key={index} className="recipe-detail__ingredient-item">
+                  <span className="recipe-detail__ingredient-bullet">•</span>
+                  {ingredient}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {recipe.instructions && (
+            <div className="recipe-detail__section">
+              <h2 className="recipe-detail__section-title">Instructions</h2>
+              <p className="recipe-detail__instructions">
+                {recipe.instructions}
+              </p>
+            </div>
+          )}
+
+          {recipe.youtubeLink && (
+            <div className="recipe-detail__section">
+              <h2 className="recipe-detail__section-title">Video Tutorial</h2>
+              <a
+                href={recipe.youtubeLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="recipe-detail__youtube-link"
+              >
+                Watch on YouTube →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default RecipeDetail;

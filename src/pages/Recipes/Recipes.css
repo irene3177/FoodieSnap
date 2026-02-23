@@ -1,0 +1,132 @@
+.recipes-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recipes-page__header {
+  margin-bottom: 2rem;
+}
+
+.recipes-page__title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 2rem;
+}
+
+/* Search bar styles */
+.recipes-page__search {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.recipes-page__search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.recipes-page__search-input:focus {
+  border-color: #764ba2;
+  box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+.recipes-page__search-input::placeholder {
+  color: #999;
+}
+
+.recipes-page__search-clear {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.recipes-page__search-clear:hover {
+  background-color: #f0f0f0;
+}
+
+/* Results count */
+.recipes-page__results-count {
+  text-align: center;
+  color: #666;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;       /* mine */
+  font-size: 0.875rem;
+}
+
+.recipes-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;                 /* Отступы МЕЖДУ карточками */
+}
+
+/* Error state */
+.recipes-page__error {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: #fff3f3;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.recipes-page__error-message {
+  color: #d32f2f;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+}
+
+.recipes-page__retry-button {
+  padding: 0.5rem 1.5rem;
+  background-color: #764ba2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.recipes-page__retry-button:hover {
+  background-color: #5a3d7a;
+}
+
+/* No results state */
+.recipes-page__no-results p:first-child {
+  color: #333;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.recipes-page__no-results-hint {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .recipes-page {
+    padding: 1rem;
+  }
+
+  .recipes-page__title {
+    font-size: 1.5rem;
+  }
+
+  .recipes-page__grid {
+    gap: 1rem;
+  }
+}

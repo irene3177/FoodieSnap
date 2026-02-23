@@ -1,0 +1,17 @@
+.favorites-page {
+  padding: 2rem;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.favorites-page__title {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.favorites-page__message {
+  color: #666;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
