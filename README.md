@@ -6,24 +6,57 @@ FoodieSnap is a web application for discovering and saving recipes from around t
 
 [Link to demo (to be added later)]
 
-## ✨ Features
+## ✨ Key Features
 
-- 🔍 Search recipes by name
-- 📂 Filter by categories (Beef, Chicken, Dessert, etc.)
-- 🔀 Random recipe generator
-- ⭐ Save favorites to local storage
-- 📱 Fully responsive design
-- ⌨️ Keyboard accessible
-- ♿ ARIA labels for screen readers
+### 🎨 User Experience
+- **Dual Theme Support** - Seamless switching between light and dark modes with persistent preference
+- **Real-time Search** - Debounced search with instant results as you type
+- **Smooth Animations** - Page transitions and micro-interactions for a polished feel
+- **Toast Notifications** - Non-intrusive feedback for all user actions
+- **Fully Responsive** - Perfect experience on desktop, tablet, and mobile
 
-## 🛠 Built With
+### ❤️ Favorites System
+- **Persistent Storage** - Favorites automatically saved to browser's localStorage
+- **Global State** - Favorites accessible from any page with Context API
+- **One-click Save** - Quick toggle from recipe cards and detail pages
+- **Bulk Management** - Clear all favorites with a single click
 
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **React Router v7** - Navigation
-- **Axios** - HTTP requests
-- **Vite** - Build tool and dev server
-- **CSS (BEM methodology)** - Styling
+### ♿ Accessibility
+- **Keyboard Navigation** - Full keyboard support for all interactive elements
+- **Screen Reader Compatible** - ARIA labels and semantic HTML
+- **Focus Management** - Visible focus indicators for accessibility
+- **Reduced Motion** - Respects user's motion preferences
+
+
+## 🛠 Technology Stack
+
+### Core
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 18.2.0 | UI library with hooks and functional components |
+| **TypeScript** | 5.0+ | Type safety and better developer experience |
+| **Vite** | 4.0+ | Lightning-fast build tool and dev server |
+
+### State Management
+| Technology | Purpose |
+|------------|---------|
+| **Context API** | Global state management for favorites |
+| **useReducer** | Complex state transitions with predictable updates |
+| **localStorage** | Persistent storage for user preferences and favorites |
+
+### Routing & Data Fetching
+| Technology | Purpose |
+|------------|---------|
+| **React Router v7** | Client-side routing with nested routes |
+| **Axios** | HTTP client with interceptors and error handling |
+| **TheMealDB API** | Free recipe database with 300+ recipes |
+
+### Styling & Animations
+| Technology | Purpose |
+|------------|---------|
+| **CSS Modules** | Scoped styling with BEM methodology |
+| **CSS Variables** | Dynamic theme switching |
+| **Framer Motion** | Smooth page transitions and animations |
 
 ## 📦 Installation
 

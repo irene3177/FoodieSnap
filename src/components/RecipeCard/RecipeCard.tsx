@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Recipe } from '../../types/recipe.types';
+import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import './RecipeCard.css';
 
 interface RecipeCardProps {
@@ -7,7 +8,6 @@ interface RecipeCardProps {
 }
 
 function RecipeCard({ recipe }: RecipeCardProps) {
-
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -30,19 +30,28 @@ function RecipeCard({ recipe }: RecipeCardProps) {
       tabIndex={0}
       aria-label={`View details for ${recipe.title}`}
     >
-      <img
-        src={recipe.image}
-        alt={recipe.title}
-        className="recipe-card__image"
-      />
+      <div className="recipe-card__image-container">
+        <img
+          src={recipe.image}
+          alt={recipe.title}
+          className="recipe-card__image"
+        />
+        <div className="recipe-card__favorite">
+          <FavoriteButton recipe={recipe} />
+        </div>
+      </div>
+
       <div className="recipe-card__content">
         <h3 className="recipe-card__title">{recipe.title}</h3>
         <p className="recipe-card__description">{recipe.description}</p>
+
         <div className="recipe-card__footer">
           <span className="recipe-card__ingredients-count">
             {recipe.ingredients.length} ingredients
           </span>
-          <span className="recipe-card__view-link">View Recipe →</span>
+          {recipe.category && (
+            <span className="recipe-card__category">{recipe.category}</span>
+          )}
         </div>
       </div>
     </div>

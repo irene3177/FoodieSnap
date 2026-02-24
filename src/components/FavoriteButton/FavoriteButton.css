@@ -1,0 +1,81 @@
+.favorite-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 10%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.favorite-button:hover {
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  transform: scale(1.02);
+}
+
+.favorite-button--active {
+  color: #ff4d4d;
+}
+
+.favorite-button--active:hover {
+  color: #ff3333;
+}
+
+/* Sizes */
+.favorite-button--small {
+  font-size: 0.875rem;
+}
+
+.favorite-button--small .favorite-button__icon {
+  width: 18px;
+  height: 18px;
+}
+
+.favorite-button--medium {
+  font-size: 1rem;
+}
+
+.favorite-button--medium .favorite-button__icon {
+  width: 24px;
+  height: 24px
+}
+
+.favorite-button--large {
+  font-size: 1.15rem;
+}
+
+.favorite-button--large .favorite-button__icon {
+  width: 32px;
+  height: 32px;
+}
+
+.favorite-button__icon {
+  transition: transform 0.2s ease;
+}
+
+.favorite-button:hover .favorite-button__icon {
+  transform: scale(1.1);
+}
+
+.favorite-button__text {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+/* Focus styles for accessibility */
+.favorite-button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.dark-theme .favorite-button--active:hover {
+  color: #ff5252;
+}
+
+.recipe-card .favorite-button--active {
+  color: #ff4d4d;
+}

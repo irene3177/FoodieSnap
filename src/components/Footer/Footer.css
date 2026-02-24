@@ -1,0 +1,33 @@
+.footer {
+  background-color: var(--footer-bg);
+  border-top: 1px solid var(--border-color);
+  padding: 2rem;
+  margin-top: auto;
+}
+
+.footer__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.footer__copyright {
+  margin-bottom: 0.5rem;
+}
+
+.footer__credits {
+  opacity: 0.8;
+}
+
+.footer__link {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer__link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
