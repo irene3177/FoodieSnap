@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { recipeApi } from '../../services/recipeApi';
 import { Recipe } from '../../types/recipe.types';
-import Loader from '../../components/Loader/Loader';
+import { RecipeDetailSkeleton } from '../../components/Skeleton/Skeleton';
 import FavoriteButton from '../../components/FavoriteButton/FavoriteButton';
 import './RecipeDetail.css';
 
@@ -39,7 +39,7 @@ function RecipeDetail() {
   }, [id]);
 
   if(loading) {
-    return <Loader message="Loading recipe details..." />;
+    return <RecipeDetailSkeleton />;
   }
 
   if (error || !recipe) {
@@ -113,7 +113,7 @@ function RecipeDetail() {
         <div className="recipe-detail__bottom">
             <div className="recipe-detail__section">
               <h2 className="recipe-detail__section-title">Ingredients</h2>
-              <ul className="recipe-detail__ingredients-list">
+              <ul className="recipe-detail__ingredient-list">
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="recipe-detail__ingredient-item">
                     <span className="recipe-detail__ingredient-bullet">•</span>

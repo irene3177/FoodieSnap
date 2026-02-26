@@ -1,14 +1,16 @@
 import { useFavorites } from '../../context/FavoritesContext';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import Loader from '../../components/Loader/Loader';
+import { FavoritesSkeleton } from '../../components/Skeleton/Skeleton';
+//import Loader from '../../components/Loader/Loader';
 import './Favorites.css';
 
 function Favorites() {
   const { state, clearFavorites } = useFavorites();
   const { favorites, loading, error } = state;
 
+
   if (loading) {
-    return <Loader message="Loading your favorites..." />;
+    return <FavoritesSkeleton />;
   }
 
   if (error) {
