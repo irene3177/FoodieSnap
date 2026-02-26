@@ -59,10 +59,11 @@
   bottom: 1rem;
   right: 1rem;
   background-color: var(--bg-card);
-  border-radius: 40px;
+  border-radius: 30px;
   box-shadow: 0 2px 8px var(--shadow-color);
   animation: slideUp 0.3s ease;
   z-index: 10;
+  padding: 0.25rem 0.5rem;
 }
 
 @keyframes slideUp {
