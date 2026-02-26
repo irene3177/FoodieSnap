@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { recipeApi } from '../../services/recipeApi';
 import { Recipe } from '../../types/recipe.types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import Loader from '../../components/Loader/Loader';
+import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import './Recipes.css';
 
 function Recipes() {
@@ -120,7 +120,13 @@ function Recipes() {
       )}
 
       {/* Loading state */}
-      {loading && <Loader message="Searching for delicious recipes..." />}
+      {loading && (
+        <div className="recipes-page__grid">
+          {[...Array(8)].map((_, index) => (
+            <RecipeCardSkeleton key={index} />
+          ))}
+        </div>
+      )}
 
       {/* Results */}
       {!loading && !error && (
