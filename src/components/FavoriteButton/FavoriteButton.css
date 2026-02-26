@@ -3,17 +3,41 @@
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 10%;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  position: relative;
   color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.recipe-card .favorite-button {
+  background-color: var(--bg-secondary);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.recipe-detail .favorite-button {
+  background: none;
+  box-shadow: none;
+  padding: 0.5rem;
 }
 
 .favorite-button:hover {
-  background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  transform: scale(1.02);
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.recipe-detail .favorite-button:hover {
+  background-color: transparent;
+  color: #ff4d4d;
+  transform: scale(1.03);
+}
+
+.recipe-detail .favorite-button--active:hover {
+  background-color: transparent;
+  color: #ff4d4d;
+  transform: scale(1.03);
 }
 
 .favorite-button--active {
@@ -21,12 +45,15 @@
 }
 
 .favorite-button--active:hover {
-  color: #ff3333;
+  background-color: transparent;
+  color: #ff4d4d;
+  transform: scale(1.05);
 }
 
 /* Sizes */
 .favorite-button--small {
   font-size: 0.875rem;
+  padding: 0.25rem;
 }
 
 .favorite-button--small .favorite-button__icon {
@@ -36,6 +63,7 @@
 
 .favorite-button--medium {
   font-size: 1rem;
+  padding: 0.5rem;
 }
 
 .favorite-button--medium .favorite-button__icon {
@@ -45,6 +73,7 @@
 
 .favorite-button--large {
   font-size: 1.15rem;
+  padding: 0.75rem;
 }
 
 .favorite-button--large .favorite-button__icon {
@@ -54,10 +83,8 @@
 
 .favorite-button__icon {
   transition: transform 0.2s ease;
-}
-
-.favorite-button:hover .favorite-button__icon {
-  transform: scale(1.1);
+  position: relative;
+  z-index: 2;
 }
 
 .favorite-button__text {
@@ -66,16 +93,44 @@
   color: var(--text-primary);
 }
 
+.favorite-button__sparkle {
+  position: absolute;
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 1;
+  animation: sparkle 0.6s ease-out forwards;
+}
+
+@keyframes sparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0), rotate(360deg);
+  }
+}
+
 /* Focus styles for accessibility */
 .favorite-button:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
-.dark-theme .favorite-button--active:hover {
-  color: #ff5252;
+.dark-theme .favorite-button--active {
+  color: #ff6b6b;
 }
 
-.recipe-card .favorite-button--active {
-  color: #ff4d4d;
+.dark-theme .favorite-button--active:hover {
+  color: #ff6b6b;
+}
+
+.dark-theme .recipe-detail .favorite-button--active:hover {
+  background-color: transparent;
+  color: #ff6b6b;
 }
