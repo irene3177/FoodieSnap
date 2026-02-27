@@ -26,6 +26,7 @@
   width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 1rem;
   font-size: 1rem;
+  margin-bottom: 1.5rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
   background-color: var(--bg-secondary);
@@ -125,6 +126,38 @@
 .recipes-page__no-results-hint {
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+
+.recipes-page__end-message {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.recipes-page__end-message p {
+  position: relative;
+  display: inline-block;
+}
+
+.recipes-page__end-message p::before,
+.recipes-page__end-message p::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 50px;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.recipes-page__end-message p::before {
+  right: 100%;
+  margin-right: 1rem;
+}
+
+.recipes-page__end-message p::after {
+  left: 100%;
+  margin-left: 1rem;
 }
 
 @media (max-width: 768px) {
