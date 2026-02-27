@@ -129,7 +129,7 @@ function Recipes() {
 
   return (
     <div className="recipes-page">
-      <div className="reipes-page__header">
+      <div className="recipes-page__header">
         <h1 className="recipes-page__title">Discover Recipes</h1>
 
         {/* Search Bar */}
