@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Recipe } from '../../types/recipe.types';
 import FavoriteButton from '../FavoriteButton/FavoriteButton';
+import RatingStars from '../RatingStars/RatingStars';
 import './RecipeCard.css';
 
 interface RecipeCardProps {
@@ -43,6 +44,11 @@ function RecipeCard({ recipe }: RecipeCardProps) {
 
       <div className="recipe-card__content">
         <h3 className="recipe-card__title">{recipe.title}</h3>
+
+        <div className="recipe-card__rating">
+          <RatingStars recipeId={recipe.id} size="small" interactive={false} showCount={false} />
+        </div>
+        
         <p className="recipe-card__description">{recipe.description}</p>
 
         <div className="recipe-card__footer">

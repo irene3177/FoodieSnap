@@ -1,0 +1,111 @@
+.top-rated {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.top-rated__title {
+  font-size: 2rem;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.top-rated__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+  border-radius: 3px;
+}
+
+.top-rated__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.top-rated__error {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.top-rated__empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.top-rated__empty p {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.top-rated__empty p:first-of-type {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.top-rated__explore-link {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background-color: var(--accent-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.top-rated__explore-link:hover {
+  background-color: var(--accent-hover);
+}
+
+.top-rated__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .top-rated {
+    padding: 1rem;
+  }
+
+  .top-rated__title {
+    font-size: 1.5rem;
+  }
+
+  .top-rated__grid {
+    gap: 1rem;
+  }
+
+  .top-rated__empty {
+    padding: 2rem 1rem;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .top-rated__title {
+    font-size: 1.25rem;
+  }
+}
