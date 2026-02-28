@@ -6,6 +6,7 @@ import { Recipe } from '../../types/recipe.types';
 import { RecipeDetailSkeleton } from '../../components/Skeleton/Skeleton';
 import FavoriteButton from '../../components/FavoriteButton/FavoriteButton';
 import './RecipeDetail.css';
+import RatingStars from '../../components/RatingStars/RatingStars';
 
 function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -80,16 +81,24 @@ function RecipeDetail() {
           <div className="recipe-detail__info">
             <h1 className="recipe-detail__title">{recipe.title}</h1>
             {/* Metadata tags */}
+            <div className="recipe-detail__rating-section">
+              <RatingStars recipeId={recipe.id} size="large" showCount />
+            </div>
             <div className="recipe-detail__meta">
+              {recipe.tags && recipe.tags.length > 0 && (
+                <div className="recipe-detail__tags">
+                  {recipe.tags.map(tag =>(
+                    <span key={tag} className="recipe-detail__tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+
               {recipe.category && (
                 <span className="recipe-detail__tag">{recipe.category}</span>
               )}
               {recipe.area && (
                 <span className="recipe-detail__tag">{recipe.area}</span>
               )}
-              {recipe.tags && recipe.tags.map( tag =>(
-                <span key={tag} className="recipe-detail__tag">{tag}</span>
-              ))}
             </div>
 
             <p className="recipe-detail__description">{recipe.description}</p>

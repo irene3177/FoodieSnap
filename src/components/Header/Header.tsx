@@ -21,6 +21,11 @@ function Header() {
               Recipes
             </NavLink>
           </li>
+                    <li className="header__nav-item">
+            <NavLink to="/top-rated" className={getActiveClass}>
+              Top Rated ⭐
+            </NavLink>
+          </li>
           <li className="header__nav-item">
             <NavLink to="/favorites" className={getActiveClass}>
               Favorites
