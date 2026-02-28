@@ -69,6 +69,13 @@ const favoritesReducer = (state: FavoritesState, action: FavoritesAction): Favor
             error: null
           };
 
+        case 'REORDER_FAVORITES':
+          return {
+            ...state,
+            favorites: action.payload,
+            error: null
+          };
+
         default:
           return state;
   }
@@ -153,12 +160,21 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     });
   };
 
+  const reorderFavorites = (reorderedFavorites: Recipe[]) => {
+    dispatch({ type: 'REORDER_FAVORITES', payload: reorderedFavorites });
+    setToast({
+      message: 'Favorites reordered',
+      type: 'info'
+    });
+  };
+
   const value: FavoritesContextType = {
     state,
     addFavorite,
     removeFavorite,
     isFavorite,
-    clearFavorites
+    clearFavorites,
+    reorderFavorites
   };
 
   return (

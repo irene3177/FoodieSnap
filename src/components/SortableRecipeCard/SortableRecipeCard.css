@@ -1,0 +1,30 @@
+.sortable-card {
+  height: 100%;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.sortable-card:active {
+  cursor: grabbing;
+}
+
+.sortable-card:hover .recipe-card {
+  box-shadow: 0 8px 16px var(--shadow-color);
+  transform: translateY(-2px);
+}
+
+.sortable-card::before {
+  content: '⋮⋮';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.sortable-card:hover::before {
+  opacity: 1;
+}
