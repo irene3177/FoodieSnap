@@ -8,19 +8,34 @@
 .favorites-page__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .favorites-page__title {
   color: var(--text-primary);
   font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+}
+.favorites-page__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.favorites-page__subtitle::before {
+  content: '👆';
+  font-size: 1rem;
 }
 
 .favorites-page__clear-button {
   padding: 0.5rem 1rem;
-  background-color: var(--bg-card);
+  background-color: transparent;
   color: var(--error-text);
   border: 1px solid var(--error-text);
   border-radius: 4px;
@@ -34,24 +49,58 @@
   color: white;
 }
 
-.favorites-page__count {
-  text-align: center;
-  color: var(--text-secondary);
+.favorites-page__stats {
   margin-bottom: 2rem;
+  text-align: center;
+}
+
+.favorites-page__count {
+  display: inline-block;
+  padding: 0.25rem 1rem;
+  background-color: var(--tag-bg);
+  color: var(--accent-primary);
+  border-radius: 20px;
   font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .favorites-page__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2rem;
+  margin-top: 2rem;
+}
+
+.favorites-page__tips {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.favorites-page__tips-title {
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.favorites-page__tips-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.favorites-page__tips-list li {
+  margin: 0.25rem 0;
 }
 
 /* Empty state */
 .favorites-page__empty {
   text-align: center;
   padding: 4rem 2rem;
-  background-color: var(--bg-card);
+  background-color: var(--bg-secondary);
   border-radius: 12px;
   box-shadow: 0 2px 8px var(--shadow-color);
   max-width: 500px;
@@ -135,13 +184,27 @@
     font-size: 1.5rem;
   }
 
-  .favorites-page__grid {
-    gap: 1rem;
-  }
-
   .favorites-page__header {
     flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+    align-items: stretch;
   }
+
+  .favorites-page__subtitle {
+    font-size: 0.75rem;
+  }
+
+  .favorites-page__clear-button {
+    align-self: flex-start;
+  }
+
+  .favorites-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* Keyboard focus styles */
+.sortable-card:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }

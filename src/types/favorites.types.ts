@@ -13,7 +13,8 @@ export type FavoritesAction =
   | { type: 'SET_FAVORITES'; payload: Recipe[] }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'CLEAR_FAVORITES' };
+  | { type: 'CLEAR_FAVORITES' }
+  | { type: 'REORDER_FAVORITES'; payload: Recipe[] };
 
 // Context type
 export interface FavoritesContextType {
@@ -22,4 +23,5 @@ export interface FavoritesContextType {
   removeFavorite: (recipeId: number) => void;
   isFavorite: (recipeId: number) => boolean;
   clearFavorites: () => void;
+  reorderFavorites: (reorderedFavorites: Recipe[]) => void;
 }
