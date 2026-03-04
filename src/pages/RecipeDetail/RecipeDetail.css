@@ -214,6 +214,10 @@
     padding: 1rem;
   }
 
+  .recipe-detail__grid {
+    grid-template-columns: 1fr;
+  }
+
   .recipe-detail__content {
     grid-template-columns: 1fr;
     gap: 2rem;
