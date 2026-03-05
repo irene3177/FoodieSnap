@@ -5,6 +5,7 @@ import { router } from './router/index.tsx';
 import { FavoritesProvider } from './context/FavoritesContext.tsx';
 import { ThemeProvider } from './context/ThemeContext.tsx';
 import { RatingProvider } from './context/RatingContext.tsx';
+import { CommentProvider } from './context/CommentContext.tsx';
 import './index.css';
 
 
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <FavoritesProvider>
         <RatingProvider>
-          <RouterProvider router={router} />
+          <CommentProvider>
+            <RouterProvider router={router} />
+          </CommentProvider>
         </RatingProvider>
       </FavoritesProvider>
     </ThemeProvider>
