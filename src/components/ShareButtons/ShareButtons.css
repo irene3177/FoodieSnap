@@ -1,0 +1,101 @@
+
+/* src/components/ShareButtons/ShareButtons.css */
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.share-buttons__label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.share-buttons__container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.share-buttons__button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.share-buttons__button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.share-buttons__button--twitter:hover {
+  background-color: #1DA1F2;
+  color: white;
+  border-color: #1DA1F2;
+}
+
+.share-buttons__button--facebook:hover {
+  background-color: #4267B2;
+  color: white;
+  border-color: #4267B2;
+}
+
+.share-buttons__button--pinterest:hover {
+  background-color: #E60023;
+  color: white;
+  border-color: #E60023;
+}
+
+.share-buttons__button--copy:hover {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.share-buttons__tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  z-index: 1000;
+}
+
+.share-buttons__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--bg-secondary) transparent transparent transparent;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .share-buttons {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

@@ -5,8 +5,10 @@ import { recipeApi } from '../../services/recipeApi';
 import { Recipe } from '../../types/recipe.types';
 import { RecipeDetailSkeleton } from '../../components/Skeleton/Skeleton';
 import FavoriteButton from '../../components/FavoriteButton/FavoriteButton';
-import './RecipeDetail.css';
 import RatingStars from '../../components/RatingStars/RatingStars';
+import ShareButtons from '../../components/ShareButtons/ShareButtons';
+import CommentSection from '../../components/CommentSection/CommentSection';
+import './RecipeDetail.css';
 
 function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -84,6 +86,15 @@ function RecipeDetail() {
             <div className="recipe-detail__rating-section">
               <RatingStars recipeId={recipe.id} size="large" showCount />
             </div>
+            
+            {/* Share buttons */}
+            <ShareButtons 
+              title={recipe.title}
+              url={`/recipe/${recipe.id}`}
+              description={recipe.description}
+              image={recipe.image}
+            />
+
             <div className="recipe-detail__meta">
               {recipe.tags && recipe.tags.length > 0 && (
                 <div className="recipe-detail__tags">
@@ -141,6 +152,7 @@ function RecipeDetail() {
             )}
 
         </div>
+        <CommentSection recipeId={recipe.id} recipeTitle={recipe.title} />
       </div>    
     </div>
   );
