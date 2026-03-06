@@ -1,15 +1,22 @@
+import { Types, Document } from 'mongoose';
+
 export interface IUser {
-  _id?: string;
+  _id?: Types.ObjectId;
   username: string;
   email: string;
   password: string;
   avatar?: string;
+  bio?: string;
+  savedRecipes?: Types.ObjectId[];
   favorites?: string[];
-  createdAt?: Date;
+}
+
+export interface IUserDocument extends Document, Omit<IUser, '_id'> {
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 export interface IRecipe {
-  _id?: string;
+  _id?: Types.ObjectId;
   title: string;
   description?: string;
   ingredients: string[];
@@ -20,22 +27,19 @@ export interface IRecipe {
   author: string | IUser;
   rating: number;
   ratingCount: number;
-  createdAt?: Date;
 }
 
 export interface IComment {
-  _id?: string;
+  _id?: Types.ObjectId;
   text: string;
-  recipeId: string;
-  userId: string;
+  recipeId: Types.ObjectId;
+  userId: Types.ObjectId;
   userName: string;
   userAvatar?: string;
   rating?: number;
   likes: number;
-  likedBy: string[];
+  likedBy: Types.ObjectId[];
   isEdited: boolean;
-  createdAt: Date;
-  updatedAt?: Date;
 }
 
 export interface ICommentInput {
