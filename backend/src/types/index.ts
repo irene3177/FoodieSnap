@@ -1,61 +1,16 @@
-import { Types, Document } from 'mongoose';
+export * from './user.types';
+export * from './comment.types';
+export * from './recipe.types';
+export * from './api.types';
 
-export interface IUser {
-  _id?: Types.ObjectId;
-  username: string;
-  email: string;
-  password: string;
-  avatar?: string;
-  bio?: string;
-  savedRecipes?: Types.ObjectId[];
-  favorites?: string[];
-}
 
-export interface IUserDocument extends Document, Omit<IUser, '_id'> {
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
+/*
 
-export interface IRecipe {
-  _id?: Types.ObjectId;
-  title: string;
-  description?: string;
-  ingredients: string[];
-  instructions: string[];
-  imageUrl?: string;
-  cookingTime?: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  author: string | IUser;
-  rating: number;
-  ratingCount: number;
-}
+// В любом файле можно импортировать все из одного места
+import { IUser, IComment, IRecipe, IApiResponse } from '../types';
 
-export interface IComment {
-  _id?: Types.ObjectId;
-  text: string;
-  recipeId: Types.ObjectId;
-  userId: Types.ObjectId;
-  userName: string;
-  userAvatar?: string;
-  rating?: number;
-  likes: number;
-  likedBy: Types.ObjectId[];
-  isEdited: boolean;
-}
+// Или конкретные типы
+import { IUserDocument } from '../types/user.types';
+import { ICommentInput } from '../types/comment.types';
 
-export interface ICommentInput {
-  text: string;
-  recipeId: string;
-  rating?: number;
-}
-
-export interface ICommentUpdateInput {
-  text?: string;
-  rating?: number;
-}
-
-export interface IApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
+*/

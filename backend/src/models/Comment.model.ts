@@ -55,6 +55,7 @@ const CommentSchema = new Schema<ICommentDocument>({
       ret.recipeId = ret.recipeId.toString();
       ret.userId = ret.userId.toString();
       ret.likedBy = ret.likedBy.map((id: any) => id.toString());
+      delete ret.__v;
       return ret;
     }
   }

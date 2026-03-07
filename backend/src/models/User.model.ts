@@ -39,7 +39,8 @@ const UserSchema = new Schema<IUserDocument>({
     ref: 'Recipe'
   }],
   favorites: [{
-    type: String
+    type: Schema.Types.ObjectId,
+    ref: 'Recipe'
   }]
 },
 {
