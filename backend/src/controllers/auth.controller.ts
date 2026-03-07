@@ -154,8 +154,7 @@ export const getMe = async (
 ): Promise<void> => {
   try {
     const user = await UserModel.findById(req.userId)
-      .select('-password')
-      .lean();
+      .select('-password');
 
     res.json({
       success: true,
@@ -283,78 +282,3 @@ export const logout = async (
     message: 'Logged out successfully'
   });
 };
-
-
-
-
-
-
-/*
-// Фронтенд - работа с cookies:
-// frontend/src/services/auth.js
-const API_URL = 'http://localhost:5001/api';
-
-export const authService = {
-  async register(userData) {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // 👈 ВАЖНО! Отправляем cookies
-      body: JSON.stringify(userData)
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      // Сохраняем пользователя в localStorage (только данные!)
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-    }
-    
-    return data;
-  },
-
-  async login(credentials) {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // 👈 ВАЖНО!
-      body: JSON.stringify(credentials)
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-    }
-    
-    return data;
-  },
-
-  async logout() {
-    const response = await fetch(`${API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include', // 👈 ВАЖНО!
-    });
-    
-    if (response.ok) {
-      localStorage.removeItem('user');
-    }
-    
-    return response.json();
-  },
-
-  // Для защищенных запросов
-  async getProfile() {
-    const response = await fetch(`${API_URL}/auth/me`, {
-      credentials: 'include', // 👈 Токен автоматически в cookies
-    });
-    return response.json();
-  }
-};
-
-
-*/

@@ -12,8 +12,7 @@ export const getRecipeComments = async (
 
     const comments = await CommentModel
       .find({ recipeId })
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
     
     res.json({
       success: true,
@@ -75,7 +74,7 @@ export const updateComment = async (
         ...updates,
         isEdited: true,
       },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!comment) {

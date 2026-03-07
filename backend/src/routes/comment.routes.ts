@@ -19,6 +19,5 @@ router.post('/', authMiddleware, validateComment, createComment);
 router.put('/:id', authMiddleware, validateComment, updateComment);
 router.delete('/:id', authMiddleware, deleteComment);
 router.post('/:id/like', authMiddleware, toggleLike);
-router.post('/:id/like', authMiddleware, toggleLike);
 
 export default router;
