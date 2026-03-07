@@ -1,57 +1,16 @@
-export interface IUser {
-  _id?: string;
-  username: string;
-  email: string;
-  password: string;
-  avatar?: string;
-  favorites?: string[];
-  createdAt?: Date;
-}
+export * from './user.types';
+export * from './comment.types';
+export * from './recipe.types';
+export * from './api.types';
 
-export interface IRecipe {
-  _id?: string;
-  title: string;
-  description?: string;
-  ingredients: string[];
-  instructions: string[];
-  imageUrl?: string;
-  cookingTime?: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  author: string | IUser;
-  rating: number;
-  ratingCount: number;
-  createdAt?: Date;
-}
 
-export interface IComment {
-  _id?: string;
-  text: string;
-  recipeId: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  rating?: number;
-  likes: number;
-  likedBy: string[];
-  isEdited: boolean;
-  createdAt: Date;
-  updatedAt?: Date;
-}
+/*
 
-export interface ICommentInput {
-  text: string;
-  recipeId: string;
-  rating?: number;
-}
+// В любом файле можно импортировать все из одного места
+import { IUser, IComment, IRecipe, IApiResponse } from '../types';
 
-export interface ICommentUpdateInput {
-  text?: string;
-  rating?: number;
-}
+// Или конкретные типы
+import { IUserDocument } from '../types/user.types';
+import { ICommentInput } from '../types/comment.types';
 
-export interface IApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
+*/

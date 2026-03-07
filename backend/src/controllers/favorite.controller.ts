@@ -1,0 +1,186 @@
+import { Response } from 'express';
+import { UserModel } from '../models/User.model';
+import { RecipeModel } from '../models/Recipe.model';
+import { AuthRequest } from '../middleware/auth.middleware';
+import { IFavoriteResponse } from '../types';
+import mongoose from 'mongoose';
+
+// Add a recipe to the user's favorites
+export const addToFavorites = async (
+  req: AuthRequest & { params: { recipeId: string } },
+  res: Response
+): Promise<void> => {
+  try {
+    const { recipeId } = req.params;
+    const userId = req.userId!;
+
+    // Validate recipe ID
+    if (!mongoose.Types.ObjectId.isValid(recipeId)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid recipe ID'
+      });
+      return;
+    }
+
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      res.status(404).json({
+        success: false,
+        error: 'Recipe not found'
+      });
+      return;
+    }
+
+    // Add recipe to user's favorites
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { favorites: recipeId } },
+      { returnDocument: 'after' }
+    ).populate('favorites');
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    const favoritesCount = user.favorites?.length || 0;
+
+    const response: IFavoriteResponse = {
+      recipeId,
+      isFavorite: true,
+      favoritesCount
+    };
+
+    res.json({
+      success: true,
+      data: response
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add to favorites'
+    });
+  }
+};
+
+// Remove a recipe from the user's favorites
+export const removeFromFavorites = async (
+  req: AuthRequest & { params: { recipeId: string } },
+  res: Response
+): Promise<void> => {
+  try {
+    const { recipeId } = req.params;
+    const userId = req.userId!;
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $pull: { favorites: recipeId } },
+      { returnDocument: 'after' }
+    );
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    const response: IFavoriteResponse = {
+      recipeId,
+      isFavorite: false,
+      favoritesCount: user.favorites?.length || 0
+    };
+
+    res.json({
+      success: true,
+      data: response
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to remove from favorites'
+    });
+  }
+};
+
+// Check if a recipe is in the user's favorites
+export const checkFavorite = async (
+  req: AuthRequest & { params: { recipeId: string } },
+  res: Response
+): Promise<void> => {
+  try {
+    const { recipeId } = req.params;
+    const userId = req.userId!;
+
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    const favorites = user.favorites || [];
+
+    const isFavorite = favorites.some(
+      id => id.toString() === recipeId
+    );
+
+    res.json({
+      success: true,
+      data: {
+        recipeId,
+        isFavorite,
+        favoritesCount: favorites.length
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check favorite status'
+    });
+  }
+};
+
+// Get all favorite recipes for the user
+export const getFavorites = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+
+    const user = await UserModel.findById(userId)
+      .populate({
+        path: 'favorites',
+        populate: {
+          path: 'author',
+          select: 'username avatar'
+        }
+      });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: user.favorites
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch favorites'
+    });
+  }
+};
