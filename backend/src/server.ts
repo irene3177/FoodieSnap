@@ -5,7 +5,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import commentRoutes from './routes/comment.routes';
 import authRoutes from './routes/auth.routes';
-// import recipeRoutes from './routes/recipe.routes';
+import recipeRoutes from './routes/recipe.routes';
+import favoriteRoutes from './routes/favorite.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 
 
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Health check
 app.get('/api/health', (_req, res) => {
   res.json({ 
     success: true, 
@@ -37,10 +39,8 @@ app.get('/api/health', (_req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/comments', commentRoutes);
-// app.use('/api/auth', authRoutes);
-// app.use('/api/recipes', recipeRoutes);
-
-// Health check
+app.use('/api/recipes', recipeRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // 404 handler
 app.use(notFound);
