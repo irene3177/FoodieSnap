@@ -65,10 +65,43 @@
   gap: 1rem;
 }
 
+.header__auth-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header__auth-button--login {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.header__auth-button--login:hover {
+  background-color: var(--border-color);
+}
+
+.header__auth-button--register {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+.header__auth-button--register:hover {
+  background-color: var(--accent-hover);
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 1rem;
     flex-wrap: wrap;
+  }
+
+  .header__auth-button {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
   }
 
   .header__nav {
