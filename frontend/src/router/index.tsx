@@ -4,6 +4,7 @@ import Recipes from '../pages/Recipes/Recipes';
 import Favorites from '../pages/Favorites/Favorites';
 import RecipeDetail from '../pages/RecipeDetail/RecipeDetail';
 import TopRated from '../pages/TopRated/TopRated';
+import ProfilePage from '../pages/Profile/ProfilePage';
 import App from '../App';
 
 export const router = createBrowserRouter([
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: 'top-rated',
         element: <TopRated />
+      },
+      {
+      path: 'profile/:userId',
+      element: <ProfilePage />
       }
     ]
   }

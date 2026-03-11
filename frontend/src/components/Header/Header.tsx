@@ -1,8 +1,18 @@
+import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import LoginModal from '../Auth/LoginModal';
+import RegisterModal from '../Auth/RegisterModal';
+import UserMenu from '../Auth/UserMenu';
 import './Header.css';
 
 function Header() {
+  const { isAuthenticated } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+
+
   const getActiveClass = ({ isActive}: { isActive: boolean }): string => {
     return isActive ? 'header__nav-link header__nav-link--active' : 'header__nav-link';
   };
@@ -36,7 +46,45 @@ function Header() {
 
       <div className="header__actions">
         <ThemeToggle />
+
+        {isAuthenticated ? (
+          <UserMenu />
+        ) : (
+          <>
+            <button
+              className="header__auth-button header__auth-button--login"
+              onClick={() => setShowLogin(true)}
+            >
+              Login
+            </button>
+            <button
+              className="header__auth-button header__auth-button--register"
+              onClick={() => setShowRegister(true)}
+            >
+              Sign Up
+            </button>
+          </>
+        )}
       </div>
+
+      {/* Auth Modals */}
+      <LoginModal 
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSwitchToRegister={() => {
+          setShowLogin(false);
+          setShowRegister(true);
+        }}
+      />
+
+      <RegisterModal 
+        isOpen={showRegister}
+        onClose={() => setShowRegister(false)}
+        onSwitchToLogin={() => {
+          setShowRegister(false);
+          setShowLogin(true);
+        }}
+      />
     </header>
   );
 }
