@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Recipe } from '../../types/recipe.types';
+import { Recipe } from '../../types';
 import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import RatingStars from '../RatingStars/RatingStars';
 import './RecipeCard.css';
@@ -12,7 +12,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/recipe/${recipe.id}`);
+    navigate(`/recipe/${recipe._id}`);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -33,9 +33,10 @@ function RecipeCard({ recipe }: RecipeCardProps) {
     >
       <div className="recipe-card__image-container">
         <img
-          src={recipe.image}
+          src={recipe.imageUrl}
           alt={recipe.title}
           className="recipe-card__image"
+          loading="lazy"
         />
         <div className="recipe-card__favorite">
           <FavoriteButton recipe={recipe} />
@@ -46,7 +47,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
         <h3 className="recipe-card__title">{recipe.title}</h3>
 
         <div className="recipe-card__rating">
-          <RatingStars recipeId={recipe.id} size="small" interactive={false} showCount={false} />
+          <RatingStars recipeId={recipe._id} size="small" interactive={false} showCount={false} />
         </div>
         
         <p className="recipe-card__description">{recipe.description}</p>
@@ -57,6 +58,9 @@ function RecipeCard({ recipe }: RecipeCardProps) {
           </span>
           {recipe.category && (
             <span className="recipe-card__category">{recipe.category}</span>
+          )}
+          {recipe.cookingTime && (
+            <span className="recipe-card__time">{recipe.cookingTime} min</span>
           )}
         </div>
       </div>

@@ -3,7 +3,20 @@ import { UserModel } from '../models/User.model';
 import { RecipeModel } from '../models/Recipe.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { IFavoriteResponse } from '../types';
-import mongoose from 'mongoose';
+
+const ensureRecipeExists = async (recipeId: string, res: Response) => {
+  const recipe = await RecipeModel.findById(recipeId);
+    
+    if (!recipe) {
+      res.status(404).json({
+        success: false,
+        error: 'Recipe not found'
+      });
+      return null;
+    }
+
+    return recipe;
+};
 
 // Add a recipe to the user's favorites
 export const addToFavorites = async (
@@ -14,23 +27,8 @@ export const addToFavorites = async (
     const { recipeId } = req.params;
     const userId = req.userId!;
 
-    // Validate recipe ID
-    if (!mongoose.Types.ObjectId.isValid(recipeId)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid recipe ID'
-      });
-      return;
-    }
-
-    const recipe = await RecipeModel.findById(recipeId);
-    if (!recipe) {
-      res.status(404).json({
-        success: false,
-        error: 'Recipe not found'
-      });
-      return;
-    }
+    const recipe = ensureRecipeExists(recipeId, res);
+    if(!recipe) return;
 
     // Add recipe to user's favorites
     const user = await UserModel.findByIdAndUpdate(
@@ -47,12 +45,10 @@ export const addToFavorites = async (
       return;
     }
 
-    const favoritesCount = user.favorites?.length || 0;
-
     const response: IFavoriteResponse = {
       recipeId,
       isFavorite: true,
-      favoritesCount
+      favoritesCount: user.favorites?.length || 0
     };
 
     res.json({
@@ -75,6 +71,9 @@ export const removeFromFavorites = async (
   try {
     const { recipeId } = req.params;
     const userId = req.userId!;
+
+    const recipe = ensureRecipeExists(recipeId, res);
+    if(!recipe) return;
 
     const user = await UserModel.findByIdAndUpdate(
       userId,
@@ -117,6 +116,9 @@ export const checkFavorite = async (
     const { recipeId } = req.params;
     const userId = req.userId!;
 
+    const recipe = ensureRecipeExists(recipeId, res);
+    if(!recipe) return;
+
     const user = await UserModel.findById(userId);
     if (!user) {
       res.status(404).json({
@@ -126,18 +128,16 @@ export const checkFavorite = async (
       return;
     }
 
-    const favorites = user.favorites || [];
-
-    const isFavorite = favorites.some(
+    const isFavorite = user.favorites?.some(
       id => id.toString() === recipeId
-    );
+    ) || false;
 
     res.json({
       success: true,
       data: {
         recipeId,
         isFavorite,
-        favoritesCount: favorites.length
+        favoritesCount: user.favorites?.length || 0
       }
     });
   } catch (error) {
@@ -181,6 +181,91 @@ export const getFavorites = async (
     res.status(500).json({
       success: false,
       error: 'Failed to fetch favorites'
+    });
+  }
+};
+
+// Clear all favorites for the user
+export const clearAllFavorites = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { favorites: [] } },
+      { returnDocument: 'after' }
+    );
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        message: 'All favorites cleared successfully',
+        favoritesCount: 0
+      }
+    });
+  } catch (error) {
+    console.error('❌ Clear all favorites error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear favorites'
+    });
+  }
+};
+
+// Reorder favorites
+export const reorderFavorites = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+    const { reorderedIds } = req.body; // Expect an array of IDs
+
+    if (!Array.isArray(reorderedIds)) {
+      res.status(400).json({
+        success: false,
+        error: 'reorderedIds must be an array'
+      });
+      return;
+    }
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { favorites: reorderedIds } },
+      { returnDocument: 'after' }
+    ).populate('favorites');
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Favorites reordered successfully',
+        favorites: user.favorites
+      }
+    });
+  } catch (error) {
+    console.error('❌ Reorder favorites error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reorder favorites'
     });
   }
 };

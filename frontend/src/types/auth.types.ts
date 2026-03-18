@@ -1,26 +1,18 @@
 export interface User {
   _id: string;
-  email: string;
   username: string;
+  email: string;
   avatar?: string;
   bio?: string;
   savedRecipes?: string[];
   favorites?: string[];
   createdAt?: string;
-}
-
-export interface UserProfile extends User {
-  recipeCount?: number;
-  followersCount?: number;
-  followingCount?: number;
+  updatedAt?: string;
 }
 
 export interface AuthResponse {
   success: boolean;
-  data?: {
-    user: User;
-    token?: string;
-  };
+  data?: User;
   message?: string;
   error?: string;
 }
@@ -47,7 +39,6 @@ export interface UpdateProfileData {
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -55,13 +46,14 @@ export interface AuthState {
 
 export type AuthAction = 
   | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
+  | { type: 'LOGIN_SUCCESS'; payload: { user: User } }
   | { type: 'LOGIN_FAILURE'; payload: string }
   | { type: 'REGISTER_START' }
-  | { type: 'REGISTER_SUCCESS'; payload: { user: User; token: string } }
+  | { type: 'REGISTER_SUCCESS'; payload: { user: User } }
   | { type: 'REGISTER_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'UPDATE_USER', payload: { user: User } };
 
 export interface AuthResult {
   success: boolean;

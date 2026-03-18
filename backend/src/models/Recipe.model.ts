@@ -26,6 +26,22 @@ const RecipeSchema = new Schema<IRecipeDocument>({
     type: String,
     default: 'https://picsum.photos/400/300'
   },
+  youtubeUrl: {
+    type: String,
+    default: ''
+  },
+  category: {
+    type: String,
+    default: ''
+  },
+  area: {
+    type: String,
+    default: ''
+  },
+  tags: [{
+    type: String,
+    default: []
+  }],
   cookingTime: {
     type: Number,
     min: 1
@@ -37,8 +53,7 @@ const RecipeSchema = new Schema<IRecipeDocument>({
   },
   author: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: 'User'
   },
   rating: {
     type: Number,
@@ -49,6 +64,15 @@ const RecipeSchema = new Schema<IRecipeDocument>({
   ratingCount: {
     type: Number,
     default: 0
+  },
+  source: {
+    type: String,
+    enum: ['user', 'theMealDB'],
+    default: 'user'
+  },
+  sourceId: {
+    type: String,
+    sparse: true
   }
 },
 {

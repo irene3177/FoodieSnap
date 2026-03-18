@@ -1,24 +1,22 @@
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import commentRoutes from './routes/comment.routes';
+import { config } from './config';
+import commentsRoutes from './routes/comments.routes';
 import authRoutes from './routes/auth.routes';
-import recipeRoutes from './routes/recipe.routes';
-import favoriteRoutes from './routes/favorite.routes';
+import recipesRoutes from './routes/recipes.routes';
+import favoritesRoutes from './routes/favorites.routes';
+import ratingRoutes from './routes/rating.routes';
+import usersRoutes from './routes/user.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 
-
-dotenv.config();
-
 const app: Application = express();
-const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
   // origin: '*',
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: config.frontendUrl,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -38,9 +36,11 @@ app.get('/api/health', (_req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/recipes', recipeRoutes);
-app.use('/api/favorites', favoriteRoutes);
+app.use('/api/comments', commentsRoutes);
+app.use('/api/recipes', recipesRoutes);
+app.use('/api/favorites', favoritesRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/users', usersRoutes);
 
 // 404 handler
 app.use(notFound);
@@ -50,11 +50,11 @@ app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI!);
+    await mongoose.connect(config.mongoUri);
     console.log('Connected to MongoDB');
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
+    app.listen(config.port, () => {
+      console.log(`🚀 Server is running on port ${config.port}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

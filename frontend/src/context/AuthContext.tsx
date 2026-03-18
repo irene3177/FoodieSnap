@@ -6,7 +6,7 @@ import {
   UpdateProfileData,
   AuthContextType,
   AuthResult
-} from '../types/auth.types';
+} from '../types';
 import { authApi } from '../services/authApi';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,27 +17,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const storedUser = authApi.getCurrentUser();
-      if (storedUser) {
-        setUser(storedUser);
-        await refreshUser();
-      }
-      setIsLoading(false);
-    };
-
-    initAuth();
+    checkSession();
   }, []);
 
-  const refreshUser = async () => {
+  const checkSession = async () => {
+    setIsLoading(true);
     try {
-      const response = await authApi.getProfile();
-      if (response.success && response.data?.user) {
-        setUser(response.data.user);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      const response = await authApi.getMe();
+      if (response.success && response.data) {
+        // Проверяем структуру ответа
+        if ('user' in response.data) {
+          setUser(response.data);
+        } else {
+          setUser(response.data);
+        }
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Session check failed:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshUser = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.getMe();
+      if (response.success && response.data) {
+        setUser(response.data);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Failed to refresh user:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,8 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const response = await authApi.login(credentials);
 
-      if (response.success && response.data?.user) {
-        setUser(response.data.user);
+      if (response.success && response.data) {
+        setUser(response.data);
         return { success: true };
       } else {
         const errorMsg = response.error || 'Login failed';
@@ -69,8 +88,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const response = await authApi.register(credentials);
 
-      if (response.success && response.data?.user) {
-        setUser(response.data.user);
+      if (response.success && response.data) {
+        setUser(response.data);
         return { success: true };
       } else {
         const errorMsg = response.error || 'Registration failed';
@@ -90,8 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const response = await authApi.updateProfile(data);
 
-      if (response.success && response.data?.user) {
-        setUser(response.data.user);
+      if (response.success && response.data) {
+        setUser(response.data);
         return { success: true };
       } else {
         const errorMsg = response.error || 'Profile update failed';
@@ -111,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     } finally {
       setIsLoading(false);
+      window.location.href = '/';
     }
   };
 

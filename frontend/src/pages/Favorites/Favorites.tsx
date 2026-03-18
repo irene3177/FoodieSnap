@@ -1,3 +1,4 @@
+import { useEffect  } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -13,15 +14,18 @@ import {
   SortableContext,
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
-import { useFavorites } from '../../context/FavoritesContext';
-//import RecipeCard from '../../components/RecipeCard/RecipeCard';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { fetchFavorites, clearAllFavorites, reorderFavorites } from '../../store/favoritesSlice';
+import { showToast } from '../../store/toastSlice';
 import SortableRecipeCard from '../../components/SortableRecipeCard/SortableRecipeCard';
 import { FavoritesSkeleton } from '../../components/Skeleton/Skeleton';
+import { useAuth } from '../../context/AuthContext';
 import './Favorites.css';
 
 function Favorites() {
-  const { state, clearFavorites, reorderFavorites } = useFavorites();
-  const { favorites, loading, error } = state;
+  const dispatch = useAppDispatch();
+  const { user } = useAuth();
+  const { items: favorites, loading, error } = useAppSelector(state => state.favorites);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -34,19 +38,56 @@ function Favorites() {
     })
   );
 
+  useEffect (() => {
+    if (user) {
+      dispatch(fetchFavorites());
+    }
+  }, [dispatch, user]);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = favorites.findIndex((item) => item.id === active.id);
-      const newIndex = favorites.findIndex((item) => item.id === over.id);
+      const oldIndex = favorites.findIndex((item) => item._id === active.id);
+      const newIndex = favorites.findIndex((item) => item._id === over.id);
 
       const reorderedItems = arrayMove(favorites, oldIndex, newIndex);
-      reorderFavorites(reorderedItems);
+      dispatch(reorderFavorites(reorderedItems));
+
+      dispatch(showToast({
+        message: 'Favorites reordered!',
+        type: 'info'
+      }));
     }
   };
 
-  if (loading) {
+  const handleClearAll = async () => {
+    if (window.confirm('Are you sure you want to clear all favorites?')) {
+      await dispatch(clearAllFavorites());
+
+      dispatch(showToast({
+        message: 'All favorites cleared!',
+        type: 'info'
+      }));
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="favorites-page__unauthorized">
+        <div className="favorites-page__empty-icon">❤️</div>
+        <h2 className="favorites-page__empty-title">Please log in</h2>
+        <p className="favorites-page__empty-message">
+          You need to be logged in to view your favorites
+        </p>
+        <a href="/login" className="favorites-page__explore-link">
+          Go to Login
+        </a>
+      </div>
+    );
+  }
+
+  if (loading && favorites.length === 0) {
     return <FavoritesSkeleton />;
   }
 
@@ -57,7 +98,7 @@ function Favorites() {
         <p>{error}</p>
         <button
         className="favorites-page__retry-button"
-        onClick={() => window.location.reload()}
+        onClick={() => dispatch(fetchFavorites())}
         >
           Try Again
         </button>
@@ -79,7 +120,7 @@ function Favorites() {
         {favorites.length > 0 && (
           <button
           className="favorites-page__clear-button"
-          onClick={clearFavorites}
+          onClick={handleClearAll}
           aria-label="Clear all favorites"
           >
             Clear All
@@ -112,13 +153,13 @@ function Favorites() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={favorites.map(r => r.id)}
+              items={favorites.map(r => r._id)}
               strategy={rectSortingStrategy}
             >
               <div className="favorites-page__grid">
                 {favorites.map((recipe) => (
                   <SortableRecipeCard
-                    key={recipe.id}
+                    key={recipe._id}
                     recipe={recipe}
                   />
                 ))}

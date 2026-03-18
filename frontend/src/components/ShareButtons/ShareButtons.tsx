@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SharePlatform } from '../../types/comment.types';
+import { SharePlatform } from '../../types';
 import './ShareButtons.css';
 
 interface ShareButtonsProps {

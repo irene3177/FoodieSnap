@@ -4,8 +4,10 @@ import {
   addToFavorites,
   removeFromFavorites,
   checkFavorite,
-  getFavorites
-} from '../controllers/favorite.controller';
+  getFavorites,
+  clearAllFavorites,
+  reorderFavorites
+} from '../controllers/favorites.controller';
 
 const router = Router();
 
@@ -15,6 +17,8 @@ router.use(authMiddleware);
 router.get('/', getFavorites);
 router.get('/:recipeId/check', checkFavorite);
 router.post('/:recipeId', addToFavorites);
+router.put('/reorder', reorderFavorites);
 router.delete('/:recipeId', removeFromFavorites);
+router.delete('/', clearAllFavorites);
 
 export default router;

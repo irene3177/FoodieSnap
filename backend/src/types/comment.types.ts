@@ -11,6 +11,8 @@ export interface IComment {
   likes: number;
   likedBy: Types.ObjectId[];
   isEdited: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ICommentInput {

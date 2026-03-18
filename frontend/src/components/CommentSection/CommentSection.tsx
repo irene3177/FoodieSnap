@@ -1,29 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useComments } from '../../context/CommentContext';
-import { Comment } from '../../types/comment.types';
+import { selectCommentsByRecipeId } from '../../store/commentsSlice';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import {
+  fetchRecipeComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  toggleLike
+} from '../../store/commentsSlice';
 import RatingStars from '../RatingStars/RatingStars';
+import { Comment } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { showToast } from '../../store/toastSlice';
 import './CommentSection.css';
 
 interface CommentSectionProps {
-  recipeId: number;
+  recipeId: string;
   recipeTitle: string;
 }
 
 function CommentSection({ recipeId }: CommentSectionProps) {
-  const { getCommentsForRecipe, addComment, editComment, deleteComment, likeComment } = useComments();
+  const dispatch = useAppDispatch();
+  const { user } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [commentRating, setCommentRating] = useState<number>(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [showRating, setShowRating] = useState(false);
 
-  const comments = getCommentsForRecipe(recipeId);
+  const selectComments = useMemo(() => selectCommentsByRecipeId(recipeId), [recipeId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const comments = useAppSelector(selectComments);
+  const loading = useAppSelector(state => state.comments.loading);
+
+  useEffect(() => {
+    dispatch(fetchRecipeComments(recipeId));
+  }, [dispatch, recipeId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      dispatch(showToast({
+        message: 'Please log in to leave a comment',
+        type: 'error'
+      }));
+      return;
+    }
+
     if (newComment.trim()) {
-      addComment(recipeId, newComment.trim(), commentRating || undefined);
+      await dispatch(createComment({
+        recipeId,
+        text: newComment.trim(),
+        rating: commentRating || undefined
+      }));
       setNewComment('');
       setCommentRating(0);
       setShowRating(false);
@@ -31,19 +62,39 @@ function CommentSection({ recipeId }: CommentSectionProps) {
   };
 
   const handleEdit = (comment: Comment) => {
-    setEditingId(comment.id);
+    setEditingId(comment._id);
     setEditText(comment.text);
   };
 
-  const handleSaveEdit = (commentId: string) => {
+  const handleSaveEdit = async (commentId: string) => {
     if (editText.trim()) {
-      editComment(recipeId, commentId, editText.trim());
+      await dispatch(updateComment({
+        commentId,
+        text: editText.trim()
+      }));
       setEditingId(null);
       setEditText('');
     }
   };
 
-  const formatDate = (timestamp: number) => {
+  const handleDelete = async (commentId: string) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      await dispatch(deleteComment(commentId));
+    }
+  };
+
+  const handleLike = async (commentId: string) => {
+    if (!user) {
+      dispatch(showToast({
+        message: 'Please log in to like a comment',
+        type: 'error'
+      }));
+      return;
+    }
+    await dispatch(toggleLike({ commentId, recipeId }));
+  };
+
+  const formatDate = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
@@ -65,20 +116,21 @@ function CommentSection({ recipeId }: CommentSectionProps) {
       <form className="comment-section__form" onSubmit={handleSubmit}>
         <div className="comment-section__form-header">
           <img 
-            src="https://via.placeholder.com/32" 
+            src={user?.avatar || 'https://picsum.photos/32/32'}
             alt="User avatar" 
             className="comment-section__avatar"
           />
           <div className="comment-section__form-fields">
             <textarea
               className="comment-section__input"
-              placeholder="Share your thoughts about this recipe..."
+              placeholder={user ? "Share your thoughts..." : "Please log in to leave a comment"}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               rows={2}
+              disabled={!user}
             />
             
-            {showRating && (
+            {showRating && user && (
               <motion.div 
                 className="comment-section__rating"
                 initial={{ opacity: 0, height: 0 }}
@@ -95,24 +147,26 @@ function CommentSection({ recipeId }: CommentSectionProps) {
               </motion.div>
             )}
 
-            <div className="comment-section__form-actions">
-              <button
-                type="button"
-                className="comment-section__rating-toggle"
-                onClick={() => setShowRating(!showRating)}
-              >
-                {showRating ? '− Remove rating' : '+ Add rating'}
-              </button>
-              <motion.button
-                type="submit"
-                className="comment-section__submit"
-                disabled={!newComment.trim()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Post Comment
-              </motion.button>
-            </div>
+            {user && (
+              <div className="comment-section__form-actions">
+                <button
+                  type="button"
+                  className="comment-section__rating-toggle"
+                  onClick={() => setShowRating(!showRating)}
+                >
+                  {showRating ? '− Remove rating' : '+ Add rating'}
+                </button>
+                <motion.button
+                  type="submit"
+                  className="comment-section__submit"
+                  disabled={!newComment.trim() || loading}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Post Comment
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
       </form>
@@ -122,7 +176,7 @@ function CommentSection({ recipeId }: CommentSectionProps) {
         <AnimatePresence>
           {comments.map((comment) => (
             <motion.div
-              key={comment.id}
+              key={comment._id}
               className="comment-section__item"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -131,7 +185,7 @@ function CommentSection({ recipeId }: CommentSectionProps) {
             >
               <div className="comment-section__item-header">
                 <img 
-                  src={comment.userAvatar || 'https://via.placeholder.com/32'} 
+                  src={comment.userAvatar || 'https://picsum.photos/32/32'} 
                   alt={comment.userName}
                   className="comment-section__avatar"
                 />
@@ -144,7 +198,7 @@ function CommentSection({ recipeId }: CommentSectionProps) {
                 </div>
               </div>
 
-              {editingId === comment.id ? (
+              {editingId === comment._id ? (
                 <div className="comment-section__edit-form">
                   <textarea
                     className="comment-section__edit-input"
@@ -156,7 +210,7 @@ function CommentSection({ recipeId }: CommentSectionProps) {
                   <div className="comment-section__edit-actions">
                     <button
                       className="comment-section__edit-save"
-                      onClick={() => handleSaveEdit(comment.id)}
+                      onClick={() => handleSaveEdit(comment._id)}
                     >
                       Save
                     </button>
@@ -174,26 +228,29 @@ function CommentSection({ recipeId }: CommentSectionProps) {
                   
                   <div className="comment-section__item-footer">
                     <button
-                      className="comment-section__like"
-                      onClick={() => likeComment(recipeId, comment.id)}
+                      className={`comment-section__like ${comment.likedBy?.includes(user?._id || '') ? 'comment-section__like--liked' : ''}`}
+                      onClick={() => handleLike(comment._id)}
                     >
                       ❤️ {comment.likes > 0 && comment.likes}
                     </button>
-                    
-                    <div className="comment-section__item-actions">
-                      <button
-                        className="comment-section__item-action"
-                        onClick={() => handleEdit(comment)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="comment-section__item-action comment-section__item-action--delete"
-                        onClick={() => deleteComment(recipeId, comment.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+
+
+                    {user?._id === comment.userId && (
+                      <div className="comment-section__item-actions">
+                        <button
+                          className="comment-section__item-action"
+                          onClick={() => handleEdit(comment)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="comment-section__item-action comment-section__item-action--delete"
+                          onClick={() => handleDelete(comment._id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
