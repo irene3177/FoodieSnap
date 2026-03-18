@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Recipe } from '../../types/recipe.types';
+import { Recipe } from '../../types';
 import RecipeCard from '../RecipeCard/RecipeCard';
 import './SortableRecipeCard.css';
 
@@ -19,7 +19,7 @@ function SortableRecipeCard({ recipe }: SortableRecipeCardProps) {
     transform,
     transition,
     isDragging
-  } = useSortable({ id: recipe.id });
+  } = useSortable({ id: recipe._id });
 
   useEffect(() => {
     if (!isDragging && cardRef.current) {

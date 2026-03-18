@@ -1,4 +1,4 @@
-import { Recipe } from "../types/recipe.types";
+import { Recipe } from "../types/recipes.types";
 
 export const recipes: Recipe[] = [
   {

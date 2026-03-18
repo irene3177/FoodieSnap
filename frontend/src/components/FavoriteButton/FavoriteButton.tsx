@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useFavorites } from "../../context/FavoritesContext";
-import { Recipe } from "../../types/api.types";
+import { useAppDispatch, useAppSelector }from '../../store/store';
+import { addToFavorites, removeFromFavorites, fetchFavorites } from '../../store/favoritesSlice';
+import { Recipe } from '../../types';
+import { showToast } from '../../store/toastSlice';
+import { useAuth } from '../../context/AuthContext';
 import './FavoriteButton.css';
 
 interface FavoriteButtonProps {
@@ -11,20 +14,46 @@ interface FavoriteButtonProps {
 }
 
 function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteButtonProps) {
-  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
-  const isFav = isFavorite(recipe.id);
-
+  const dispatch = useAppDispatch();
+  const { user } = useAuth();
+  const { items: favorites, loading } = useAppSelector(state => state.favorites);
   const [showSparkles, setShowSparkles] = useState(false);
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
+  const isFav = favorites.some(r => r._id === recipe._id);
+  
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchFavorites());
+    }
+  }, [user, dispatch]);
+
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();  // Prevent card clicking when clicking button
     e.preventDefault();
 
+    if (!user) {
+      // Show modal login or toast
+      dispatch(showToast({ 
+        message: 'Please log in to add favorites', 
+        type: 'info' 
+      }));
+      return; 
+    }
+
     if (isFav) {
-      removeFavorite(recipe.id);
+      await dispatch(removeFromFavorites(recipe._id));
+      dispatch(showToast({
+        message: `${recipe.title} removed from favorites`,
+        type: 'info'
+      }));
     } else {
-      addFavorite(recipe);
+      await dispatch(addToFavorites(recipe));
       setShowSparkles(true);
+      dispatch(showToast({
+        message: `${recipe.title} added to favorites`,
+        type: 'success'
+      }));
       setTimeout(() => setShowSparkles(false), 600);
     }
   };
@@ -54,6 +83,7 @@ function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteBu
     <motion.button
       className={`favorite-button ${sizeClass} ${isFav ? 'favorite-button--active' : ''}`}
       onClick={handleToggleFavorite}
+      disabled={loading}
       whileHover="hover"
       whileTap="tap"
       initial="initial"

@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
         element: <TopRated />
       },
       {
-      path: 'profile/:userId',
+      path: 'me',
       element: <ProfilePage />
       }
     ]

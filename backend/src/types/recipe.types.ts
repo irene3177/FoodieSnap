@@ -7,11 +7,17 @@ export interface IRecipe {
   ingredients: string[];
   instructions: string[];
   imageUrl?: string;
+  youtubeUrl?: string;
+  category?: string;
+  area?: string;
+  tags: string[];
   cookingTime?: number;
   difficulty: 'easy' | 'medium' | 'hard';
   author: Types.ObjectId | string;
   rating: number;
   ratingCount: number;
+  source: 'user' | 'theMealDB';
+  sourceId?: string;
 }
 
 export interface IRecipeInput {

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { recipeApi } from '../../services/recipeApi';
-import { Recipe } from '../../types/recipe.types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { recipesApi } from '../../services/recipesApi';
+import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -9,40 +9,35 @@ import './Recipes.css';
 function Recipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [totalResults, setTotalResults] = useState<number>(0);
 
+  const initialLoaded = useRef(false);
 
   // Load initial random recipes
   useEffect(() => {
-    loadRecipes(true);
+    if (!initialLoaded.current) {
+      loadInitialRecipes();
+      initialLoaded.current = true;
+    }
   }, []);
 
-  const loadRecipes = async (reset: boolean = false) => {
-    if (reset) {
-      setRecipes([]);
-      setPage(1);
-      setHasMore(true);
-    }
-
+  const loadInitialRecipes = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // For demo. For prod use actual pagination
-      const newRecipes: Recipe[] = [];
-      const count = reset ? 8 : 4;
-
-      for (let i = 0; i < count; i++) {
-        const recipe = await recipeApi.getRandomRecipe();
-        newRecipes.push(recipe);
-      }
-      
-      setRecipes(prev => reset ? newRecipes : [...prev, ...newRecipes]);
-      setHasMore(page < 5);  // Limit to 5 pages for demo
+      const response = await recipesApi.getRandomRecipes(8, 1);
+      setRecipes(response.recipes || []);
+      setTotalResults(response.totalRecipes || 0);
+      setPage(2);
+      setHasMore(true);
     } catch (err) {
       setError('Failed to load recipes. Please try again later.');
       console.error(err);
@@ -51,71 +46,81 @@ function Recipes() {
     }
   };
 
+  // Load more recipes for infinite scroll
   const loadMoreRecipes = useCallback(async () => {
-    if (!searchQuery) {
-      setPage(prev => prev + 1);
-      await loadRecipes(false);
-    }
-  }, [searchQuery]);
+    if (loadingMore || isSearching || !hasMore) return;
 
-  const { lastElementRef, loading: loadingMore } = useInfiniteScroll({
-    hasMore: hasMore && !searchQuery,
+    setLoadingMore(true);
+    try {
+      const response = await recipesApi.getRandomRecipes(4, page);
+      const newRecipes = response.recipes || [];
+      setRecipes(prev => {
+        const existingIds = new Set(prev.map(r => r._id));
+        const uniqueNewRecipes = newRecipes.filter(r => !existingIds.has(r._id));
+        return [...prev, ...uniqueNewRecipes];
+      });
+      setPage(prev => prev + 1);
+
+      // For random recipes hasMore is always true
+      setHasMore(true);
+    } catch (err) {
+      console.error('Failed to load more recipes:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page, loadingMore, isSearching, hasMore]);
+
+  const { lastElementRef } = useInfiniteScroll({
+    hasMore: hasMore && !isSearching,
     loadMore: loadMoreRecipes
   });
 
-  /*
-  const loadRandomRecipes = async () => {
+  // Handle search with debounce
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      // If search is empty, load random recipes again
+      setIsSearching(false);
+      loadInitialRecipes();
+      return;
+    }
+
+    setIsSearching(true);
     setLoading(true);
     setError(null);
+
     try {
-      // Load 4 random recipes for initial display
-      const randomRecipes: Recipe[] = [];
-      for (let i = 0; i < 4; i++) {
-        const recipe = await recipeApi.getRandomRecipe();
-        randomRecipes.push(recipe);
-      }
-      setRecipes(randomRecipes);
+      const result = await recipesApi.searchRecipes(query, 1);
+      setRecipes(result.recipes || []);
+      setTotalResults(result.total || 0);
+      setHasMore(false); 
+      console.log('✅ State updated with', result.recipes?.length, 'recipes');
     } catch (err) {
-      setError('Failed to load recipes. Please try again later.');
+      setError('Failed to search recipes. Please try again.');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
-  */
 
-  // Handle search with debounce
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
     setSearchQuery(query);
 
-    // Clear previous timeout
-    if(searchTimeout) {
+    if (searchTimeout) {
       window.clearTimeout(searchTimeout);
     }
 
-    // Set new timeout for debounced searched
-    const timeoutId = window.setTimeout(async () => {
-      if (query.trim()) {
-        setLoading(true);
-        setError(null);
-        try {
-          const searchResults = await recipeApi.searchRecipes(query);
-          setRecipes(searchResults);
-          setHasMore(false);
-        } catch (err) {
-          setError('Failed to search recipes. Please try again.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-      }
-    } else if (query === '') {
-      // If search is empty, load random recipes again
-      loadRecipes(true);
-    }
-  }, 500);  // 500ms debounce
+    const timeoutId = window.setTimeout(() => {
+      handleSearch(query);
+    }, 500);
 
     setSearchTimeout(timeoutId);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setIsSearching(false);
+    loadInitialRecipes();
   };
 
   // Clear timeout on component unmount
@@ -138,21 +143,29 @@ function Recipes() {
             type="text"
             placeholder="Search for recipes (e.g., 'chicken', 'pasta')..."
             value={searchQuery}
-            onChange={handleSearch}
+            onChange={handleSearchInput}
             className="recipes-page__search-input" 
           />
           {searchQuery && (
             <button
               className="recipes-page__search-clear"
-              onClick={() => {
-                setSearchQuery('');
-                loadRecipes(true);
-              }}
+              onClick={clearSearch}
             >
               ✕
             </button>
           )}
         </div>
+
+        {/* Results count */}
+        {!loading && !error && recipes.length > 0 && (
+          <div className="recipes-page__results-count">
+            {isSearching ? (
+              <>Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}</>
+            ) : (
+              <>Showing {recipes.length} recipes</>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Error message */}
@@ -161,7 +174,7 @@ function Recipes() {
           <p className="recipes-page__error-message">{error}</p>
           <button
             className="recipes-page__retry-button"
-            onClick={() => loadRecipes(true)}
+            onClick={loadInitialRecipes}
           >
             Try Again
           </button>
@@ -172,7 +185,7 @@ function Recipes() {
       <div className="recipes-page__grid">
         {recipes.map((recipe, index) => (
           <div
-            key={index}
+            key={recipe._id || index}
             ref={index === recipes.length - 1 ? lastElementRef : null}
           >
             <RecipeCard recipe={recipe} />
@@ -189,7 +202,7 @@ function Recipes() {
       </div>
 
       {/* Results */}
-      {!loading && !error && recipes.length === 0 && (
+      {!loading && !error && recipes?.length === 0 && (
         <div className="recipes-page__no-results">
           <p>No recipes found for "{searchQuery}"</p>
           <p className="recipes-page__no-results-hint">
@@ -198,7 +211,7 @@ function Recipes() {
         </div>
       )}
 
-      {!hasMore && !searchQuery && recipes.length === 0 && (
+      {!hasMore && !isSearching && recipes.length === 0 && (
         <div className="recipes-page__end-message">
           <p>You've reached the end! 🎉</p>
         </div>

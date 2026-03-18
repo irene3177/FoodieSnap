@@ -5,7 +5,7 @@ import {
   updateComment,
   deleteComment,
   toggleLike
-} from '../controllers/comment.controller';
+} from '../controllers/comments.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { validateComment } from '../middleware/validation.middleware';
 

@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useRatings } from '../../context/RatingContext';
-import { recipeApi } from '../../services/recipeApi';
-import { Recipe } from '../../types/recipe.types';
+import { recipesApi } from '../../services/recipesApi';
+import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import './TopRated.css';
 
 function TopRated() {
-  const { ratings } = useRatings();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,22 +14,8 @@ function TopRated() {
     const loadTopRated = async () => {
       setLoading(true);
       try {
-        // Get recipes that have ratings
-        const ratedRecipeIds = Object.keys(ratings)
-          .map(id => parseInt(id))
-          .sort((a, b) => {
-            const ratingA = ratings[a]?.averageRating || 0;
-            const ratingB = ratings[b]?.averageRating || 0;
-            return ratingB - ratingA;
-          })
-          .slice(0, 10); // Top 10
-
-          const recipePromises = ratedRecipeIds.map(id => 
-              recipeApi.getRecipeById(id.toString())
-          );
-
-          const fetchedRecipes = await Promise.all(recipePromises);
-          setRecipes(fetchedRecipes.filter((r): r is Recipe => r !== null));
+        const topRecipes = await recipesApi.getTopRatedRecipes(10);
+        setRecipes(topRecipes);
       } catch (error) {
         setError('Failed to load top rated recipes');
         console.error(error);
@@ -39,13 +23,8 @@ function TopRated() {
         setLoading(false);
       } 
     };
-
-    if (Object.keys(ratings).length > 0) {
-      loadTopRated();
-    } else {
-      setLoading(false);
-    }
-  }, [ratings]);
+    loadTopRated();
+  }, []);
 
   return (
     <div className="top-rated">
@@ -72,7 +51,7 @@ function TopRated() {
       ) : (
         <div className="top-rated__grid">
           {recipes.map(recipe => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe._id} recipe={recipe} />
           ))}
         </div>
       )}

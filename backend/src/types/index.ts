@@ -6,10 +6,10 @@ export * from './api.types';
 
 /*
 
-// В любом файле можно импортировать все из одного места
+// In any file where you need to import types
 import { IUser, IComment, IRecipe, IApiResponse } from '../types';
 
-// Или конкретные типы
+// Or specific types
 import { IUserDocument } from '../types/user.types';
 import { ICommentInput } from '../types/comment.types';
 

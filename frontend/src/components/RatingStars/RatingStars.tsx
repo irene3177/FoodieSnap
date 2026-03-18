@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRatings } from '../../context/RatingContext';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { rateRecipe, fetchRecipeRating, fetchUserRatings, deleteRating } from '../../store/ratingSlice';
+import { useAuth } from '../../context/AuthContext';
 import './RatingStars.css';
+import { showToast } from '../../store/toastSlice';
 
 interface RatingStarsProps {
-  recipeId: number;
+  recipeId: string;
   size?: 'small' | 'medium' | 'large';
   showCount?: boolean;
   interactive?: boolean;
@@ -16,16 +19,59 @@ function RatingStars({
   showCount = true,
   interactive = true
 }: RatingStarsProps) {
-  const { getRecipeRating, rateRecipe } = useRatings();
+  const dispatch = useAppDispatch();
+  const { user } = useAuth();
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
 
-  const { average, total, userRating } = getRecipeRating(recipeId);
-  const displayRating = hoverRating || userRating || average;
+  const stats = useAppSelector(state => state.ratings.stats[recipeId]);
+  const userRating = useAppSelector(state => state.ratings.userRatings[recipeId]);
+  const loading = useAppSelector(state => state.ratings.loading);
 
-  const handleRatingClick = (rating: number) => {
-    if (interactive) {
-      rateRecipe(recipeId, rating);
+  const average = stats?.averageRating || 0;
+  const total = stats?.totalRatings || 0;
+  const displayRating = hoverRating || userRating || average;
+  
+  useEffect(() => {
+    dispatch(fetchRecipeRating(recipeId));
+    if (user) {
+      dispatch(fetchUserRatings());
+    }
+  }, [dispatch, recipeId, user]);
+
+  const handleRatingClick = async (rating: number) => {
+    if (!interactive || !user) {
+      dispatch(showToast({
+        message: 'Please log in to rate recipes',
+        type: 'error'
+      }));
+      return;
+    }
+
+    if (loading) return;
+
+    try {
+      // If clicked the same star, delete the rating
+      if (userRating === rating) {
+        await dispatch(deleteRating(recipeId)).unwrap();
+        dispatch(showToast({
+          message: 'Rating removed',
+          type: 'info'
+        }));
+      } else {
+        // or rate the recipe
+        await dispatch(rateRecipe({ recipeId, value: rating })).unwrap();
+        dispatch(showToast({
+          message: 'Rating saved',
+          type: 'success'
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to rate recipe:', error);
+      dispatch(showToast({
+        message: 'Failed to save rating',
+        type: 'error'
+      }));
     }
   };
 
@@ -44,7 +90,7 @@ function RatingStars({
 
   return (
     <div
-      className={`rating-stars ${sizeClass}`}
+      className={`rating-stars ${sizeClass} ${loading ? 'rating-stars--loading' : ''}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => {
         setShowTooltip(false);
@@ -65,7 +111,7 @@ function RatingStars({
             whileHover="hover"
             whileTap="tap"
             animate={star <= userRating ? "rated" : "initial"}
-            disabled={!interactive}
+            disabled={!interactive || loading}
             aria-label={`Rate ${star} out of 5 stars`}
           >
               <svg 
@@ -101,7 +147,9 @@ function RatingStars({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
           >
-            {userRating ? (
+            {!user ? (
+              <>Please log in to rate recipes</>
+            ) : userRating ? (
               <>Your rating: {userRating} ⭐ | Average: {average.toFixed(1)}</>
             ) : (
               <>Click to rate this resipe</>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { UserProfile } from '../../types/auth.types';
+import { UserProfile } from '../../types';
 import { authApi } from '../../services/authApi';
+import { usersApi } from '../../services/usersApi';
 import Loader from '../../components/Loader/Loader';
 import './ProfilePage.css';
 
@@ -15,11 +16,18 @@ function ProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!userId) return;
+      if (!userId && !currentUser) return;
       
       setLoading(true);
+      setError(null);
+
       try {
-        const response = await authApi.getUserById(userId);
+        let response;
+        if (userId) {
+          response = await usersApi.getUserById(userId);
+        } else {
+          response = await authApi.getMe();
+        }
         if (response.success && response.data) {
           setProfile(response.data);
         } else {
@@ -34,7 +42,13 @@ function ProfilePage() {
     };
 
     loadProfile();
-  }, [userId]);
+  }, [userId, currentUser]);
+
+  if (!currentUser && !userId) {
+    return <div className="profile-error">
+      Please log in to view your profile
+    </div>;
+  }
 
   if (loading) return <Loader message="Loading profile..." />;
   if (error) return <div className="profile-error">{error}</div>;
@@ -76,14 +90,14 @@ function ProfilePage() {
       </div>
 
       <div className="profile-content">
-        <h2>Saved Recipes</h2>
+        <h2>Favorite Recipes</h2>
         {profile.favorites && profile.favorites.length > 0 ? (
           <div className="profile-recipes-grid">
             {/* Здесь будет компонент RecipeCard для каждого рецепта */}
             <p>Recipes will be displayed here</p>
           </div>
         ) : (
-          <p className="profile-no-recipes">No saved recipes yet</p>
+          <p className="profile-no-recipes">No favorite recipes yet</p>
         )}
       </div>
     </div>

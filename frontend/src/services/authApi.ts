@@ -1,11 +1,10 @@
 import axios, { isAxiosError } from 'axios';
 import {
-  User,
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,
   UpdateProfileData
-} from '../types/auth.types';
+} from '../types';
 
 const handleApiError = (error: unknown): AuthResponse => {
   if (isAxiosError(error)) {
@@ -50,11 +49,6 @@ export const authApi = {
     try {
       const response = await authApiClient.post('/register', credentials);
 
-      if (response.data.success && response.data.data?.user) {
-        // Store user data in localStorage for session persistence
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-      }
-
       return response.data;
     } catch (error) {
       return handleApiError(error);
@@ -66,10 +60,6 @@ export const authApi = {
     try {
       const response = await authApiClient.post('/login', credentials);
 
-      if (response.data.success && response.data.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-      }
-
       return response.data;
     } catch (error) {
       return handleApiError(error);
@@ -77,7 +67,7 @@ export const authApi = {
   },
 
   // Get current user profile
-  getProfile: async(): Promise<AuthResponse> => {
+  getMe: async(): Promise<AuthResponse> => {
     try {
       const response = await authApiClient.get('/me');
       return response.data;
@@ -91,11 +81,6 @@ export const authApi = {
     try {
       const response = await authApiClient.put('/profile', data);
 
-      if (response.data.success && response.data.data?.user) {
-        // Update localStorage with new user data
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-      }
-
       return response.data;
     } catch (error) {
       return handleApiError(error);
@@ -106,47 +91,9 @@ export const authApi = {
   logout: async (): Promise<void> => {
     try {
       await authApiClient.post('/logout');
-    } finally {
-      localStorage.removeItem('user');
-    }
-  },
-
-  // Get user by ID (for profile viewing)
-  getUserById: async (userId: string): Promise<{ success: boolean; data?: User; error?: string }> => {
-    try {
-      const response = await authApiClient.get(`/user/${userId}`);
-      return response.data;
     } catch (error) {
-      if (isAxiosError(error)) {
-        return {
-          success: false,
-          error: 'User not found'
-        };
-      }
-      return {
-        success: false,
-        error: 'Failed to fetch user'
-      };
+      console.error('Logout error:', error);
     }
-  },
-
-  // Get current user data from localStorage (for session persistence)
-  getCurrentUser: (): User | null => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr) as User;
-        
-        // Convert _id to string if it's an object (for compatibility with backend)
-        return {
-          ...user,
-          _id: user._id?.toString() || user._id
-        };
-      } catch {
-        return null;
-      }
-    }
-    return null;
   }
 };
 

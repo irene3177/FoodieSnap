@@ -49,6 +49,9 @@ const UserSchema = new Schema<IUserDocument>({
     transform: (_doc: any, ret: any) => {
       ret._id = ret._id.toString();
       ret.savedRecipes = ret.savedRecipes?.map((id: any) => id.toString());
+      ret.favorites = ret.favorites?.map((id: any) => id.toString());
+      ret.recipeCount = ret.savedRecipes?.length;
+      ret.createdAt = ret.createdAt?.toISOString();
       delete ret.password;
       delete ret.__v;
       return ret;

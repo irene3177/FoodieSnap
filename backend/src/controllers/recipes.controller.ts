@@ -4,7 +4,113 @@ import { RecipeModel } from '../models/Recipe.model';
 import { UserModel } from '../models/User.model';
 import { CommentModel } from '../models/Comment.model';
 import { AuthRequest } from '../middleware/auth.middleware';
+import {
+  getRecipeById,
+  getRandomRecipes,
+  searchRecipes
+ } from '../services/mealDB.service';
 import { IRecipeInput, IRecipeFilters } from '../types';
+
+// GET /api/recipes/random - always new from TheMealDB
+export const getRandomRecipesHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { count = 8, page = 1 } = req.query;
+    const userId = (req as AuthRequest).userId;
+    
+    
+    // Всегда получаем свежие из TheMealDB
+    const result = await getRandomRecipes(Number(count), Number(page), userId);
+    
+    res.json({
+      success: true,
+      data: {
+        recipes: result.recipes,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        totalRecipes: result.totalRecipes
+      }
+    });
+  } catch (error) {
+    console.error('❌ Get random recipes error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get random recipes' });
+  }
+};
+
+// GET /api/recipes/search - search only from TheMealDB
+export const searchRecipesHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
+    
+    if (!q) {
+      res.status(400).json({ success: false, error: 'Search query required' });
+      return;
+    }
+
+    // Always in TheMealDB
+    const result = await searchRecipes(
+      q as string,
+      Number(page),
+      Number(limit)
+    );
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('❌ Search recipes error:', error);
+    res.status(500).json({ success: false, error: 'Failed to search recipes' });
+  }
+};
+
+// GET /api/recipes/:id - check BD, then TheMealDB
+export const getRecipeByIdHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const userId = (req as AuthRequest).userId;
+
+    const isMongoId = mongoose.Types.ObjectId.isValid(id);
+    
+    let recipe;
+    if (isMongoId) {
+      // Id from MongoDB
+      recipe = await RecipeModel.findById(id)
+        .populate('author', 'username avatar')
+        .lean();
+    } else {
+      // ID from TheMealDB
+      recipe = await getRecipeById(id, userId);
+    }
+
+    if (!recipe) {
+      res.status(404).json({ success: false, error: 'Recipe not found' });
+      return;
+    }
+
+    res.json({ success: true, data: recipe });
+  } catch (error) {
+    console.error('❌ Get recipe error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get recipe' });
+  }
+};
+
+// GET /api/recipes/top-rated - get top rated recipes (from mongoDB)
+export const getTopRatedRecipes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { limit = 10 } = req.query;
+    
+    const recipes = await RecipeModel.find({ rating: { $gt: 0 } })
+      .sort({ rating: -1, ratingCount: -1 })
+      .limit(Number(limit))
+      .populate('author', 'username avatar')
+      .lean();
+
+    res.json({ success: true, data: recipes });
+  } catch (error) {
+    console.error('❌ Get top rated recipes error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get top rated recipes' });
+  }
+};
 
 // Get all recipes with optional filters and sorting
 export const getAllRecipes = async (
@@ -50,46 +156,6 @@ export const getAllRecipes = async (
     res.status(500).json({
       success: false,
       error: 'Failed to fetch recipes'
-    });
-  }
-};
-
-// Get a single recipe by ID
-export const getRecipeById = async (
-  req: Request<{ id: string }>,
-  res: Response
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid recipe ID'
-      });
-      return;
-    }
-
-    const recipe = await RecipeModel.findById(id)
-      .populate('author', 'username avatar')
-      .lean();
-
-    if (!recipe) {
-      res.status(404).json({
-        success: false,
-        error: 'Recipe not found'
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: recipe
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch recipe'
     });
   }
 };

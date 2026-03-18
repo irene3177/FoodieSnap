@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { recipeApi } from '../../services/recipeApi';
-import { Recipe } from '../../types/recipe.types';
+import { recipesApi } from '../../services/recipesApi';
+import { Recipe } from '../../types';
 import { RecipeDetailSkeleton } from '../../components/Skeleton/Skeleton';
 import FavoriteButton from '../../components/FavoriteButton/FavoriteButton';
 import RatingStars from '../../components/RatingStars/RatingStars';
@@ -25,7 +25,7 @@ function RecipeDetail() {
       setError(null);
 
       try {
-        const fetchedRecipe = await recipeApi.getRecipeById(id);
+        const fetchedRecipe = await recipesApi.getRecipeById(id);
         if (fetchedRecipe) {
           setRecipe(fetchedRecipe);
         } else {
@@ -71,7 +71,7 @@ function RecipeDetail() {
         <div className="recipe-detail__grid">
           <div className="recipe-detail__image-container">
             <img 
-              src={recipe.image}
+              src={recipe.imageUrl}
               alt={recipe.title}
               className="recipe-detail__image"
             />
@@ -84,15 +84,15 @@ function RecipeDetail() {
             <h1 className="recipe-detail__title">{recipe.title}</h1>
             {/* Metadata tags */}
             <div className="recipe-detail__rating-section">
-              <RatingStars recipeId={recipe.id} size="large" showCount />
+              <RatingStars recipeId={recipe._id} size="large" showCount />
             </div>
             
             {/* Share buttons */}
             <ShareButtons 
               title={recipe.title}
-              url={`/recipe/${recipe.id}`}
+              url={`/recipe/${recipe._id}`}
               description={recipe.description}
-              image={recipe.image}
+              image={recipe.imageUrl}
             />
 
             <div className="recipe-detail__meta">
@@ -114,11 +114,11 @@ function RecipeDetail() {
 
             <p className="recipe-detail__description">{recipe.description}</p>
             
-                {recipe.youtubeLink && (
+                {recipe.youtubeUrl && (
                   <div className="recipe-detail__section">
                     <h2 className="recipe-detail__section-title">Video Tutorial</h2>
                     <a
-                      href={recipe.youtubeLink}
+                      href={recipe.youtubeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="recipe-detail__youtube-link"
@@ -152,7 +152,7 @@ function RecipeDetail() {
             )}
 
         </div>
-        <CommentSection recipeId={recipe.id} recipeTitle={recipe.title} />
+        <CommentSection recipeId={recipe._id} recipeTitle={recipe.title} />
       </div>    
     </div>
   );
