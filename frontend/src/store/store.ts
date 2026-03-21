@@ -3,13 +3,15 @@ import favoritesReducer from './favoritesSlice';
 import toastReducer from './toastSlice';
 import ratingReducer from './ratingSlice';
 import commentsReducer from './commentsSlice';
+import usersReducer from './usersSlice';
 
 export const store = configureStore({
   reducer: {
     favorites: favoritesReducer,
     toast: toastReducer,
     ratings: ratingReducer,
-    comments: commentsReducer
+    comments: commentsReducer,
+    users: usersReducer
   }
 });
 

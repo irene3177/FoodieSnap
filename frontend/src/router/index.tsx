@@ -5,6 +5,7 @@ import Favorites from '../pages/Favorites/Favorites';
 import RecipeDetail from '../pages/RecipeDetail/RecipeDetail';
 import TopRated from '../pages/TopRated/TopRated';
 import ProfilePage from '../pages/Profile/ProfilePage';
+import Users from '../pages/Users/Users';
 import App from '../App';
 
 export const router = createBrowserRouter([
@@ -35,6 +36,14 @@ export const router = createBrowserRouter([
       {
       path: 'me',
       element: <ProfilePage />
+      },
+      {
+        path: 'user/:userId',
+        element: <ProfilePage />
+      },
+      {
+        path: 'users',
+        element: <Users />
       }
     ]
   }

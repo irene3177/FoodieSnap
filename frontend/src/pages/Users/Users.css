@@ -1,0 +1,226 @@
+.users-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+}
+
+.users-page__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.users-page__title {
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.users-page__subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Search bar */
+.users-page__search {
+  position: relative;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.users-page__search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.users-page__search-input:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
+.users-page__search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.users-page__search-clear:hover {
+  background-color: var(--border-color);
+}
+
+/* Results count */
+.users-page__results-count {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Grid layout */
+.users-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Pagination */
+.users-page__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.users-page__pagination-prev,
+.users-page__pagination-next {
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.users-page__pagination-prev:hover:not(:disabled),
+.users-page__pagination-next:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.users-page__pagination-prev:disabled,
+.users-page__pagination-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.users-page__pagination-pages {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.users-page__pagination-page {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.users-page__pagination-page:hover {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.users-page__pagination-page--active {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+/* Error state */
+.users-page__error {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--error-bg);
+  border-radius: 12px;
+  color: var(--error-text);
+}
+
+.users-page__error button {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  background-color: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Loading state */
+.users-page__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* Empty state */
+.users-page__empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.users-page__empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.users-page__empty h2 {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.users-page__empty p {
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .users-page {
+    padding: 1rem;
+  }
+  
+  .users-page__title {
+    font-size: 1.75rem;
+  }
+  
+  .users-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  
+  .users-page__pagination-prev,
+  .users-page__pagination-next {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .users-page__pagination-page {
+    width: 32px;
+    height: 32px;
+  }
+}
