@@ -1,4 +1,4 @@
-import { User } from './index';
+import { User, Recipe } from './index';
 
 export interface UserProfile extends User {
   recipeCount?: number;  // (from savedRecipes.length)
@@ -55,7 +55,7 @@ export interface FavoritesListResponse {
   data?: {
     userId: string;
     username: string;
-    favorites: string[];
+    favorites: Recipe[];
   };
   error?: string;
 }
