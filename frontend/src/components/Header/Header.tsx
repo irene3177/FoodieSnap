@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import LoginModal from '../Auth/LoginModal';
 import RegisterModal from '../Auth/RegisterModal';

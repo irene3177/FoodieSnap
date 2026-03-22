@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useAppDispatch } from '../../store/store';
 import { showToast } from '../../store/toastSlice';
 import { authApi } from '../../services/authApi';

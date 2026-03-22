@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import Loader from '../../components/Loader/Loader';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
 import { useProfileData } from '../../hooks/useProfileData';
+import { useAppDispatch } from '../../store/store';
 import './ProfilePage.css';
+import { showToast } from '../../store/toastSlice';
+import { authApi } from '../../services/authApi';
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser, refreshUser } = useAuth();
+  const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState<'favorites' | 'saved' | 'about'>('favorites');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     profile,
@@ -25,6 +32,63 @@ function ProfilePage() {
   const handleEditSuccess = async () => {
     await refreshUser();
     refresh();
+  };
+
+  const handleAvatarClick = () => {
+    if (isOwnProfile && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      dispatch(showToast({
+        message: 'Please select an image file',
+        type: 'error'
+      }));
+      return;
+    }
+
+    // Validate file size
+    if (file.size > 5 * 1024 * 1024) {
+      dispatch(showToast({
+        message: 'Image must be less than 5MB',
+        type: 'error'
+      }));
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const response = await authApi.updateAvatar(file);
+
+      if (response.success) {
+        dispatch(showToast({
+          message: 'Avatar updated successfully!',
+          type: 'success'
+        }));
+        await refreshUser();
+        refresh();
+      } else {
+        dispatch(showToast({
+          message: response.error || 'Failed to update avatar',
+          type: 'error'
+        }));
+      }
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        dispatch(showToast({
+          message: 'Failed to upload avatar',
+          type: 'error'
+        }));
+      } finally {
+        setIsUploadingAvatar(false);
+      }
   };
 
   if (!currentUser && !userId) {
@@ -44,11 +108,37 @@ function ProfilePage() {
       <div className="profile-page">
         {/* Profile Header */}
         <div className="profile-header">
-          <div className="profile-avatar">
-            {profile.avatar ? (
-              <img src={profile.avatar} alt={profile.username} />
-            ) : (
-              <span>{profile.username.charAt(0).toUpperCase()}</span>
+          <div
+            className={`profile-avatar-wrapper ${isOwnProfile
+              ? 'profile-avatar-wrapper--editable'
+              : ''}`}
+              onClick={handleAvatarClick}
+          >
+            <div className="profile-avatar">
+              {profile.avatar ? (
+                <img src={profile.avatar} alt={profile.username} />
+              ) : (
+                <span>{profile.username.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            {isOwnProfile && (
+              <div className="profile-avatar-overlay">
+                <svg
+                  className="profile-avatar-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 4v16m-8-8h16" stroke="currentColor" />
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
+                </svg>
+              </div>
+            )}
+            {isUploadingAvatar && (
+              <div className="profile-avatar-loading">
+                <div className="profile-avatar-spinner"></div>
+              </div>
             )}
           </div>
           <h1 className="profile-username">{profile.username}</h1>
@@ -83,6 +173,15 @@ function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleAvatarUpload}
+        />
 
         {/* Tabs */}
         <div className="profile-tabs">

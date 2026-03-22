@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { rateRecipe, fetchRecipeRating, fetchUserRatings, deleteRating } from '../../store/ratingSlice';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import './RatingStars.css';
 import { showToast } from '../../store/toastSlice';
 
