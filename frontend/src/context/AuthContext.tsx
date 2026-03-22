@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import { 
   User,
   LoginCredentials,
@@ -9,28 +9,33 @@ import {
 } from '../types';
 import { authApi } from '../services/authApi';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasCheckedSession = useRef(false);
 
   useEffect(() => {
+    const hasToken = document.cookie.includes('token=');
+    
+    if (!hasToken) {
+      // No token, no need to check session
+      setIsLoading(false);
+      hasCheckedSession.current = true;
+      return;
+    }
     checkSession();
   }, []);
 
   const checkSession = async () => {
+    if (hasCheckedSession.current) return;
     setIsLoading(true);
     try {
       const response = await authApi.getMe();
       if (response.success && response.data) {
-        // Проверяем структуру ответа
-        if ('user' in response.data) {
-          setUser(response.data);
-        } else {
-          setUser(response.data);
-        }
+        setUser(response.data);
       } else {
         setUser(null);
       }
@@ -39,12 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     } finally {
       setIsLoading(false);
+      hasCheckedSession.current = true;
     }
   };
 
   const refreshUser = async () => {
-    setIsLoading(true);
-
     try {
       const response = await authApi.getMe();
       if (response.success && response.data) {
@@ -55,8 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to refresh user:', error);
       setUser(null);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -128,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       await authApi.logout();
       setUser(null);
+      hasCheckedSession.current = false;
     } finally {
       setIsLoading(false);
       window.location.href = '/';
@@ -154,12 +157,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import LoginModal from '../Auth/LoginModal';
 import RegisterModal from '../Auth/RegisterModal';
@@ -31,16 +31,25 @@ function Header() {
               Recipes
             </NavLink>
           </li>
-                    <li className="header__nav-item">
+          <li className="header__nav-item">
             <NavLink to="/top-rated" className={getActiveClass}>
               Top Rated ⭐
             </NavLink>
           </li>
           <li className="header__nav-item">
-            <NavLink to="/favorites" className={getActiveClass}>
-              Favorites
+            <NavLink to="/users" className={getActiveClass}>
+              Community
             </NavLink>
           </li>
+
+          {/* 👇 Only show Favorites link when authenticated */}
+          {isAuthenticated && (
+            <li className="header__nav-item">
+              <NavLink to="/favorites" className={getActiveClass}>
+                Favorites
+              </NavLink>
+            </li>
+          )}
         </ul>
       </nav>
 

@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
+import { uploadAvatar } from '../middleware/upload.middleware';
 import {
   register,
   login,
   logout,
   getMe,
   updateProfile,
+  updateAvatar,
   changePassword
 } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
@@ -75,6 +77,7 @@ router.post('/logout', logout);
 // Protected routes (require authentication)
 router.get('/me', authMiddleware, getMe);
 router.put('/profile', authMiddleware, validateProfile, updateProfile);
+router.post('/avatar', authMiddleware, uploadAvatar, updateAvatar);
 router.put('/password', authMiddleware, validatePassword, changePassword);
 
 export default router;

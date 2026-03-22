@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { UserModel } from '../models/User.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { IApiResponse } from '../types';
+import { deleteOldAvatarIfLocal } from '../middleware/upload.middleware';
 
  
 
@@ -176,6 +177,8 @@ export const updateProfile = async (
   req: AuthRequest,
   res: Response<IApiResponse<any>>
 ): Promise<void> => {
+  let oldAvatarUrl: string | undefined;
+
   try {
     const { username, bio, avatar } = req.body;
 
@@ -189,12 +192,19 @@ export const updateProfile = async (
       return;
     }
 
+    // Store old avatar URL before updating
+    oldAvatarUrl = user.avatar;
+
     // Update fields if provided
     if (username) user.username = username;
     if (bio !== undefined) user.bio = bio;
     if (avatar) user.avatar = avatar;
 
     await user.save();
+
+    if (oldAvatarUrl && avatar !== oldAvatarUrl) {
+      deleteOldAvatarIfLocal(oldAvatarUrl);
+    }
 
     res.json({
       success: true,
@@ -214,6 +224,64 @@ export const updateProfile = async (
     });
   }
 };
+
+// @desc Update user avatar
+// @route POST /api/auth/avatar
+// @access Private
+export const updateAvatar = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  let oldAvatarUrl: string | undefined;
+  
+  try {
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+      return;
+    }
+
+    const userId = req.userId!;
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+      return;
+    }
+
+    oldAvatarUrl = user.avatar;
+
+    // Construct the URL for the uploaded avatar
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+
+    // Update user avatar
+    user.avatar = avatarUrl;
+    await user.save();
+
+    if (oldAvatarUrl) {
+      deleteOldAvatarIfLocal(oldAvatarUrl);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        avatar: avatarUrl
+      }
+    });
+  } catch (error) {
+    console.error('❌ Update avatar error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update avatar'
+    });
+  }
+}; 
 
 // @desc Change user password
 // @route PUT /api/auth/password

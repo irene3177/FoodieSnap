@@ -83,6 +83,15 @@ export const usersApi = {
   getFavorites: async (userId: string): Promise<FavoritesListResponse> => {
     try {
       const response = await usersApiClient.get(`/${userId}/favorites`);
+      if (response.data.success && response.data.data?.favorites) {
+        return {
+          ...response.data,
+          data: {
+            ...response.data.data,
+            favorites: response.data.data.favorites
+          }
+        };
+      }
       return response.data;
     } catch (error) {
       return handleApiError(error);

@@ -19,7 +19,7 @@ import { fetchFavorites, clearAllFavorites, reorderFavorites } from '../../store
 import { showToast } from '../../store/toastSlice';
 import SortableRecipeCard from '../../components/SortableRecipeCard/SortableRecipeCard';
 import { FavoritesSkeleton } from '../../components/Skeleton/Skeleton';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import './Favorites.css';
 
 function Favorites() {

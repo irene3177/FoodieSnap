@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector }from '../../store/store';
 import { addToFavorites, removeFromFavorites, fetchFavorites } from '../../store/favoritesSlice';
 import { Recipe } from '../../types';
 import { showToast } from '../../store/toastSlice';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import './FavoriteButton.css';
 
 interface FavoriteButtonProps {

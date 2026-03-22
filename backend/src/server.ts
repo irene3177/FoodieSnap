@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import path from 'path';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -13,6 +14,7 @@ import { errorHandler, notFound } from './middleware/error.middleware';
 
 const app: Application = express();
 
+
 // Middleware
 app.use(cors({
   // origin: '*',
@@ -25,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ 

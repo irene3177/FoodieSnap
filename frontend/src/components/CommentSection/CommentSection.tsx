@@ -11,7 +11,7 @@ import {
 } from '../../store/commentsSlice';
 import RatingStars from '../RatingStars/RatingStars';
 import { Comment } from '../../types';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { showToast } from '../../store/toastSlice';
 import './CommentSection.css';
 
