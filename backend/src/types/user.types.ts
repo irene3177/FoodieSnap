@@ -7,7 +7,7 @@ export interface IUser {
   password: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: Types.ObjectId[];
+  createdRecipes?: Types.ObjectId[];
   favorites?: Types.ObjectId[];
   followers?: Types.ObjectId[];
   following?: Types.ObjectId[];
@@ -23,7 +23,7 @@ export interface IUserResponse {
   email: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: string[];
+  createdRecipes?: string[];
   favorites?: string[];
   recipeCount?: number;
   createdAt?: string;

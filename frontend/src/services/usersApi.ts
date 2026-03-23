@@ -6,7 +6,7 @@ import {
   FollowResponse,
   FollowersResponse,
   FollowingResponse,
-  SavedRecipesResponse,
+  CreatedRecipesResponse,
   FavoritesListResponse
 } from '../types';
 
@@ -69,10 +69,10 @@ export const usersApi = {
     }
   },
 
-  // Get user's saved recipes
-  getSavedRecipes: async (userId: string): Promise<SavedRecipesResponse> => {
+  // Get user's created recipes
+  getCreatedRecipes: async (userId: string): Promise<CreatedRecipesResponse> => {
     try {
-      const response = await usersApiClient.get(`/${userId}/saved`);
+      const response = await usersApiClient.get(`/${userId}/recipes`);
       return response.data;
     } catch (error) {
       return handleApiError(error);

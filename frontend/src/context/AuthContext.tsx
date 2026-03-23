@@ -18,14 +18,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasCheckedSession = useRef(false);
 
   useEffect(() => {
-    const hasToken = document.cookie.includes('token=');
-    
-    if (!hasToken) {
-      // No token, no need to check session
-      setIsLoading(false);
-      hasCheckedSession.current = true;
-      return;
-    }
     checkSession();
   }, []);
 

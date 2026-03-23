@@ -34,7 +34,7 @@ const UserSchema = new Schema<IUserDocument>({
     maxlength: 200,
     default: ''
   },
-  savedRecipes: [{
+  createdRecipes: [{
     type: Schema.Types.ObjectId,
     ref: 'Recipe'
   }],
@@ -48,9 +48,9 @@ const UserSchema = new Schema<IUserDocument>({
   toJSON: {
     transform: (_doc: any, ret: any) => {
       ret._id = ret._id.toString();
-      ret.savedRecipes = ret.savedRecipes?.map((id: any) => id.toString());
+      ret.createdRecipes = ret.createdRecipes?.map((id: any) => id.toString());
       ret.favorites = ret.favorites?.map((id: any) => id.toString());
-      ret.recipeCount = ret.savedRecipes?.length;
+      ret.recipeCount = ret.createdRecipes?.length;
       ret.createdAt = ret.createdAt?.toISOString();
       delete ret.password;
       delete ret.__v;

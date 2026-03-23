@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { UserModel } from '../models/User.model';
-import { AuthRequest } from '../middleware/auth.middleware';
 import { IUserResponse, IUserListItem } from '../types';
 
 // @desc    Get user by ID
@@ -32,26 +31,16 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// @desc    Get user's saved recipes (private)
+// @desc    Get user's recipes (public)
 // @route   GET /api/users/:userId/saved
-// @access  Private (only the user themselves)
-export const getSavedRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
+// @access  Public
+export const getCreatedRecipes = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const currentUser = req.userId;
-
-    // Check if the requesting user is the owner
-    if (currentUser !== userId) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized to view saved recipes'
-      });
-      return;
-    }
 
     const user = await UserModel.findById(userId)
-      .select('savedRecipes')
-      .populate('savedRecipes');
+      .select('createdRecipes')
+      .populate('createdRecipes');
 
     if (!user) {
       res.status(404).json({
@@ -64,14 +53,14 @@ export const getSavedRecipes = async (req: AuthRequest, res: Response): Promise<
     res.json({
       success: true,
       data: {
-        savedRecipes: user.savedRecipes || []
+        createdRecipes: user.createdRecipes || []
       }
     });
   } catch (error) {
-    console.error('❌ Get saved recipes error:', error);
+    console.error('❌ Get created recipes error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get saved recipes'
+      error: 'Failed to get created recipes'
     });
   }
 };
@@ -143,7 +132,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         username: user.username,
         avatar: user.avatar,
         bio: user.bio,
-        recipeCount: user.savedRecipes?.length || 0
+        recipeCount: user.createdRecipes?.length || 0
       }));
 
       res.json({

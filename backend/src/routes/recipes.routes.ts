@@ -6,6 +6,7 @@ import {
   deleteRecipe,
   searchRecipesHandler,
   getRandomRecipesHandler,
+  getUserRecipes,
   getRecipeByIdHandler,
   getTopRatedRecipes
 } from '../controllers/recipes.controller';
@@ -20,6 +21,7 @@ router.get('/search', searchRecipesHandler);
 router.get('/top-rated', getTopRatedRecipes);
 router.get('/', getAllRecipes);
 
+router.get('/user/:userId', getUserRecipes);
 router.get('/:id', getRecipeByIdHandler);
 // Protected routes
 router.post('/', authMiddleware, validateRecipeCreate, createRecipe);

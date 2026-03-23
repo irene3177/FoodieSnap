@@ -4,24 +4,25 @@ import { UserModel } from '../models/User.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { IApiResponse } from '../types';
 import { deleteOldAvatarIfLocal } from '../middleware/upload.middleware';
-
+import { config } from '../config';
  
 
 const generateToken = (userId: string): string => {
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET! as string,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' } as any
+    config.jwtSecret as string,
+    { expiresIn: config.jwtExpire || '7d' } as any
   );
 };
 
 const setTokenCookie = (res: Response, token: string): void => {
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: config.nodeEnv === 'production',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    path: '/'
+    path: '/',
+    domain: 'localhost'
   });
 };
 

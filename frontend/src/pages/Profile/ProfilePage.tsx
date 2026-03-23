@@ -1,20 +1,26 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import Loader from '../../components/Loader/Loader';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
+import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
 import { useProfileData } from '../../hooks/useProfileData';
 import { useAppDispatch } from '../../store/store';
-import './ProfilePage.css';
+import { recipesApi } from '../../services/recipesApi';
 import { showToast } from '../../store/toastSlice';
 import { authApi } from '../../services/authApi';
+import { Recipe } from '../../types';
+import './ProfilePage.css';
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser, refreshUser } = useAuth();
   const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState<'favorites' | 'saved' | 'about'>('favorites');
+  const [activeTab, setActiveTab] = useState<'favorites' | 'myRecipes' | 'about'>('favorites');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [userRecipes, setUserRecipes] = useState<Recipe[]>([]);
+  const [loadingUserRecipes, setLoadingUserRecipes] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -29,9 +35,39 @@ function ProfilePage() {
     refresh
   } = useProfileData(userId, currentUser?._id);
 
+  const isOwnProfile = currentUser?._id === profile?._id;
+
+  // Load user's own recipes
+  useEffect(() => {
+    const loadUserRecipes = async () => {
+      if (!profile?._id) return;
+      
+      setLoadingUserRecipes(true);
+      try {
+        const response = await recipesApi.getUserRecipes(profile._id);
+        setUserRecipes(response);
+      } catch (error) {
+        console.error('Error loading user recipes:', error);
+      } finally {
+        setLoadingUserRecipes(false);
+      }
+    };
+
+    if (profile?._id && isOwnProfile) {
+      loadUserRecipes();
+    }
+  }, [profile?._id, isOwnProfile]);
+
   const handleEditSuccess = async () => {
     await refreshUser();
     refresh();
+  };
+
+  const handleCreateSuccess = () => {
+    // Reload user recipes
+    if (profile?._id) {
+      recipesApi.getUserRecipes(profile._id).then(setUserRecipes);
+    }
   };
 
   const handleAvatarClick = () => {
@@ -101,8 +137,6 @@ function ProfilePage() {
   if (error) return <div className="profile-error">{error}</div>;
   if (!profile) return <div className="profile-error">User not found</div>;
 
-  const isOwnProfile = currentUser?._id === profile._id;
-
   return (
     <>
       <div className="profile-page">
@@ -161,10 +195,20 @@ function ProfilePage() {
 
           <div className="profile-actions">
             {isOwnProfile ? (
-              <button
-                className="profile-edit-button"
-                onClick={() => setIsEditModalOpen(true)}
-              >Edit Profile</button>
+              <>
+                <button
+                  className="profile-edit-button"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  Edit Profile
+                </button>
+                <button
+                  className="profile-create-button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  + Add Recipe
+                </button>
+              </>
             ) : (
               <>
                 <button className="profile-follow-button">Follow</button>
@@ -193,13 +237,13 @@ function ProfilePage() {
             <span className="profile-tab-count">{favorites.length}</span>
           </button>
           <button
-            className={`profile-tab ${activeTab === 'saved' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('saved')}
+            className={`profile-tab ${activeTab === 'myRecipes' ? 'profile-tab--active' : ''}`}
+            onClick={() => setActiveTab('myRecipes')}
             disabled={!isOwnProfile}
             style={!isOwnProfile ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
-            Saved
-            <span className="profile-tab-count">{profile.savedRecipes?.length || 0}</span>
+            My Recipes
+            <span className="profile-tab-count">{profile.createdRecipes?.length || 0}</span>
           </button>
           <button
             className={`profile-tab ${activeTab === 'about' ? 'profile-tab--active' : ''}`}
@@ -243,23 +287,30 @@ function ProfilePage() {
             </>
           )}
 
-          {activeTab === 'saved' && (
+          {activeTab === 'myRecipes' && (
             <>
               <div className="profile-content-title">
-                Saved Recipes
-                <span>Private</span>
+                My Recipes
+                <span>Your creations</span>
               </div>
 
-              {!isOwnProfile ? (
-                <div className="profile-no-recipes">
-                  <p>Saved recipes are private. Only you can see your saved recipes.</p>
+              {loadingUserRecipes ? (
+                <div className="profile-loading">Loading your recipes...</div>
+              ) : userRecipes.length > 0 ? (
+                <div className="profile-recipes-grid">
+                  {userRecipes.map((recipe) => (
+                    <RecipeCard key={recipe._id} recipe={recipe} />
+                  ))}
                 </div>
               ) : (
                 <div className="profile-no-recipes">
-                  <p>Your saved recipes will appear here.</p>
-                  <Link to="/recipes" className="profile-explore-link">
-                    Discover Recipes
-                  </Link>
+                  <p>You haven't created any recipes yet.</p>
+                  <button
+                    className="profile-create-button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                  >
+                    Create Your First Recipe
+                  </button>
                 </div>
               )}
             </>
@@ -307,11 +358,16 @@ function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
+      {/* Modals */}
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSuccess={handleEditSuccess}
+      />
+      <CreateRecipeModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
       />
     </>
   );

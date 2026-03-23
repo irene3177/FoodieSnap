@@ -4,7 +4,7 @@ export interface User {
   email: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: string[];
+  createdRecipes?: string[];
   favorites?: string[];
   createdAt?: string;
   updatedAt?: string;

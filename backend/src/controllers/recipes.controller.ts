@@ -160,6 +160,29 @@ export const getAllRecipes = async (
   }
 };
 
+// GET /api/recipes/user/:userId - get all recipes by a specific user
+export const getUserRecipes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    
+    const recipes = await RecipeModel.find({ author: userId })
+      .populate('author', 'username avatar')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: recipes
+    });
+  } catch (error) {
+    console.error('❌ Get user recipes error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user recipes'
+    });
+  }
+};
+
 // Create a new recipe
 export const createRecipe = async (
   req: AuthRequest & { body: IRecipeInput },
@@ -171,10 +194,18 @@ export const createRecipe = async (
 
     const recipe = new RecipeModel({
       ...recipeData,
-      author: authorId
+      author: authorId,
+      source: 'user'
     });
 
     await recipe.save();
+
+    // Add recipe to user's createdRecipes
+    await UserModel.findByIdAndUpdate(
+      authorId,
+      { $push: { createdRecipes: recipe._id } }
+    );
+
     await recipe.populate('author', 'username avatar');
 
     res.status(201).json({
@@ -246,6 +277,12 @@ export const deleteRecipe = async (
       });
       return;
     }
+
+    // Remove from user's createdRecipes
+    await UserModel.findByIdAndUpdate(
+      userId,
+      { $pull: { createdRecipes: id } }
+    );
 
     // Remove the deleted recipe from all users' favorites
     await UserModel.updateMany(

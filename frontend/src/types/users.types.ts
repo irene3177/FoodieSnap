@@ -1,7 +1,7 @@
 import { User, Recipe } from './index';
 
 export interface UserProfile extends User {
-  recipeCount?: number;  // (from savedRecipes.length)
+  recipeCount?: number;  // (from createdRecipes.length)
   followersCount?: number;
   followingCount?: number;
   isFollowing?: boolean;
@@ -42,10 +42,10 @@ export interface UserResponse {
   error?: string;
 }
 
-export interface SavedRecipesResponse {
+export interface CreatedRecipesResponse {
   success: boolean;
   data?: {
-    savedRecipes: string[];
+    createdRecipes: string[];
   };
   error?: string;
 }

@@ -145,9 +145,11 @@ function RecipeDetail() {
             {recipe.instructions && (
               <div className="recipe-detail__section">
                 <h2 className="recipe-detail__section-title">Instructions</h2>
-                <p className="recipe-detail__instructions">
-                  {recipe.instructions}
-                </p>
+                {recipe.instructions.map((step, index) => (
+                  <p key={index} className="recipe-detail__step">
+                    {step}
+                  </p>
+                ))}
               </div>
             )}
 

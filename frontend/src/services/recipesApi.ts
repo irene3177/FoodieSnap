@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Recipe } from '../types';
+import { Recipe, NewRecipe } from '../types';
 import { config } from '../config'; 
 
 const apiClient = axios.create({
@@ -79,6 +79,26 @@ export const recipesApi = {
     } catch (error) {
       console.error('Error fetching top rated recipes:', error);
       throw new Error('Failed to fetch top rated recipes');
+    }
+  },
+
+  getUserRecipes: async (userId: string): Promise<Recipe[]> => {
+    try {
+      const response = await apiClient.get(`/user/${userId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching user recipes:', error);
+      return [];
+    }
+  },
+
+  createRecipe: async (recipeData: NewRecipe): Promise<{ success: boolean; data?: Recipe; error?: string }> => {
+    try {
+      const response = await apiClient.post('/', recipeData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating recipe:', error);
+      return { success: false, error: 'Failed to create recipe' };
     }
   },
 

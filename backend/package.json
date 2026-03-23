@@ -9,7 +9,8 @@
     "start": "node dist/server.ts",
     "clean": "rm -rf dist",
     "cleanup:avatars": "ts-node src/scripts/cleanupOrphanedAvatars.ts",
-    "cleanup:avatars:prod": "node dist/scripts/cleanupOrphanedAvatars.js"
+    "cleanup:avatars:prod": "node dist/scripts/cleanupOrphanedAvatars.js",
+    "migrate-users": "ts-node src/scripts/migrateUsers.ts"
   },
   "nodemonConfig": {
     "watch": [

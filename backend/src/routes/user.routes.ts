@@ -1,8 +1,7 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
 import {
   getUserById,
-  getSavedRecipes,
+  getCreatedRecipes,
   getFavorites,
   getUsers
 } from '../controllers/user.controller';
@@ -13,8 +12,8 @@ const router = express.Router();
 router.get('/', getUsers);
 router.get('/:userId', getUserById);
 router.get('/:userId/favorites', getFavorites);
+router.get('/:userId/recipes', getCreatedRecipes);
 
 // Private routes
-router.get('/:userId/saved', authMiddleware, getSavedRecipes);
 
 export default router;
