@@ -15,9 +15,11 @@ interface Config {
   cookieOptions: {
     httpOnly: boolean;
     secure: boolean;
-    samesite: 'strict' | 'lax' | 'none';
+    sameSite: 'strict' | 'lax' | 'none';
     maxAge: number;
+    expires: Date;
     path: string;
+    domain: string;
   };
 }
 
@@ -27,6 +29,14 @@ for (const envVar of requiredEnvVars) {
     throw new Error(`❌ ${envVar} is not defined in environment variables`);
   }
 }
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+const getExpiresDate = () => {
+  const expires = new Date();
+  expires.setDate(expires.getDate() + 7); // 7 дней
+  return expires;
+};
 
 export const config: Config = {
   port: parseInt(process.env.PORT || '5001', 10),
@@ -47,9 +57,13 @@ export const config: Config = {
 
   cookieOptions: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    samesite: 'strict',
+    secure: isProduction,
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/'
+    expires: getExpiresDate(),
+    path: '/',
+    domain: isProduction 
+    ? (process.env.COOKIE_DOMAIN || '.foodiesnap.com')
+    : 'localhost'
   }
 };

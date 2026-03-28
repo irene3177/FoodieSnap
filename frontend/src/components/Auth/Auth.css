@@ -112,6 +112,14 @@
 
 .auth-form__password-container {
   position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.auth-form__password-container .auth-form__input {
+  width: 100%;
+  padding-right: 2.5rem;
 }
 
 .auth-form__password-toggle {

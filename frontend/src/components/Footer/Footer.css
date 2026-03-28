@@ -3,6 +3,8 @@
   border-top: 1px solid var(--border-color);
   padding: 2rem;
   margin-top: auto;
+  position: relative;
+  width: 100%;
 }
 
 .footer__content {

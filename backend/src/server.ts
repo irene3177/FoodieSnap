@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import http from 'http';
 import path from 'path';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -10,7 +11,9 @@ import recipesRoutes from './routes/recipes.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import ratingRoutes from './routes/rating.routes';
 import usersRoutes from './routes/user.routes';
+import messageRoutes from './routes/message.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
+import { initializeSocketIO } from './services/socket.service';
 
 const app: Application = express();
 
@@ -21,7 +24,17 @@ app.use(cors({
   origin: config.frontendUrl,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Cookie',
+    'Cache-Control',
+    'Pragma'
+  ],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 200,
+  // Safari needs this
+  preflightContinue: false
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,6 +57,7 @@ app.use('/api/recipes', recipesRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/messages', messageRoutes);
 
 // 404 handler
 app.use(notFound);
@@ -51,13 +65,20 @@ app.use(notFound);
 // Error handling middleware
 app.use(errorHandler);
 
+// Create HTTP server from Express app
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+initializeSocketIO(server, config.frontendUrl);
+
 const startServer = async (): Promise<void> => {
   try {
     await mongoose.connect(config.mongoUri);
     console.log('Connected to MongoDB');
 
-    app.listen(config.port, () => {
+    server.listen(config.port, () => {
       console.log(`🚀 Server is running on port ${config.port}`);
+      console.log(`📡 WebSocket server is ready`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

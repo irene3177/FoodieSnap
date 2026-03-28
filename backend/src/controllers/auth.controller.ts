@@ -17,12 +17,13 @@ const generateToken = (userId: string): string => {
 
 const setTokenCookie = (res: Response, token: string): void => {
   res.cookie('token', token, {
-    httpOnly: true,
-    secure: config.nodeEnv === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    path: '/',
-    domain: 'localhost'
+    httpOnly: config.cookieOptions.httpOnly,
+    secure: config.cookieOptions.secure,
+    sameSite: config.cookieOptions.sameSite,
+    maxAge: config.cookieOptions.maxAge,
+    expires: config.cookieOptions.expires,
+    path: config.cookieOptions.path,
+    domain: config.cookieOptions.domain
   });
 };
 
@@ -339,11 +340,14 @@ export const logout = async (
   _req: AuthRequest,
   res: Response<IApiResponse<null>>
 ): Promise<void> => {
+
   res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/'
+    httpOnly: config.cookieOptions.httpOnly,
+    secure: config.cookieOptions.secure,
+    sameSite: config.cookieOptions.sameSite,
+    expires: config.cookieOptions.expires,
+    path: config.cookieOptions.path,
+    domain: config.cookieOptions.domain
   });
   
   res.json({

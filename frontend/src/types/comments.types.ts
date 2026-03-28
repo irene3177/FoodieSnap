@@ -24,4 +24,15 @@ export interface ShareData {
   url: string;
 }
 
+export interface CreateCommentData {
+  text: string;
+  recipeId: string;
+  rating?: number;
+}
+
+export interface LikeResponse {
+  likes: number;
+  hasLiked: boolean;
+}
+
 export type SharePlatform = 'twitter' | 'facebook' | 'pinterest' | 'copy'; 

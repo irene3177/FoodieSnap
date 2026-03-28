@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import { selectTotalUnread } from '../../store/unreadSlice';
 import './UserMenu.css';
 
 function UserMenu() {
@@ -9,8 +11,19 @@ function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const totalUnread = useSelector(selectTotalUnread);
+  console.log('💬 UserMenu: totalUnread from Redux =', totalUnread);
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
+
   const handleLogout = async () => {
     await logout();
+    setIsOpen(false);
+  };
+
+  const closeMenu = () => {
     setIsOpen(false);
   };
 
@@ -40,7 +53,7 @@ function UserMenu() {
     <div className="user-menu" ref={menuRef}>
       <button
         className="user-menu__button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         aria-label="User Menu"
         disabled={isLoading}
       >
@@ -52,6 +65,9 @@ function UserMenu() {
           )}
         </div>
         <span className="user-menu__name">{user.username}</span>
+        {totalUnread > 0 && (
+          <span className="user-menu__indicator" />
+        )}
       </button>
 
       <AnimatePresence>
@@ -81,23 +97,22 @@ function UserMenu() {
             </div>
 
             <div className="user-menu__items">
-              <Link to={`/me`} className="user-menu__item">
+              <Link to={`/me`} className="user-menu__item" onClick={closeMenu}>
                 <span>👤</span> My Profile
               </Link>
-              <Link to="/favorites" className="user-menu__item">
+              <Link to="/chats" className="user-menu__item" onClick={closeMenu}>
+                <span>💬</span> Messages
+                {totalUnread > 0 && (
+                  <span className="user-menu__badge user-menu__badge--chat">
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </span>
+                )}
+              </Link>
+              <Link to="/favorites" className="user-menu__item" onClick={closeMenu}>
                 <span>❤️</span> Favorites
                 {user.favorites && user.favorites.length > 0 && (
                   <span className="user-menu__badge">{user.favorites.length}</span>
                 )}
-              </Link>
-              <Link to="/saved-recipes" className="user-menu__item" onClick={() => setIsOpen(false)}>
-                <span>📑</span> Saved Recipes
-                {user.savedRecipes && user.savedRecipes.length > 0 && (
-                  <span className="user-menu__badge">{user.savedRecipes.length}</span>
-                )}
-              </Link>
-              <Link to="/profile/${user._id}/edit" className="user-menu__item">
-                <span>⚙️</span> Edit Profile
               </Link>
               <button 
                 className="user-menu__item user-menu__item--logout" 

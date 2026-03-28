@@ -1,81 +1,30 @@
-import axios, { isAxiosError } from 'axios';
-import { config } from '../config';
+import  { get, post, put, del } from '../utils/apiClient';
 import { RatingStats } from '../store/ratingSlice';
-import { ApiResponse } from '../types';
-
-const apiClient = axios.create({
-  baseURL: `${config.apiUrl}/ratings`,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-  timeout: config.timeout
-});
-
-const handleError = (error: unknown) => {
-  if (isAxiosError(error)) {
-    return error.response?.data?.error || error.message || 'Request failed';
-  }
-  return 'An unexpected error occurred';
-};
+import { ApiResponse, RatingResponse, DeleteRatingResponse } from '../types';
 
 export const ratingApi = {
   // Get rating stats for a recipe
   getRecipeRating: async (recipeId: string): Promise<ApiResponse<RatingStats>> => {
-    try {
-      const response = await apiClient.get(`/recipe/${recipeId}`);
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return get<RatingStats>(`/ratings/recipe/${recipeId}`);
   },
 
   // Get all ratings by current user
   getUserRatings: async (): Promise<ApiResponse<Record<string, number>>> => {
-    try {
-      const response = await apiClient.get('/user');
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return get<Record<string, number>>('/ratings/user');
   },
 
   // Rate a recipe
-  rateRecipe: async (recipeId: string, value: number): Promise<ApiResponse<{
-    recipeId: string;
-    value: number;
-    stats: RatingStats;
-  }>> => {
-    try {
-      const response = await apiClient.post(`/recipe/${recipeId}`, { value });
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+  rateRecipe: async (recipeId: string, value: number): Promise<ApiResponse<RatingResponse>> => {
+    return post<RatingResponse>(`/ratings/recipe/${recipeId}`, { value });
   },
 
   // Update a rating
-  updateRating: async (recipeId: string, value: number): Promise<ApiResponse<{
-    recipeId: string;
-    value: number;
-    stats: RatingStats;
-  }>> => {
-    try {
-      const response = await apiClient.put(`/recipe/${recipeId}`, { value });
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+  updateRating: async (recipeId: string, value: number): Promise<ApiResponse<RatingResponse>> => {
+    return put<RatingResponse>(`/ratings/recipe/${recipeId}`, { value });
   },
 
   // Delete a rating
-  deleteRating: async (recipeId: string): Promise<ApiResponse<{
-    recipeId: string;
-    stats: RatingStats;
-  }>> => {
-    try {
-      const response = await apiClient.delete(`/recipe/${recipeId}`);
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+  deleteRating: async (recipeId: string): Promise<ApiResponse<DeleteRatingResponse>> => {
+    return del<DeleteRatingResponse>(`/ratings/recipe/${recipeId}`);
   }
 };

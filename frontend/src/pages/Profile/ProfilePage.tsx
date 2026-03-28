@@ -5,6 +5,7 @@ import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import Loader from '../../components/Loader/Loader';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
 import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
+import MessageModal from '../../components/MessageModal/MessageModal';
 import { useProfileData } from '../../hooks/useProfileData';
 import { useAppDispatch } from '../../store/store';
 import { recipesApi } from '../../services/recipesApi';
@@ -22,7 +23,8 @@ function ProfilePage() {
   const [userRecipes, setUserRecipes] = useState<Recipe[]>([]);
   const [loadingUserRecipes, setLoadingUserRecipes] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,20 +45,23 @@ function ProfilePage() {
       if (!profile?._id) return;
       
       setLoadingUserRecipes(true);
-      try {
-        const response = await recipesApi.getUserRecipes(profile._id);
-        setUserRecipes(response);
-      } catch (error) {
-        console.error('Error loading user recipes:', error);
-      } finally {
-        setLoadingUserRecipes(false);
+      const result = await recipesApi.getUserRecipes(profile._id);
+      if (result.success && result.data) {
+        setUserRecipes(result.data);
+      } else {
+        console.error('Error loading user recipes:', result.error);
+        dispatch(showToast({
+          message: result.error || 'Failed to load recipes',
+          type: 'error'
+        }));
       }
+      setLoadingUserRecipes(false);
     };
 
     if (profile?._id && isOwnProfile) {
       loadUserRecipes();
     }
-  }, [profile?._id, isOwnProfile]);
+  }, [profile?._id, isOwnProfile, dispatch]);
 
   const handleEditSuccess = async () => {
     await refreshUser();
@@ -66,7 +71,13 @@ function ProfilePage() {
   const handleCreateSuccess = () => {
     // Reload user recipes
     if (profile?._id) {
-      recipesApi.getUserRecipes(profile._id).then(setUserRecipes);
+      const loadUserRecipes = async () => {
+        const result = await recipesApi.getUserRecipes(profile._id);
+        if (result.success && result.data) {
+          setUserRecipes(result.data);
+        }
+      };
+      loadUserRecipes();
     }
   };
 
@@ -100,31 +111,22 @@ function ProfilePage() {
 
     setIsUploadingAvatar(true);
 
-    try {
-      const response = await authApi.updateAvatar(file);
-
-      if (response.success) {
-        dispatch(showToast({
-          message: 'Avatar updated successfully!',
-          type: 'success'
-        }));
-        await refreshUser();
-        refresh();
-      } else {
-        dispatch(showToast({
-          message: response.error || 'Failed to update avatar',
-          type: 'error'
-        }));
-      }
-    } catch (error) {
-        console.error('Error uploading avatar:', error);
-        dispatch(showToast({
-          message: 'Failed to upload avatar',
-          type: 'error'
-        }));
-      } finally {
-        setIsUploadingAvatar(false);
-      }
+    const response = await authApi.updateAvatar(file);
+    
+    if (response.success) {
+      dispatch(showToast({
+        message: 'Avatar updated successfully!',
+        type: 'success'
+      }));
+      await refreshUser();
+      refresh();
+    } else {
+      dispatch(showToast({
+        message: response.error || 'Failed to update avatar',
+        type: 'error'
+      }));
+    }
+    setIsUploadingAvatar(false);
   };
 
   if (!currentUser && !userId) {
@@ -212,7 +214,12 @@ function ProfilePage() {
             ) : (
               <>
                 <button className="profile-follow-button">Follow</button>
-                <button className="profile-message-button">Message</button>
+                <button
+                  className="profile-message-button"
+                  onClick={() => setIsMessageModalOpen(true)}
+                >
+                  💬 Message
+                </button>
               </>
             )}
           </div>
@@ -368,6 +375,13 @@ function ProfilePage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
+      />
+      <MessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        recipientId={profile._id}
+        recipientName={profile.username}
+        recipientAvatar={profile.avatar}
       />
     </>
   );

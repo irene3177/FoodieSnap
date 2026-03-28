@@ -47,3 +47,17 @@ export interface RecipeFilters {
   category?: string;
   area?: string;
 }
+
+export interface SearchRecipesResponse {
+  recipes: Recipe[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface RandomRecipesResponse {
+  recipes: Recipe[];
+  totalPages: number;
+  currentPage: number;
+  totalRecipes: number;
+}

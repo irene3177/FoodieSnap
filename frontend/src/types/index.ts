@@ -6,3 +6,4 @@ export * from './rating.types';
 export * from './recipes.types';
 export * from './theme.types';
 export * from './users.types';
+export * from './messages.types';

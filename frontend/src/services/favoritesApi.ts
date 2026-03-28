@@ -1,86 +1,41 @@
-import axios, { isAxiosError } from 'axios';
-import { config } from '../config';
+import { get, post, del, put } from '../utils/apiClient';
 import {
   FavoriteActionResponse,
-  CheckFavoriteResponse,
+  CheckFavoriteData,
   ReorderResponse,
   ClearAllResponse,
   ApiResponse,
   Recipe
 } from '../types';
 
-const apiClient = axios.create({
-  baseURL: `${config.apiUrl}/favorites`,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-  timeout: config.timeout
-});
-
-const handleError = (error: unknown) => {
-  if (isAxiosError(error)) {
-    return error.response?.data?.error || error.message || 'Request failed';
-  }
-  return 'An unexpected error occurred';
-};
-
 export const favoritesApi = {
   // Get all favorites
   getFavorites: async (): Promise<ApiResponse<Recipe[]>> => {
-    try {
-      const response = await apiClient.get('/');
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return get<Recipe[]>('/favorites');
   },
 
   // Add to favorites
   addFavorite: async (recipeId: string): Promise<ApiResponse<FavoriteActionResponse>> => {
-    try {
-      const response = await apiClient.post(`/${recipeId}`);
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return post<FavoriteActionResponse>(`/favorites/${recipeId}`);
   },
 
   // Remove from favorites
   removeFavorite: async (recipeId: string): Promise<ApiResponse<FavoriteActionResponse>> => {
-    try {
-      const response = await apiClient.delete(`/${recipeId}`);
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return del<FavoriteActionResponse>(`/favorites/${recipeId}`);
   },
 
   // Check if recipe is favorite
-  checkFavorite: async (recipeId: string): Promise<CheckFavoriteResponse> => {
-    try {
-      const response = await apiClient.get(`/${recipeId}/check`);
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+  checkFavorite: async (recipeId: string): Promise<ApiResponse<CheckFavoriteData>> => {
+    return get<CheckFavoriteData>(`/favorites/${recipeId}/check`);
   },
 
   // Clear all favorites
   clearAllFavorites: async (): Promise<ApiResponse<ClearAllResponse>> => {
-    try {
-      const response = await apiClient.delete('/'); 
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return del<ClearAllResponse>('/favorites');
   },
 
   // Reorder favorites
   reorderFavorites: async (reorderedIds: (string | number) []): Promise<ApiResponse<ReorderResponse>> => {
-    try {
-      const response = await apiClient.put('/reorder', { reorderedIds });
-      return response.data;
-    } catch (error) {
-      return { success: false, error: handleError(error) };
-    }
+    return put<ReorderResponse>('/favorites/reorder', { reorderedIds });
   }
 };

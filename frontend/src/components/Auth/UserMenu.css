@@ -156,6 +156,25 @@
   text-align: center;
 }
 
+.user-menu__badge--chat {
+  background-color: var(--accent-primary);
+  color: white;
+  min-width: 20px;
+  padding: 0.125rem 0.5rem;
+}
+
+.user-menu__indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  border: 2px solid var(--bg-primary);
+  animation: pulse 1.5s infinite;
+}
+
 .user-menu__item--logout {
   color: #dc3545;
   border-top: 1px solid var(--border-color);

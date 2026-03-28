@@ -24,19 +24,14 @@ function RecipeDetail() {
       setLoading(true);
       setError(null);
 
-      try {
-        const fetchedRecipe = await recipesApi.getRecipeById(id);
-        if (fetchedRecipe) {
-          setRecipe(fetchedRecipe);
-        } else {
-          setError('Recipe not found');
-        }
-      } catch (err) {
-        setError('Failed to fetch recipe details. Please try again later.');
-        console.error(err);
-      } finally {
-        setLoading(false);
+      const result = await recipesApi.getRecipeById(id);
+
+      if (result.success && result.data) {
+        setRecipe(result.data);
+      } else {
+        setError(result.error || 'Recipe not found');
       }
+      setLoading(false);
     };
     fetchRecipe();
   }, [id]);

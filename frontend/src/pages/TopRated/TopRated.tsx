@@ -13,15 +13,15 @@ function TopRated() {
   useEffect(() => {
     const loadTopRated = async () => {
       setLoading(true);
-      try {
-        const topRecipes = await recipesApi.getTopRatedRecipes(10);
-        setRecipes(topRecipes);
-      } catch (error) {
-        setError('Failed to load top rated recipes');
-        console.error(error);
-      } finally {
-        setLoading(false);
-      } 
+      setError(null);
+
+      const result = await recipesApi.getTopRatedRecipes(10);
+      if (result.success && result.data) {
+        setRecipes(result.data);
+      } else {
+        setError(result.error || 'Failed to load top rated recipes');
+      }
+      setLoading(false);
     };
     loadTopRated();
   }, []);

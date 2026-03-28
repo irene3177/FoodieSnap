@@ -37,7 +37,7 @@ export const fetchUsers = createAsyncThunk(
 export const searchUsers = createAsyncThunk(
   'users/searchUsers',
   async (query: string, { rejectWithValue }) => {
-    const response = await usersApi.getUsers({ search: query, page: 1, limit: 20 });
+    const response = await usersApi.searchUsers(query);
     if (response.success && response.data) {
       return { ...response.data, searchQuery: query };
     }
@@ -76,6 +76,7 @@ const usersSlice = createSlice({
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.pages = action.payload.pages;
+        state.searchQuery = '';
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;

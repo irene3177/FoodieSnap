@@ -5,12 +5,10 @@ export interface FavoriteActionResponse {
   favoritesCount: number;
 }
 
-export interface CheckFavoriteResponse {
-  success: boolean;
-  data?: {
-    isFavorite: boolean;
-  };
-  error?: string;
+export interface CheckFavoriteData {
+  recipeId: string;
+  isFavorite: boolean;
+  favoritesCount: number;
 }
 
 export interface ReorderResponse {

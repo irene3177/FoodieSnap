@@ -1,0 +1,107 @@
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg-primary);
+}
+
+.not-found__content {
+  text-align: center;
+  max-width: 600px;
+  padding: 3rem;
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px var(--shadow-color);
+  border: 1px solid var(--border-color);
+}
+
+.not-found__code {
+  font-size: 8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.not-found__title {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.not-found__message {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.not-found__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.not-found__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.not-found__button--primary {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+.not-found__button--primary:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+}
+
+.not-found__button--secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.not-found__button--secondary:hover {
+  background-color: var(--border-color);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .not-found__code {
+    font-size: 5rem;
+  }
+  
+  .not-found__title {
+    font-size: 1.25rem;
+  }
+  
+  .not-found__message {
+    font-size: 0.875rem;
+  }
+  
+  .not-found__actions {
+    flex-direction: column;
+  }
+  
+  .not-found__button {
+    width: 100%;
+    justify-content: center;
+  }
+}

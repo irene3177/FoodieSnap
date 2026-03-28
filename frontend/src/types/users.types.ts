@@ -26,64 +26,42 @@ export interface GetUsersParams {
 }
 
 export interface UsersListResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-    page: number;
-    pages: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
+  page: number;
+  pages: number;
 }
 
 export interface UserResponse {
-  success: boolean;
-  data?: UserProfile;
-  error?: string;
+  user: UserProfile;
 }
 
 export interface CreatedRecipesResponse {
-  success: boolean;
-  data?: {
-    createdRecipes: string[];
-  };
-  error?: string;
+  createdRecipes: string[];
 }
 
 export interface FavoritesListResponse {
-  success: boolean;
-  data?: {
-    userId: string;
-    username: string;
-    favorites: Recipe[];
-  };
-  error?: string;
+  userId: string;
+  username: string;
+  favorites: Recipe[];
 }
 
 export interface FollowersResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
 }
 
 export interface FollowingResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
 }
 
 export interface FollowResponse {
-  success: boolean;
-  data?: {
-    following: boolean;
-    followersCount?: number;
-    followingCount?: number;
-  };
-  error?: string;
+  following: boolean;
+  followersCount?: number;
+  followingCount?: number;
+}
+
+export interface CheckFollowResponse {
+  isFollowing: boolean;
 }
