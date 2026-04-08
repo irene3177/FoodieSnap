@@ -32,10 +32,6 @@ export interface UsersListResponse {
   pages: number;
 }
 
-export interface UserResponse {
-  user: UserProfile;
-}
-
 export interface CreatedRecipesResponse {
   createdRecipes: string[];
 }
@@ -57,7 +53,8 @@ export interface FollowingResponse {
 }
 
 export interface FollowResponse {
-  following: boolean;
+  userId: string;
+  isFollowing: boolean;
   followersCount?: number;
   followingCount?: number;
 }

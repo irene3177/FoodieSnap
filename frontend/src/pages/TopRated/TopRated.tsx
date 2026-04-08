@@ -3,6 +3,7 @@ import { recipesApi } from '../../services/recipesApi';
 import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import './TopRated.css';
 
 function TopRated() {
@@ -55,6 +56,7 @@ function TopRated() {
           ))}
         </div>
       )}
+      <ScrollToTop threshold={300} behavior="smooth" />
     </div>
   );
 }

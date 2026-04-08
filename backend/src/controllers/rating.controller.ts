@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+import { NextFunction, Request, Response } from 'express';
+import { AuthRequest } from '../types';
 import { RatingModel } from '../models/Rating.model';
 import { RecipeModel } from '../models/Recipe.model';
+import NotFoundError from '../errors/notFoundError';
 
 const getParamAsString = (param: string | string[]): string => {
   return Array.isArray(param) ? param[0] : param;
@@ -41,46 +42,85 @@ const updateRecipeRating = async (
   });
 };
 
-const findRecipeOr404 = async (recipeId: string, res: Response) => {
-  const recipe = await RecipeModel.findById(recipeId);
-  if (!recipe) {
-    res.status(404).json({
-      success: false,
-      error: 'Recipe not found'
-    });
-    return;
-  }
-  return recipe;
-}; 
+// GET /api/ratings/recipe/:recipeId - Get rating stats for a recipe
+export const getRecipeRating = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const recipeId = getParamAsString(req.params.recipeId);
 
-// Rate a recipe
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      return next(NotFoundError('Recipe not found'));
+    }
+  
+    const allRatings = await RatingModel.find({ recipeId });
+    
+    const distribution = getDistribution(allRatings);
+  
+    res.json({
+      success: true,
+      data: {
+        averageRating: recipe.rating || 0,
+        totalRatings: recipe.ratingCount || 0,
+        distribution
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/ratings/user - Get all ratings by current user
+export const getUserRatings = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+  
+    const ratings = await RatingModel.find({ userId });
+    
+    const userRatings = ratings.reduce((acc, r) => ({
+      ...acc,
+      [r.recipeId.toString()]: r.value
+    }), {});
+  
+    res.json({
+      success: true,
+      data: userRatings
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST || PUT /api/ratings/recipe/:recipeId
 export const rateRecipe = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const recipeId = getParamAsString(req.params.recipeId);
     const userId = req.userId!;
     const { value } = req.body;
-
-    if (value < 1 || value > 5) {
-      res.status(400).json({
-        success: false,
-        message: 'Rating must be between 1 and 5'
-      });
-      return;
-    }
-
+  
     // Check if the recipe exists
-    const recipe = await findRecipeOr404(recipeId, res);
-    if (!recipe) return;
-
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      return next(NotFoundError('Recipe not found'));
+    }
+  
     // Check if the user has already rated this recipe
     const existingRating = await RatingModel.findOne({
       recipeId,
       userId
     });
-
+  
     if (existingRating) {
       // Update existing rating
       existingRating.value = value;
@@ -93,20 +133,20 @@ export const rateRecipe = async (
         value
       });
     }
-
+  
     // Calculate new average rating
     const allRatings = await RatingModel.find({ recipeId });
     const { totalRatings, averageRating } = calculateNewAverage(allRatings);
-
+  
     // Update recipe with new rating stats
     await updateRecipeRating(recipeId, {
       totalRatings,
       averageRating
     });
-
+  
     // Get distribution
     const distribution = getDistribution(allRatings);
-
+  
     res.json({
       success: true,
       data: {
@@ -120,77 +160,15 @@ export const rateRecipe = async (
       }
     });
   } catch (error) {
-    console.error('❌ Rate recipe error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to rate recipe'
-    });
+    next(error);
   }
 };
 
-// Get rating stats for a recipe
-export const getRecipeRating = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const recipeId = getParamAsString(req.params.recipeId);
-
-    const recipe = await findRecipeOr404(recipeId, res);
-    if (!recipe) return;
-
-    const allRatings = await RatingModel.find({ recipeId });
-    
-    const distribution = getDistribution(allRatings);
-
-    res.json({
-      success: true,
-      data: {
-        averageRating: recipe.rating || 0,
-        totalRatings: recipe.ratingCount || 0,
-        distribution
-      }
-    });
-  } catch (error) {
-    console.error('❌ Get recipe rating error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get recipe rating'
-    });
-  }
-};
-
-// Get all ratings by current user
-export const getUserRatings = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const userId = req.userId!;
-
-    const ratings = await RatingModel.find({ userId });
-    
-    const userRatings = ratings.reduce((acc, r) => ({
-      ...acc,
-      [r.recipeId.toString()]: r.value
-    }), {});
-
-    res.json({
-      success: true,
-      data: userRatings
-    });
-  } catch (error) {
-    console.error('❌ Get user ratings error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get user ratings'
-    });
-  }
-};
-
+// DELETE /api/ratings/recipe/:recipeId
 export const deleteRating = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const recipeId = getParamAsString(req.params.recipeId);
@@ -201,20 +179,20 @@ export const deleteRating = async (
       recipeId,
       userId
     });
-
+  
     // Calculate new average rating
     const allRatings = await RatingModel.find({ recipeId });
     const { totalRatings, averageRating } = calculateNewAverage(allRatings);
-
+  
     // Update recipe with new rating stats
     await updateRecipeRating(recipeId, {
       totalRatings,
       averageRating
     });
-
+  
     // Get distribution
     const distribution = getDistribution(allRatings);
-
+  
     res.json({
       success: true,
       data: {
@@ -227,10 +205,6 @@ export const deleteRating = async (
       }
     });
   } catch (error) {
-    console.error('❌ Delete rating error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete rating'
-    });
+    next(error);
   }
 };

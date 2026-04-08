@@ -28,12 +28,10 @@ async function cleanupOrphanedAvatars() {
   for (const file of files) {
     if (!usedFiles.has(file)) {
       fs.unlinkSync(path.join(uploadDir, file));
-      console.log(`🗑️ Deleted orphaned: ${file}`);
       deletedCount++;
     }
   }
   
-  console.log(`✅ Cleanup complete. Deleted ${deletedCount} orphaned files.`);
   process.exit();
 }
 

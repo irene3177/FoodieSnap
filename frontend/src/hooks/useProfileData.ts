@@ -10,6 +10,8 @@ interface UseProfileDataReturn {
   loadingFavorites: boolean;
   error: string | null;
   refresh: () => void;
+  updateFollowStats: (isFollowing: boolean, followersCount?: number) => void;
+  updateCounters: (newFollowersCount?: number, newFollowingCount?: number) => void;
 }
 
 export const useProfileData = (
@@ -64,6 +66,28 @@ export const useProfileData = (
     }
   }, [userId, currentUserId]);
 
+  const updateFollowStats = useCallback((isFollowing: boolean, followersCount?: number) => {
+    setProfile(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        isFollowing: isFollowing,
+        followersCount: followersCount !== undefined ? followersCount : prev.followersCount
+      };
+    });
+  }, []);
+
+  const updateCounters = useCallback((newFollowersCount?: number, newFollowingCount?: number) => {
+  setProfile(prev => {
+    if (!prev) return prev;
+    return {
+      ...prev,
+      followersCount: newFollowersCount !== undefined ? newFollowersCount : prev.followersCount,
+      followingCount: newFollowingCount !== undefined ? newFollowingCount : prev.followingCount
+    };
+  });
+}, []);
+
   const refresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
   }, []);
@@ -78,6 +102,8 @@ export const useProfileData = (
     loading,
     loadingFavorites,
     error,
-    refresh
+    refresh,
+    updateFollowStats,
+    updateCounters
   };
 };

@@ -39,13 +39,36 @@ export interface MealDBRecipe extends Omit<Recipe, '_id' | 'source'> {
 export type RecipeId = Recipe['_id'];
 export type MealDBId = string;
 
-export interface RecipeFilters {
+export interface RecipesFilters {
   difficulty?: 'easy' | 'medium' | 'hard';
   maxCookingTime?: number;
+  minCookingTime?: number;
   search?: string;
   sort?: 'newest' | 'popular' | 'rating';
+  minRating?: number;
   category?: string;
   area?: string;
+
+  source?: 'user' | 'theMealDB';
+  tags?: string[];
+  ingredients?: string[];
+  hasVideo?: boolean;
+  hasImage?: boolean;
+  minRatingCount?: number;
+  exactMatch?: boolean;
+  
+  page?: number;
+  limit?: number;
+}
+
+export interface FilterRecipesResponse {
+  recipes: Recipe[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
 }
 
 export interface SearchRecipesResponse {

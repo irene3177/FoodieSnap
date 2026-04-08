@@ -22,7 +22,8 @@ const UserSchema = new Schema<IUserDocument>({
   password: {
     type: String,
     required: true,
-    minlength: 6
+    minlength: 6,
+    select: false
   },
   avatar: {
     type: String,
@@ -36,11 +37,23 @@ const UserSchema = new Schema<IUserDocument>({
   },
   createdRecipes: [{
     type: Schema.Types.ObjectId,
-    ref: 'Recipe'
+    ref: 'Recipe',
+    default: []
   }],
   favorites: [{
     type: Schema.Types.ObjectId,
-    ref: 'Recipe'
+    ref: 'Recipe',
+    default: []
+  }],
+  followers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: []
+  }],
+  following: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: []
   }]
 },
 {
@@ -50,7 +63,11 @@ const UserSchema = new Schema<IUserDocument>({
       ret._id = ret._id.toString();
       ret.createdRecipes = ret.createdRecipes?.map((id: any) => id.toString());
       ret.favorites = ret.favorites?.map((id: any) => id.toString());
+      ret.followers = ret.followers?.map((id: any) => id.toString());
+      ret.following = ret.following?.map((id: any) => id.toString());
       ret.recipeCount = ret.createdRecipes?.length;
+      ret.followersCount = ret.followers?.length || 0;
+      ret.followingCount = ret.following?.length || 0;
       ret.createdAt = ret.createdAt?.toISOString();
       delete ret.password;
       delete ret.__v;

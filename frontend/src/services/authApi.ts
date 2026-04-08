@@ -1,10 +1,12 @@
-import { get, post, put, postWithFormData } from '../utils/apiClient';
+import { get, post, put, postWithFormData, del } from '../utils/apiClient';
 import {
   User,
   ApiResponse,
   LoginCredentials,
   RegisterCredentials,
-  UpdateProfileData
+  UpdateProfileData,
+  ChangePasswordData,
+  UserProfile
 } from '../types';
 
 
@@ -20,8 +22,8 @@ export const authApi = {
   },
 
   // Get current user profile
-  getMe: async(): Promise<ApiResponse<User>> => {
-    return get<User>('/auth/me');
+  getMe: async(): Promise<ApiResponse<UserProfile>> => {
+    return get<UserProfile>('/auth/me');
   },
 
   // Update user profile
@@ -34,6 +36,16 @@ export const authApi = {
     const formData = new FormData();
     formData.append('avatar', file);
     return postWithFormData<User>('/auth/avatar', formData);
+  },
+
+  // Change password
+  changePassword: async (data: ChangePasswordData): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return put<{ success: boolean; message: string }>('/auth/password', data);
+  },
+
+  // Delete user account
+  deleteAccount: async (): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return del<{ success: boolean; message: string }>('/auth/user');
   },
 
   // Logout user

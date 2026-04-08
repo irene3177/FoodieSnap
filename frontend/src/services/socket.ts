@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { Message } from '../types';
+import { config } from '../config';
 
 let socket: Socket | null = null;
 let shouldAutoConnect = true;
@@ -27,7 +28,7 @@ export const connectSocket = (userId: string) => {
 
   if (socket?.connected) return socket;
   
-  socket = io('http://localhost:5001', {
+  socket = io(config.baseUrl, {
     withCredentials: true,
     transports: ['polling', 'websocket'],
     reconnection: true,
@@ -42,22 +43,27 @@ export const connectSocket = (userId: string) => {
     reconnectAttempts = 0;
     if (userId) {
       socket?.emit('register', userId);
-    } else {
-      console.error('❌ Cannot register: userId is null');
     }
   });
 
   socket.on('disconnect', (reason) => {
     console.log('🔌 Socket disconnected, reason:', reason);
-    // Safari specific: when navigating away, WebSocket gets suspended
-    if (reason === 'transport close' || reason === 'transport error') {
-      console.log('🔄 Attempting to reconnect...');
-      setTimeout(() => {
-        if (socket && !socket.connected) {
-          socket.connect();
-        }
-      }, 1000);
-    }
+    
+    // if (reason === 'transport close' || reason === 'transport error') {
+    //   console.log('🔄 Server restart detected, will reconnect in 2 seconds...');
+    //   setTimeout(() => {
+    //     if (socket && !socket.connected) {
+    //       socket.connect();
+    //     }
+    //   }, 2000);
+    // } else if (reason === 'ping timeout') {
+    //   console.log('🔄 Ping timeout, reconnecting immediately...');
+    //   setTimeout(() => {
+    //     if (socket && !socket.connected) {
+    //       socket.connect();
+    //     }
+    //   }, 500);
+    // }
   });
 
   socket.on('connect_error', (error) => {
@@ -82,6 +88,10 @@ export const forceDisconnect = () => {
   }
 };
 
+export const shouldReconnect = () => {
+  return shouldAutoConnect && !isLoggedOut;
+};
+
 export const disconnectSocket = () => {
   forceDisconnect();
 };
@@ -94,17 +104,14 @@ export const ensureConnection = (userId: string) => {
 };
 
 export const joinChat = (conversationId: string) => {
-  console.log('Joining room:', conversationId);
   socket?.emit('join-chat', conversationId);
 };
 
 export const leaveChat = (conversationId: string) => {
-  console.log('Leaving room:', conversationId);
   socket?.emit('leave-chat', conversationId);
 };
 
 export const sendMessage = (conversationId: string, text: string, senderId: string) => {
-  console.log('Sending:', { conversationId, text, senderId });
   socket?.emit('message', { conversationId, text, senderId });
 };
 
@@ -115,16 +122,12 @@ export const sendTyping = (conversationId: string, userId: string, isTyping: boo
 // Listeners
 export const onMessage = (callback: (message: Message) => void): () => void => {
   if (!socket) {
-    console.log('⚠️ Socket not available, cannot listen for messages');
     return () => {};
   }
-  console.log('📨 Registering message listener');
   socket.on('message', (message) => {
-    console.log('📨 SOCKET RECEIVED MESSAGE:', message);
     callback(message);
   });
   return () => {
-    console.log('🔇 Unregistering message listener');
     socket?.off('message', callback);
   };
 };
@@ -166,7 +169,6 @@ export const offTyping = (callback?: (data: { userId: string; isTyping: boolean 
 
 export const checkOnlineStatus = (userId: string) => {
   if (!socket) return;
-  console.log('🔍 Checking online status for:', userId);
   socket.emit('check-online-status', userId);
 };
 
@@ -184,19 +186,14 @@ export const onOnlineUsers = (callback: (data: { users: string[] }) => void) => 
 
 export const markRead = (conversationId: string, userId: string) => {
   if (socket) {
-    console.log('📖 Marking conversation as read:', conversationId);
     socket.emit('mark-read', { conversationId, userId });
   }
 };
 
 export const onMessagesRead = (callback: (data: { userId: string; conversationId: string }) => void) => {
-  // if (!socket) return () => {};
-  if (!socket) {
-    console.log('⚠️ onMessagesRead: socket not available');
-    return () => {};
-  }
+  if (!socket) return () => {};
+
   socket.on('messages-read', (data) => {
-    console.log('📖 messages-read event received in socket:', data);
     callback(data);
   });
   return () => socket?.off('messages-read', callback);

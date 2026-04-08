@@ -12,7 +12,10 @@ import favoritesRoutes from './routes/favorites.routes';
 import ratingRoutes from './routes/rating.routes';
 import usersRoutes from './routes/user.routes';
 import messageRoutes from './routes/message.routes';
-import { errorHandler, notFound } from './middleware/error.middleware';
+import followRoutes from './routes/follow.routes';
+import errorHandler from './middleware/errorHandler';
+import notFoundHandler from './middleware/notFound';
+import { requestLogger, errorLogger } from './middleware/logger';
 import { initializeSocketIO } from './services/socket.service';
 
 const app: Application = express();
@@ -40,6 +43,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(requestLogger);
+
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -58,9 +63,12 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/follow', followRoutes);
 
 // 404 handler
-app.use(notFound);
+app.use(notFoundHandler);
+
+app.use(errorLogger);
 
 // Error handling middleware
 app.use(errorHandler);

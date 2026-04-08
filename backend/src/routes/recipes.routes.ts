@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validationHandler';
 import {
-  getAllRecipes,
+  filterRecipesHandler,
   createRecipe,
   updateRecipe,
   deleteRecipe,
@@ -10,22 +12,32 @@ import {
   getRecipeByIdHandler,
   getTopRatedRecipes
 } from '../controllers/recipes.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
-import { validateRecipeCreate, validateRecipeUpdate } from '../middleware/validation.middleware';
+import {
+  validateCreateRecipe,
+  validateRecipeId,
+  validateUserId,
+  validateUpdateRecipe,
+  validateFilterRecipes,
+  validateRandomRecipes,
+  validateSearchRecipes,
+  validateTopRated
+} from '../validations/recipes.validation';
 
 const router = Router();
 
 // Public routes
-router.get('/random', getRandomRecipesHandler);
-router.get('/search', searchRecipesHandler);
-router.get('/top-rated', getTopRatedRecipes);
-router.get('/', getAllRecipes);
+router.get('/random', validate(validateRandomRecipes), getRandomRecipesHandler);  // From TheMealDB
+router.get('/search', validate(validateSearchRecipes), searchRecipesHandler);  // From TheMealDB
+router.get('/filter', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB
+router.get('/top-rated', validate(validateTopRated), getTopRatedRecipes);  // From mongoDB
+router.get('/', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB
 
-router.get('/user/:userId', getUserRecipes);
-router.get('/:id', getRecipeByIdHandler);
+router.get('/user/:userId', validate(validateUserId), getUserRecipes);
+router.get('/:id', validate(validateRecipeId), getRecipeByIdHandler);
 // Protected routes
-router.post('/', authMiddleware, validateRecipeCreate, createRecipe);
-router.put('/:id', authMiddleware, validateRecipeUpdate, updateRecipe);
-router.delete('/:id', authMiddleware, deleteRecipe);
+router.use(authMiddleware);
+router.post('/', validate(validateCreateRecipe), createRecipe);
+router.put('/:id', validate(validateUpdateRecipe), updateRecipe);
+router.delete('/:id', validate(validateRecipeId), deleteRecipe);
 
 export default router;

@@ -1,31 +1,25 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.middleware';
+import { NextFunction, Response } from 'express';
+import { AuthRequest } from '../types';
 import { ConversationModel } from '../models/Conversation.model';
 import { MessageModel } from '../models/Message.model';
 import mongoose from 'mongoose';
+import NotFoundError from '../errors/notFoundError';
+import ForbiddenError from '../errors/forbiddenError';
 
 // Helper function to get string from param
 const getStringId = (id: string | string[]): string => {
   return Array.isArray(id) ? id[0] : id;
 };
 
-// Get or create conversation between two users
+// GET /api/messages/conversation/:otherUserId
 export const getOrCreateConversation = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
     const otherUserId = getStringId(req.params.otherUserId);
-
-    // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(otherUserId)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid user ID'
-      });
-      return;
-    }
 
     // Convert to ObjectId objects
     const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -68,17 +62,15 @@ export const getOrCreateConversation = async (
       }
     });
   } catch (error) {
-    console.error('❌ Get conversation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get conversation'
-    });
+    next(error);
   }
 };
 
+// GET /api/messages/conversation-by-id/:conversationId
 export const getConversationById = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
@@ -88,11 +80,7 @@ export const getConversationById = async (
       .populate('participants', 'username avatar');
 
     if (!conversation) {
-      res.status(404).json({
-        success: false,
-        error: 'Conversation not found'
-      });
-      return;
+      return next(NotFoundError('Conversation not found'));
     }
 
     // Check if user is participant
@@ -100,11 +88,7 @@ export const getConversationById = async (
       p => p._id.toString() === userId
     );
     if (!isParticipant) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized'
-      });
-      return;
+      return next(ForbiddenError('Not authorized to view this conversation'));
     }
 
     // Get messages
@@ -122,40 +106,25 @@ export const getConversationById = async (
       }
     });
   } catch (error) {
-    console.error('❌ Get conversation by ID error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get conversation'
-    });
+    next(error);
   }
 };
 
-// Send a message
+// POST /api/messages/conversation/:conversationId/message
 export const sendMessage = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const senderId = req.userId!;
     const conversationId = getStringId(req.params.conversationId);
     const { text } = req.body;
 
-    if (!text?.trim()) {
-      res.status(400).json({
-        success: false,
-        error: 'Message text is required'
-      });
-      return;
-    }
-
     // Find conversation
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
-      res.status(404).json({
-        success: false,
-        error: 'Conversation not found'
-      });
-      return;
+      return next(NotFoundError('Conversation not found'));
     }
 
     // Check if user is participant
@@ -163,11 +132,7 @@ export const sendMessage = async (
       p => p.toString() === senderId
     );
     if (!isParticipant) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized'
-      });
-      return;
+      return next(ForbiddenError('Not authorized to send messages in this conversation'));
     }
 
     // Create message
@@ -191,30 +156,28 @@ export const sendMessage = async (
       data: populatedMessage
     });
   } catch (error) {
-    console.error('❌ Send message error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to send message'
-    });
+    next(error);
   }
 };
 
-// Mark messages as read
+// PUT /api/messages/conversation/:conversationId/read
 export const markAsRead = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
-  console.log('🔍 REST markAsRead called for conversation:', req.params.conversationId);
   try {
     const userId = req.userId!;
     const conversationId = getStringId(req.params.conversationId);
 
     const conversation = await ConversationModel.findById(conversationId);
-    if (conversation) {
-      if (!conversation.unreadCount) conversation.unreadCount = {};
-      conversation.unreadCount[userId] = 0;
-      await conversation.save();
+    if (!conversation) {
+      return next(NotFoundError('Conversation not found'));
     }
+    if (!conversation.unreadCount) conversation.unreadCount = {};
+    conversation.unreadCount[userId] = 0;
+    await conversation.save();
+
 
     // Update all unread messages from other user
     await MessageModel.updateMany(
@@ -234,30 +197,18 @@ export const markAsRead = async (
       message: 'Messages marked as read'
     });
   } catch (error) {
-    console.error('❌ Mark as read error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to mark messages as read'
-    });
+    next(error);
   }
 };
 
-// Get user's conversations
+// GET /api/messages/conversations
 export const getUserConversations = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
-    console.log('🔍 getUserConversations called');
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid user ID'
-      });
-      return;
-    }
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
@@ -268,28 +219,20 @@ export const getUserConversations = async (
       .populate('participants', 'username avatar')
       .lean();
 
-
-    conversations.forEach(conv => {
-      console.log(`📊 Conversation ${conv._id}: unreadCount =`, conv.unreadCount);
-    });
-
     res.json({
       success: true,
       data: conversations
     });
   } catch (error) {
-    console.error('❌ Get conversations error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get conversations'
-    });
+    next(error);
   }
 };
 
-// Delete a conversation
+// DELETE /api/messages/conversation/:conversationId
 export const deleteConversation = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
@@ -298,11 +241,7 @@ export const deleteConversation = async (
     // Find conversation
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
-      res.status(404).json({
-        success: false,
-        error: 'Conversation not found'
-      });
-      return;
+      return next(NotFoundError('Conversation not found'));
     }
 
     // Check if user is participant
@@ -310,11 +249,7 @@ export const deleteConversation = async (
       p => p.toString() === userId
     );
     if (!isParticipant) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized'
-      });
-      return;
+      return next(ForbiddenError('Not authorized to delete this conversation'));
     }
 
     // Delete all messages in the conversation
@@ -328,18 +263,15 @@ export const deleteConversation = async (
       message: 'Conversation deleted successfully'
     });
   } catch (error) {
-    console.error('❌ Delete conversation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete conversation'
-    });
+    next(error);
   }
 };
 
-// Delete all messages in a conversation (keep conversation)
+// DELETE /api/messages/conversation/:conversationId/messages
 export const clearChat = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
@@ -347,22 +279,14 @@ export const clearChat = async (
 
     const conversation = await ConversationModel.findById(conversationId);
     if (!conversation) {
-      res.status(404).json({
-        success: false,
-        error: 'Conversation not found'
-      });
-      return;
+      return next(NotFoundError('Conversation not found'));
     }
 
     const isParticipant = conversation.participants.some(
       p => p.toString() === userId
     );
     if (!isParticipant) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized'
-      });
-      return;
+      return next(ForbiddenError('Not authorized to clear this chat'));
     }
 
     // Delete all messages
@@ -379,10 +303,6 @@ export const clearChat = async (
       message: 'Chat history cleared'
     });
   } catch (error) {
-    console.error('❌ Clear chat error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear chat'
-    });
+    next(error);
   }
 };

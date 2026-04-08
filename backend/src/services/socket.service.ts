@@ -61,45 +61,37 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
   });
 
   io.on('connection', (socket) => {
-    console.log('✅ Client connected:', socket.id);
     let currentUserId: string | null = null;
 
     socket.on('register', async (userId: string) => {
       currentUserId = userId;
       onlineUsers.set(userId, socket.id);
-      console.log(`✅ User ${userId} online`);
 
       const conversations = await ConversationModel.find({ participants: userId });
 
       conversations.forEach(conv => {
         socket.join(conv._id.toString());
-        console.log(`📢 Auto-joined user ${userId} to conversation ${conv._id}`);
-        console.log(`   📊 unreadCount from DB:`, conv.unreadCount);
       });
       
       
       // Send online status to everyone
       socket.broadcast.emit('user-online', { userId, online: true });
       const allOnlineUsers = Array.from(onlineUsers.keys());
-      console.log(`📡 Sending online users list to ${userId}:`, allOnlineUsers);
       socket.emit('online-users', { users: allOnlineUsers });
     });
 
     // NEW: Handle request for specific user's online status
     socket.on('check-online-status', (userId: string) => {
       const isOnline = onlineUsers.has(userId);
-      console.log(`🔍 Checking online status for ${userId}: ${isOnline}`);
       socket.emit('online-status-response', { userId, online: isOnline });
     });
 
     socket.on('join-chat', (conversationId: string) => {
       socket.join(conversationId);
-      console.log(`📢 User ${currentUserId} joined chat ${conversationId}`);
     });
 
     socket.on('leave-chat', (conversationId: string) => {
       socket.leave(conversationId);
-      console.log(`👋 User ${currentUserId} left chat ${conversationId}`);
     });
 
     socket.on('message', async (data) => {
@@ -109,7 +101,6 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
       try {
         const conversation = await ConversationModel.findById(conversationId);
         if (conversation) {
-          console.log('📊 BEFORE unread update:', JSON.stringify(conversation.unreadCount));
           if (!conversation.unreadCount) {
             conversation.unreadCount = {};
           }
@@ -119,23 +110,19 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
             if (participantIdStr !== senderId) {
               const currentCount = conversation.unreadCount?.[participantIdStr] || 0;
               conversation.unreadCount[participantIdStr] = currentCount + 1;
-              console.log(`📊 Updated unread for ${participantIdStr}: ${currentCount} -> ${conversation.unreadCount[participantIdStr]}`);
             }
           });
 
           conversation.markModified('unreadCount');
           
           await conversation.save();
-          console.log('📊 AFTER unread update:', JSON.stringify(conversation.unreadCount));
-          const verify = await ConversationModel.findById(conversationId);
-          console.log('📊 VERIFY after save:', JSON.stringify(verify?.unreadCount));
+          await ConversationModel.findById(conversationId);
         }
       } catch (error) {
         console.error('Error updating unreadCount:', error);
       }
 
       io.to(conversationId).emit('message', message);
-      console.log('📨 Broadcasted message to room:', conversationId);
     });
 
     socket.on('typing', (data) => {
@@ -144,18 +131,14 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
 
     socket.on('mark-read', async (data) => {
       const { conversationId, userId } = data;
-      console.log('📖 mark-read received on backend:', { conversationId, userId });
 
       try {
         // Update unread count in conversation
-        const result = await ConversationModel.findByIdAndUpdate(
+        await ConversationModel.findByIdAndUpdate(
           conversationId,
           { $set: { [`unreadCount.${userId}`]: 0 } },
           { new: true }
         );
-        
-        console.log('✅ unreadCount reset in DB for user:', userId);
-        console.log('📊 Updated conversation:', result?.unreadCount);
         
         // Also update all messages as read (optional)
         await MessageModel.updateMany(
@@ -165,7 +148,6 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
         
         // Notify other participants that messages were read
         io.to(conversationId).emit('messages-read', { userId, conversationId });
-        console.log('📖 messages-read emitted to room:', conversationId);
       } catch (error) {
         console.error('Error marking messages as read:', error);
       }
@@ -175,7 +157,6 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
       if (currentUserId) {
         onlineUsers.delete(currentUserId);
         io.emit('user-online', { userId: currentUserId, online: false });
-        console.log(`🔌 User ${currentUserId} offline`);
       }
     });
   });

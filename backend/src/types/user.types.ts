@@ -25,7 +25,12 @@ export interface IUserResponse {
   bio?: string;
   createdRecipes?: string[];
   favorites?: string[];
+  followers?: string[];
+  following?: string[];
   recipeCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  isFollowing?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -36,4 +41,5 @@ export interface IUserListItem {
   avatar?: string;
   bio?: string;
   recipeCount: number;
+  isFollowing?: boolean;
 }

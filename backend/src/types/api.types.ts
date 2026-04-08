@@ -1,6 +1,5 @@
-export interface IApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
+import { Request } from 'express';
+export interface AuthRequest extends Request {
+  user?: any;
+  userId?: string;
 }

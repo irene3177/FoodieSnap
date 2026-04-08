@@ -7,17 +7,25 @@ import {
   toggleLike
 } from '../controllers/comments.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
-import { validateComment } from '../middleware/validation.middleware';
+import { validate } from '../middleware/validationHandler';
+import {
+  validateCreateComment,
+  validateUpdateComment,
+  validateCommentId,
+  validateRecipeId
+} from '../validations/comments.validation';
+
 
 
 const router = Router();
 
-router.get('/recipe/:recipeId', getRecipeComments);
+router.get('/recipe/:recipeId', validate(validateRecipeId), getRecipeComments);
 
 // Protected routes
-router.post('/', authMiddleware, validateComment, createComment);
-router.put('/:id', authMiddleware, validateComment, updateComment);
-router.delete('/:id', authMiddleware, deleteComment);
-router.post('/:id/like', authMiddleware, toggleLike);
+router.use(authMiddleware);
+router.post('/', validate(validateCreateComment), createComment);
+router.put('/:id', validate(validateUpdateComment), updateComment);
+router.post('/:id/like', validate(validateCommentId), toggleLike);
+router.delete('/:id', validate(validateCommentId), deleteComment);
 
 export default router;

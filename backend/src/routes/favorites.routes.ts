@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validationHandler';
 import {
   addToFavorites,
   removeFromFavorites,
@@ -8,6 +9,12 @@ import {
   clearAllFavorites,
   reorderFavorites
 } from '../controllers/favorites.controller';
+import {
+  validateReorderFavorites,
+  validateCheckFavorite,
+  validateAddToFavorites,
+  validateRemoveFromFavorites
+} from '../validations/favorites.validation';
 
 const router = Router();
 
@@ -15,10 +22,10 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', getFavorites);
-router.get('/:recipeId/check', checkFavorite);
-router.post('/:recipeId', addToFavorites);
-router.put('/reorder', reorderFavorites);
-router.delete('/:recipeId', removeFromFavorites);
+router.get('/:recipeId/check', validate(validateCheckFavorite), checkFavorite);
+router.post('/:recipeId', validate(validateAddToFavorites), addToFavorites);
+router.put('/reorder', validate(validateReorderFavorites), reorderFavorites);
+router.delete('/:recipeId', validate(validateRemoveFromFavorites), removeFromFavorites);
 router.delete('/', clearAllFavorites);
 
 export default router;

@@ -1,7 +1,7 @@
 import axios, { Method, AxiosRequestConfig } from 'axios';
 import { config } from '../config';
 import { handleApiError } from './apiErrorHandler';
-import { logout, selectIsLoggingOut } from '../store/authSlice';
+import { selectIsLoggingOut } from '../store/authSlice';
 import { store } from '../store/store';
 import { ApiBody, ApiParams, ApiResponse } from '../types';
 
@@ -10,11 +10,12 @@ const apiClient = axios.create({
   timeout: config.timeout,
   withCredentials: true
 });
+// let isRedirecting = false;
 
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Не разлогиниваем при ошибках сети (сервер перезапускается)
+    // Do not log out in case network errors (server is restarting)
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
       console.log('⚠️ Network error, not logging out');
       return Promise.reject(error);
@@ -22,11 +23,29 @@ apiClient.interceptors.response.use(
 
     const state = store.getState();
     const isLoggingOut = selectIsLoggingOut(state);
+    // const isAuthenticated = selectIsAuthenticated(state);
+
+    const isAuthEndpoint = error.config?.url?.includes('/auth/login') || 
+                          error.config?.url?.includes('/auth/register');
     
-    // Только при 401 Unauthorized разлогиниваем
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !isLoggingOut) {
       console.log('🔑 401 Unauthorized, logging out');
-      store.dispatch(logout());
+      // isRedirecting = true;
+      // if (isAuthenticated) {
+      //   store.dispatch(logout());
+      // }
+
+      // setTimeout(() => {
+      //   isRedirecting = false;
+      //   if (!window.location.pathname.includes('/')) {
+      //     window.location.href = '/?logout=true';
+      //   }
+      // }, 100);
+      return Promise.reject(error);
     } else if (error.response?.status === 401 && isLoggingOut) {
       console.log('🔑 401 Unauthorized, but already logging out - skipping');
     }

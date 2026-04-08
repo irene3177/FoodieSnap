@@ -22,6 +22,7 @@ interface AuthState {
   isAuthenticated: boolean;
   hasCheckedSession: boolean;
   isLoggingOut: boolean;
+  isLoggedOut: boolean;
 }
 
 const initialState: AuthState = {
@@ -30,7 +31,8 @@ const initialState: AuthState = {
   error: null,
   isAuthenticated: false,
   hasCheckedSession: false,
-  isLoggingOut: false
+  isLoggingOut: false,
+  isLoggedOut: false
 };
 
 // Check session on app load
@@ -39,21 +41,22 @@ export const checkSession = createAsyncThunk(
   async (_, { getState }) => {
     const state = getState() as RootState;
 
-    if (state.auth.isLoggingOut) {
-      console.log('🔍 checkSession: skipping because logging out');
-      return null;
-    }
+    // if (state.auth.isLoading) {
+    //   console.log('🔍 checkSession: already loading, skipping');
+    //   return null;
+    // }
 
-    if (!state.auth.isAuthenticated && state.auth.hasCheckedSession) {
-      console.log('🔍 checkSession: user is not authenticated, skipping');
-      return null;
-    }
-    
-    console.log('🔍 checkSession started');
     if (state.auth.hasCheckedSession) {
       console.log('🔍 checkSession: already checked, skipping');
       return null;
     }
+
+    if (state.auth.isLoggingOut || state.auth.isLoggedOut) {
+      console.log('🔍 checkSession: logging out, skipping');
+      return null;
+    }
+    
+    console.log('🔍 checkSession started');
 
     const hasLogoutParam = window.location.search.includes('logout');
     if (hasLogoutParam) {
@@ -131,6 +134,35 @@ export const updateAvatar = createAsyncThunk(
   }
 );
 
+// Change password
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async (data: { currentPassword: string; newPassword: string }, { rejectWithValue }) => {
+    const response = await authApi.changePassword(data);
+    if (response.success) {
+      return response;
+    }
+    
+    return rejectWithValue(response.error || 'Password change failed');
+  }
+);
+
+// Delete user account
+export const deleteAccount = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { dispatch, rejectWithValue }) => {
+    const response = await authApi.deleteAccount();
+    
+    if (response.success) {
+      // Force logout after account deletion
+      await dispatch(logout());
+      return response;
+    }
+    
+    return rejectWithValue(response.error || 'Account deletion failed');
+  }
+);
+
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { dispatch }) => {
@@ -173,6 +205,15 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
+    setLoggedOut: (state, action: PayloadAction<boolean>) => {
+      state.isLoggedOut = action.payload;
+    },
+    resetAuthState: (state) => {
+      state.isLoggingOut = false;
+      state.isLoading = false;
+      state.isLoggedOut = false;
+      state.hasCheckedSession = false;
+    },
     resetSessionCheck: (state) => {
       state.hasCheckedSession = false;
     },
@@ -187,6 +228,9 @@ const authSlice = createSlice({
     builder
       // Check session
       .addCase(checkSession.pending, (state) => {
+        if (state.isLoggedOut) {
+          return;
+        }
         state.isLoading = true;
       })
       .addCase(checkSession.fulfilled, (state, action) => {
@@ -195,11 +239,9 @@ const authSlice = createSlice({
         if (action.payload) {
           state.user = action.payload;
           state.isAuthenticated = true;
-          console.log('✅ checkSession.fulfilled: user set', action.payload.username);
         } else {
           state.user = null;
           state.isAuthenticated = false;
-          console.log('❌ checkSession.fulfilled: user not set');
         }
       })
       .addCase(checkSession.rejected, (state) => {
@@ -284,6 +326,37 @@ const authSlice = createSlice({
       .addCase(refreshUser.rejected, (state) => {
         state.isLoading = false;
       })
+
+      // Change Password
+      .addCase(changePassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      
+      // Delete Account
+      .addCase(deleteAccount.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteAccount.fulfilled, (state) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.hasCheckedSession = false;
+        state.isLoggingOut = false;
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       
       // Logout
       .addCase(logout.pending, (state) => {
@@ -293,11 +366,14 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        // state.hasCheckedSession = false;
+        state.hasCheckedSession = false;
         state.isLoggingOut = false;
+        state.isLoggedOut = true;
       })
       .addCase(logout.rejected, (state) => {
         state.isLoading = false;
+        state.isLoggingOut = false;
+        state.isLoggedOut = true;
       });
   },
 });
@@ -309,6 +385,7 @@ export const selectAuthLoading = (state: RootState) => state.auth.isLoading;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectHasCheckedSession = (state: RootState) => state.auth.hasCheckedSession;
 export const selectIsLoggingOut = (state: RootState) => state.auth.isLoggingOut;
+export const selectIsLoggedOut = (state: RootState) => state.auth.isLoggedOut;
 
-export const { clearError, setUser, resetSessionCheck, setLoggingOut } = authSlice.actions;
+export const { clearError, setUser, resetSessionCheck, setLoggingOut, resetAuthState } = authSlice.actions;
 export default authSlice.reducer;

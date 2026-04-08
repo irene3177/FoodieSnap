@@ -1,11 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useFollow } from '../../hooks/useFollow';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import Loader from '../../components/Loader/Loader';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
 import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
+import FollowModal from '../../components/FollowModal/FollowModal';
 import MessageModal from '../../components/MessageModal/MessageModal';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useProfileData } from '../../hooks/useProfileData';
 import { useAppDispatch } from '../../store/store';
 import { recipesApi } from '../../services/recipesApi';
@@ -25,6 +28,9 @@ function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,8 +40,21 @@ function ProfilePage() {
     loading,
     loadingFavorites,
     error,
-    refresh
+    refresh,
+    updateFollowStats,
+    updateCounters
   } = useProfileData(userId, currentUser?._id);
+
+  const { isFollowing, isLoading: isFollowLoading, toggleFollow } = useFollow(
+    profile?._id || '',
+    profile?.isFollowing || false,
+    {
+      onFollowChange: (newIsFollowing, newFollowersCount) => {
+        // refresh();
+        updateFollowStats(newIsFollowing, newFollowersCount);
+      }
+    }
+  );
 
   const isOwnProfile = currentUser?._id === profile?._id;
 
@@ -67,6 +86,10 @@ function ProfilePage() {
     await refreshUser();
     refresh();
   };
+
+  const handleFollowUpdate = useCallback((newFollowersCount?: number, newFollowingCount?: number) => {
+    updateCounters(newFollowersCount, newFollowingCount);
+  }, [updateCounters]);
 
   const handleCreateSuccess = () => {
     // Reload user recipes
@@ -185,11 +208,19 @@ function ProfilePage() {
               <span className="profile-stat-value">{profile.recipeCount || 0}</span>
               <span className="profile-stat-label">Recipes</span>
             </div>
-            <div className="profile-stat">
+            <div
+              className="profile-stat"
+              onClick={() => setShowFollowersModal(true)}
+              style={{ cursor: 'pointer' }}
+            >
               <span className="profile-stat-value">{profile.followersCount || 0}</span>
               <span className="profile-stat-label">Followers</span>
             </div>
-            <div className="profile-stat">
+            <div
+              className="profile-stat"
+              onClick={() => setShowFollowingModal(true)}
+              style={{ cursor: 'pointer' }}
+            >
               <span className="profile-stat-value">{profile.followingCount || 0}</span>
               <span className="profile-stat-label">Following</span>
             </div>
@@ -213,7 +244,13 @@ function ProfilePage() {
               </>
             ) : (
               <>
-                <button className="profile-follow-button">Follow</button>
+                <button
+                  className={`profile-follow-button ${isFollowing ? 'following' : ''}`}
+                  onClick={toggleFollow}
+                  disabled={isFollowLoading}
+                >
+                  {isFollowLoading ? 'Loading...' : (isFollowing ? 'Following' : 'Follow')}
+                </button>
                 <button
                   className="profile-message-button"
                   onClick={() => setIsMessageModalOpen(true)}
@@ -363,6 +400,7 @@ function ProfilePage() {
             </div>
           )}
         </div>
+        <ScrollToTop threshold={300} />
       </div>
 
       {/* Modals */}
@@ -382,6 +420,23 @@ function ProfilePage() {
         recipientId={profile._id}
         recipientName={profile.username}
         recipientAvatar={profile.avatar}
+      />
+      <FollowModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        userId={profile._id}
+        type="followers"
+        initialCount={profile.followersCount || 0}
+        onUpdate={handleFollowUpdate}
+      />
+
+      <FollowModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        userId={profile._id}
+        type="following"
+        initialCount={profile.followingCount || 0}
+        onUpdate={handleFollowUpdate}
       />
     </>
   );

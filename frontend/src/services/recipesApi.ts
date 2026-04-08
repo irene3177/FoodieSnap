@@ -4,12 +4,25 @@ import {
   NewRecipe,
   SearchRecipesResponse,
   RandomRecipesResponse,
+  FilterRecipesResponse,
+  RecipesFilters,
   ApiResponse
 } from '../types';
 
 export const recipesApi = {
-  // Search recipe by name
-  searchRecipes: async (
+  // Get random recipes (TheMealDB)
+  getRandomRecipes: async (
+    count = 8,
+    page: number = 1
+  ): Promise<ApiResponse<RandomRecipesResponse>> => {
+    return get<RandomRecipesResponse>('/recipes/random', {
+      count,
+      page
+    });
+  },
+
+  // Search recipe by name (TheMealDB)
+  searchRecipesByName: async (
     query: string,
     page: number = 1
   ): Promise<ApiResponse<SearchRecipesResponse>> => {
@@ -20,14 +33,16 @@ export const recipesApi = {
     });
   },
 
-  // Get random recipes
-  getRandomRecipes: async (
-    count = 8,
-    page: number = 1
-  ): Promise<ApiResponse<RandomRecipesResponse>> => {
-    return get<RandomRecipesResponse>('/recipes/random', {
-      count,
-      page
+  // Get recipes with filters and sorting (MongoDB)
+  filterRecipes: async (
+    filters?: RecipesFilters,
+    page: number = 1,
+    limit: number = 12
+  ): Promise<ApiResponse<FilterRecipesResponse>> => {
+    return get<FilterRecipesResponse>('/recipes/filter', {
+      ...filters,
+      page,
+      limit
     });
   },
 

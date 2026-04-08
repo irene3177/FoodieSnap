@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectUnreadCount } from '../../store/unreadSlice';
+import { selectUnreadCount, selectLastMessages } from '../../store/unreadSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { messagesApi } from '../../services/messagesApi';
 import Loader from '../../components/Loader/Loader';
@@ -13,21 +13,19 @@ import './Chats.css';
 function Chats() {
   const { user } = useAuth();
   const unreadCounts = useSelector(selectUnreadCount);
+  const lastMessages = useSelector(selectLastMessages);
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
-  console.log('💬 Chats render - unreadCounts from Redux:', unreadCounts);
 
   const getUnreadCount = (conversation: Conversation) => {
     if (!user) return 0;
     const count = unreadCounts[conversation._id] ?? conversation.unreadCount?.[user._id] ?? 0;
-    console.log(`💬 Unread for ${conversation._id}:`, count);
     return count;
-    //return unreadCounts[conversation._id] ?? conversation.unreadCount?.[user._id] ?? 0;
-  };
+    };
 
   // Load conversations
   const loadConversations = useCallback(async () => {
@@ -44,6 +42,22 @@ function Chats() {
     setLoading(false);
   }, []);
 
+  const getLastMessage = (conversation: Conversation) => {
+    const lastFromRedux = lastMessages[conversation._id];
+    if (lastFromRedux) {
+      return lastFromRedux.text;
+    }
+    return conversation.lastMessage || 'No messages yet';
+  };
+
+  const getLastMessageTime = (conversation: Conversation) => {
+    const lastFromRedux = lastMessages[conversation._id];
+    if (lastFromRedux) {
+      return lastFromRedux.createdAt;
+    }
+    return conversation.lastMessageAt;
+  };
+
   // Load conversations on mount
   useEffect(() => {
     isMountedRef.current = true;
@@ -58,7 +72,6 @@ function Chats() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && user?._id) {
-        console.log('👁️ Chats page became visible, recfreshing conversations...');
         // Ensure socket is connected
         socket.ensureConnection(user._id);
         // Refresh conversations
@@ -168,11 +181,11 @@ function Chats() {
                 <div className="chat-item__info">
                   <div className="chat-item__header">
                     <span className="chat-item__name">{otherUser?.username || 'Unknown User'}</span>
-                    <span className="chat-item__time">{formatTime(conversation.lastMessageAt)}</span>
+                    <span className="chat-item__time">{formatTime(getLastMessageTime(conversation))}</span>
                   </div>
                   <div className="chat-item__preview">
                     <p className="chat-item__message">
-                      {conversation.lastMessage || 'No messages yet'}
+                      {getLastMessage(conversation) || 'No messages yet'}
                     </p>
                     {unreadCount > 0 && (
                       <span className="chat-item__badge">{unreadCount}</span>

@@ -1,5 +1,9 @@
 {
   "files": [],
+  "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+  },
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

@@ -6,6 +6,8 @@ export interface User {
   bio?: string;
   createdRecipes?: string[];
   favorites?: string[];
+  followers?: string[];
+  following?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -31,6 +33,16 @@ export interface UpdateProfileData {
   email?: string;
   avatar?: string;
   bio?: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface DeleteAccountResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface AuthState {

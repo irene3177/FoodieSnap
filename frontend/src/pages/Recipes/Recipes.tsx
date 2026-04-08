@@ -4,6 +4,7 @@ import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import './Recipes.css';
 
 function Recipes() {
@@ -87,7 +88,7 @@ function Recipes() {
     setLoading(true);
     setError(null);
     
-    const result = await recipesApi.searchRecipes(query, 1);
+    const result = await recipesApi.searchRecipesByName(query, 1);
 
     if (result.success) {
       setRecipes(result.data?.recipes || []);
@@ -213,6 +214,7 @@ function Recipes() {
           <p>You've reached the end! 🎉</p>
         </div>
       )}
+      <ScrollToTop threshold={400} behavior="smooth" />
     </div>
   );
 }

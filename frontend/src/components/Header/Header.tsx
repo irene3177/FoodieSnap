@@ -41,12 +41,17 @@ function Header() {
           <ul className="header__nav-list">
             <li className="header__nav-item">
               <NavLink to="/recipes" className={getActiveClass} onClick={closeMenu}>
-                Recipes
+                Discover
+              </NavLink>
+            </li>
+            <li className="header__nav-item">
+              <NavLink to="/search" className={getActiveClass} onClick={closeMenu}>
+                Search
               </NavLink>
             </li>
             <li className="header__nav-item">
               <NavLink to="/top-rated" className={getActiveClass} onClick={closeMenu}>
-                Top Rated ⭐
+                Top Rated
               </NavLink>
             </li>
             <li className="header__nav-item">

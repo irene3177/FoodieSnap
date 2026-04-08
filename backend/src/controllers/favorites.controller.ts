@@ -1,137 +1,146 @@
-import { Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { UserModel } from '../models/User.model';
 import { RecipeModel } from '../models/Recipe.model';
-import { AuthRequest } from '../middleware/auth.middleware';
+import { AuthRequest } from '../types';
 import { IFavoriteResponse } from '../types';
+import NotFoundError from '../errors/notFoundError';
 
-const ensureRecipeExists = async (recipeId: string, res: Response) => {
-  const recipe = await RecipeModel.findById(recipeId);
-    
-    if (!recipe) {
-      res.status(404).json({
-        success: false,
-        error: 'Recipe not found'
+// GET /api/favorites
+export const getFavorites = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+  
+    const user = await UserModel.findById(userId)
+      .populate({
+        path: 'favorites',
+        populate: {
+          path: 'author',
+          select: 'username avatar'
+        }
       });
-      return null;
+  
+    if (!user) {
+      return next(NotFoundError('User not found'));
     }
-
-    return recipe;
+  
+    res.json({
+      success: true,
+      data: user.favorites
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// Add a recipe to the user's favorites
+// POST /api/favorites/:recipeId
 export const addToFavorites = async (
   req: AuthRequest & { params: { recipeId: string } },
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { recipeId } = req.params;
     const userId = req.userId!;
-
-    const recipe = ensureRecipeExists(recipeId, res);
-    if(!recipe) return;
-
+  
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      return next(NotFoundError('Recipe not found'));
+    }
+  
     // Add recipe to user's favorites
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $addToSet: { favorites: recipeId } },
       { returnDocument: 'after' }
     ).populate('favorites');
-
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     const response: IFavoriteResponse = {
       recipeId,
       isFavorite: true,
       favoritesCount: user.favorites?.length || 0
     };
-
+  
     res.json({
       success: true,
       data: response
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to add to favorites'
-    });
+    next(error);
   }
 };
 
-// Remove a recipe from the user's favorites
+// DELETE /api/favorites/:recipeId
 export const removeFromFavorites = async (
   req: AuthRequest & { params: { recipeId: string } },
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { recipeId } = req.params;
     const userId = req.userId!;
-
-    const recipe = ensureRecipeExists(recipeId, res);
-    if(!recipe) return;
-
+  
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      return next(NotFoundError('Recipe not found'));
+    }
+  
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $pull: { favorites: recipeId } },
       { returnDocument: 'after' }
     );
-
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     const response: IFavoriteResponse = {
       recipeId,
       isFavorite: false,
       favoritesCount: user.favorites?.length || 0
     };
-
+  
     res.json({
       success: true,
       data: response
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to remove from favorites'
-    });
+    next(error);
   }
 };
 
-// Check if a recipe is in the user's favorites
+// GET /api/favorites/:recipeId/check
 export const checkFavorite = async (
   req: AuthRequest & { params: { recipeId: string } },
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { recipeId } = req.params;
     const userId = req.userId!;
-
-    const recipe = ensureRecipeExists(recipeId, res);
-    if(!recipe) return;
-
+  
+    const recipe = await RecipeModel.findById(recipeId);
+    if (!recipe) {
+      return next(NotFoundError('Recipe not found'));
+    }
+  
     const user = await UserModel.findById(userId);
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     const isFavorite = user.favorites?.some(
       id => id.toString() === recipeId
     ) || false;
-
+  
     res.json({
       success: true,
       data: {
@@ -141,72 +150,29 @@ export const checkFavorite = async (
       }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to check favorite status'
-    });
+    next(error);
   }
 };
 
-// Get all favorite recipes for the user
-export const getFavorites = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const userId = req.userId!;
-
-    const user = await UserModel.findById(userId)
-      .populate({
-        path: 'favorites',
-        populate: {
-          path: 'author',
-          select: 'username avatar'
-        }
-      });
-
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: user.favorites
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch favorites'
-    });
-  }
-};
-
-// Clear all favorites for the user
+// DELETE /api/favorites
 export const clearAllFavorites = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
-
+  
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: { favorites: [] } },
       { returnDocument: 'after' }
     );
-
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     res.json({
       success: true,
       data: {
@@ -215,45 +181,30 @@ export const clearAllFavorites = async (
       }
     });
   } catch (error) {
-    console.error('❌ Clear all favorites error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear favorites'
-    });
+    next(error);
   }
 };
 
-// Reorder favorites
+// PUT /api/favorites/reorder
 export const reorderFavorites = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userId = req.userId!;
     const { reorderedIds } = req.body; // Expect an array of IDs
-
-    if (!Array.isArray(reorderedIds)) {
-      res.status(400).json({
-        success: false,
-        error: 'reorderedIds must be an array'
-      });
-      return;
-    }
-
+  
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: { favorites: reorderedIds } },
       { returnDocument: 'after' }
     ).populate('favorites');
-
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     res.json({
       success: true,
       data: {
@@ -262,10 +213,6 @@ export const reorderFavorites = async (
       }
     });
   } catch (error) {
-    console.error('❌ Reorder favorites error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to reorder favorites'
-    });
+    next(error);
   }
 };

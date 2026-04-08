@@ -11,8 +11,11 @@ import { ChatHeader } from '../../components/Chat/ChatHeader';
 import { MessageList } from '../../components/Chat/MessageList';
 import { MessageInput } from '../../components/Chat/MessageInput';
 import { ScrollToBottomButton } from '../../components/Chat/ScrollToBottomButton';
+import { MessageListSkeleton } from '../../components/Skeleton/MessageListSkeleton';
+import { ChatHeaderSkeleton } from '../../components/Skeleton/ChatHeaderSkeleton';
+import { MessageInputSkeleton } from '../../components/Skeleton/MessageInputSkeleton';
 import * as socket from '../../services/socket';
-import Loader from '../../components/Loader/Loader';
+// import Loader from '../../components/Loader/Loader';
 import './ChatDetail.css';
 
 function ChatDetail() {
@@ -21,8 +24,6 @@ function ChatDetail() {
   const { user } = useAuth();
   const hasMarkedRead = useRef(false);
   const hasJoinedRoom = useRef(false);
-
-  console.log('🔍 ChatDetail mounted:', { conversationId, userId: user?._id });
 
   // Custom hooks
   const {
@@ -63,14 +64,11 @@ function ChatDetail() {
   useEffect(() => {
     if (!conversationId) return;
     if (hasJoinedRoom.current) return;
-
-    console.log('🏠 Joining chat room:', conversationId);
     socket.joinChat(conversationId);
     hasJoinedRoom.current = true;
     
     return () => {
       if (hasJoinedRoom.current) {
-        console.log('🚪 Leaving chat room:', conversationId);
         socket.leaveChat(conversationId);
         hasJoinedRoom.current = false;
       }
@@ -81,19 +79,15 @@ function ChatDetail() {
     if (!conversationId || !user?._id) return;
     if (hasMarkedRead.current) return;
     
-    console.log('📖 Sending markRead for conversation:', conversationId);
     socket.markRead(conversationId, user._id);
     hasMarkedRead.current = true;
   }, [conversationId, user?._id]);
 
   useEffect(() => {
-    console.log('🔍 Setting up onMessagesRead listener for conversation:', conversationId, 'user:', user?._id);
     if (!conversationId || !user?._id) return;
 
     const handleMessagesRead = (data: { userId: string; conversationId: string }) => {
-      console.log('📖 onMessagesRead received:', data);
       if (data.conversationId === conversationId && data.userId === user._id) {
-        console.log('📖 Resetting unread for conversation:', conversationId);
         dispatch(resetUnread(conversationId));
       }
     };
@@ -132,7 +126,13 @@ function ChatDetail() {
   };
 
   if (loading) {
-    return <Loader message="Loading conversation..." />;
+    return (
+      <div className="chat-detail">
+        <ChatHeaderSkeleton /> {/* опционально */}
+        <MessageListSkeleton />
+        <MessageInputSkeleton />
+      </div>
+    );
   }
 
   return (

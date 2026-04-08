@@ -15,6 +15,7 @@ import {
 // change later
 import Loader from '../../components/Loader/Loader';
 import UserCard from '../../components/UserCard/UserCard';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useDebounce } from '../../hooks/useDebounce';
 import './Users.css';
 
@@ -214,6 +215,8 @@ function Users() {
           )}
         </div>
       )}
+
+      <ScrollToTop threshold={300} behavior="smooth" />
     </div>
   );
 }

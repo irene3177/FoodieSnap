@@ -1,7 +1,7 @@
 import { get, post, del } from '../utils/apiClient';
 import {
   ApiResponse,
-  UserResponse,
+  UserProfile,
   UsersListResponse,
   GetUsersParams,
   FollowResponse,
@@ -15,8 +15,8 @@ import {
 
 export const usersApi = {
   // Get user by ID (public)
-  getUserById: async (userId: string): Promise<ApiResponse<UserResponse>> => {
-    return get<UserResponse>(`/users/${userId}`);
+  getUserById: async (userId: string): Promise<ApiResponse<UserProfile>> => {
+    return get<UserProfile>(`/users/${userId}`);
   },
 
   // Get users list with pagination (public)
