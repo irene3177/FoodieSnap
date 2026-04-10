@@ -1,153 +1,75 @@
-import axios, { isAxiosError } from 'axios';
+import { get, post, del } from '../utils/apiClient';
 import {
-  UserResponse,
+  ApiResponse,
+  UserProfile,
   UsersListResponse,
   GetUsersParams,
   FollowResponse,
   FollowersResponse,
   FollowingResponse,
-  SavedRecipesResponse,
-  FavoritesListResponse
+  CreatedRecipesResponse,
+  FavoritesListResponse,
+  CheckFollowResponse,
+  ApiParams
 } from '../types';
-
-const handleApiError = (error: unknown): { success: false; error: string } => {
-  if (isAxiosError(error)) {
-    // Server-side error
-    return {
-      success: false,
-      error: error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            'Request failed'
-    };
-  }
-
-  if (error instanceof Error) {
-    // JS error
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-
-  // Unexpected error
-  return {
-    success: false,
-    error: 'An unexpected error occurred'
-  };
-};
-
-// Create axios instance for user
-const usersApiClient = axios.create({
-  baseURL: 'http://localhost:5001/api/users', // backend URL
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true, // Include cookies for session management
-  timeout: 10000
-});
-
 
 export const usersApi = {
   // Get user by ID (public)
-  getUserById: async (userId: string): Promise<UserResponse> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getUserById: async (userId: string): Promise<ApiResponse<UserProfile>> => {
+    return get<UserProfile>(`/users/${userId}`);
   },
 
   // Get users list with pagination (public)
-  getUsers: async (params?: GetUsersParams): Promise<UsersListResponse> => {
-    try {
-      const response = await usersApiClient.get('/', { params });
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getUsers: async (params?: GetUsersParams): Promise<ApiResponse<UsersListResponse>> => {
+    return get<UsersListResponse>('/users', params as ApiParams);
   },
 
-  // Get user's saved recipes
-  getSavedRecipes: async (userId: string): Promise<SavedRecipesResponse> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}/saved`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  // Get user's created recipes
+  getCreatedRecipes: async (userId: string): Promise<ApiResponse<CreatedRecipesResponse>> => {
+    return get<CreatedRecipesResponse>(`/users/${userId}/recipes`);
   },
 
   // Get favourite recipes
-  getFavorites: async (userId: string): Promise<FavoritesListResponse> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}/favorites`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getFavorites: async (userId: string): Promise<ApiResponse<FavoritesListResponse>> => {
+    return get<FavoritesListResponse>(`/users/${userId}/favorites`);
   },
 
   // Get user's followers 
-  getFollowers: async (userId: string, params?: { page?: number; limit?: number}): Promise<FollowersResponse> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}/followers`, { params });
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getFollowers: async (
+    userId: string,
+    params?: { page?: number; limit?: number}
+  ): Promise<ApiResponse<FollowersResponse>> => {
+    return get<FollowersResponse>(`/users/${userId}/followers`, params);
   },
 
   // Get users that user is following
-  getFollowing: async (userId: string, params?: {page?: number; limit?: number }): Promise<FollowingResponse> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}/following`, { params });
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getFollowing: async (
+    userId: string,
+    params?: {page?: number; limit?: number }
+  ): Promise<ApiResponse<FollowingResponse>> => {
+    return get<FollowingResponse>(`/users/${userId}/following`, params);
   },
 
   // Follow a user
-  followUser: async (userId: string): Promise<FollowResponse> => {
-    try {
-      const response = await usersApiClient.post(`/${userId}/follow`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  followUser: async (userId: string): Promise<ApiResponse<FollowResponse>> => {
+    return post<FollowResponse>(`/users/${userId}/follow`);
   },
 
   // Unfollow a user
-  unfollowUser: async (userId: string): Promise<FollowResponse> => {
-    try {
-      const response = await usersApiClient.delete(`/${userId}/follow`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  unfollowUser: async (userId: string): Promise<ApiResponse<FollowResponse>> => {
+    return del<FollowResponse>(`/users/${userId}/follow`);
   },
 
   // Check if user is following another user
-  checkFollow: async (userId: string): Promise<{ success: boolean; data?: { isFollowing: boolean }; error?: string }> => {
-    try {
-      const response = await usersApiClient.get(`/${userId}/follow/check`);
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  checkFollow: async (userId: string): Promise<ApiResponse<CheckFollowResponse>> => {
+    return get<CheckFollowResponse>(`/users/${userId}/follow/check`);
   },
 
   // Search users by username
-  searchUsers: async (query: string, params?: { page?: number; limit?: number }): Promise<UsersListResponse> => {
-    try {
-      const response = await usersApiClient.get(`/search`, {
-        params: { q: query, ...params }
-      });
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  searchUsers: async (
+    query: string,
+    params?: { page?: number; limit?: number }
+  ): Promise<ApiResponse<UsersListResponse>> => {
+    return get<UsersListResponse>('/users/search', {q: query, ...params});
   }
 };

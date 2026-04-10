@@ -4,17 +4,16 @@ export interface User {
   email: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: string[];
+  createdRecipes?: string[];
   favorites?: string[];
+  followers?: string[];
+  following?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  data?: User;
-  message?: string;
-  error?: string;
+export interface updateAvatarData {
+  avavatar: string;
 }
 
 export interface LoginCredentials {
@@ -26,7 +25,6 @@ export interface RegisterCredentials {
   username: string;
   email: string;
   password: string;
-  // confirmPassword: string;
   bio?: string;
 }
 
@@ -37,23 +35,23 @@ export interface UpdateProfileData {
   bio?: string;
 }
 
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface DeleteAccountResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
+  hasCheckedSession: boolean;
 }
-
-export type AuthAction = 
-  | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; payload: { user: User } }
-  | { type: 'LOGIN_FAILURE'; payload: string }
-  | { type: 'REGISTER_START' }
-  | { type: 'REGISTER_SUCCESS'; payload: { user: User } }
-  | { type: 'REGISTER_FAILURE'; payload: string }
-  | { type: 'LOGOUT' }
-  | { type: 'CLEAR_ERROR' }
-  | { type: 'UPDATE_USER', payload: { user: User } };
 
 export interface AuthResult {
   success: boolean;

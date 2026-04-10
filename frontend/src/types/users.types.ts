@@ -1,7 +1,7 @@
-import { User } from './index';
+import { User, Recipe } from './index';
 
 export interface UserProfile extends User {
-  recipeCount?: number;  // (from savedRecipes.length)
+  recipeCount?: number;  // (from createdRecipes.length)
   followersCount?: number;
   followingCount?: number;
   isFollowing?: boolean;
@@ -26,64 +26,39 @@ export interface GetUsersParams {
 }
 
 export interface UsersListResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-    page: number;
-    pages: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
+  page: number;
+  pages: number;
 }
 
-export interface UserResponse {
-  success: boolean;
-  data?: UserProfile;
-  error?: string;
-}
-
-export interface SavedRecipesResponse {
-  success: boolean;
-  data?: {
-    savedRecipes: string[];
-  };
-  error?: string;
+export interface CreatedRecipesResponse {
+  createdRecipes: string[];
 }
 
 export interface FavoritesListResponse {
-  success: boolean;
-  data?: {
-    userId: string;
-    username: string;
-    favorites: string[];
-  };
-  error?: string;
+  userId: string;
+  username: string;
+  favorites: Recipe[];
 }
 
 export interface FollowersResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
 }
 
 export interface FollowingResponse {
-  success: boolean;
-  data?: {
-    users: UserListItem[];
-    total: number;
-  };
-  error?: string;
+  users: UserListItem[];
+  total: number;
 }
 
 export interface FollowResponse {
-  success: boolean;
-  data?: {
-    following: boolean;
-    followersCount?: number;
-    followingCount?: number;
-  };
-  error?: string;
+  userId: string;
+  isFollowing: boolean;
+  followersCount?: number;
+  followingCount?: number;
+}
+
+export interface CheckFollowResponse {
+  isFollowing: boolean;
 }

@@ -1,98 +1,86 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import { AuthRequest } from '../types';
 import { UserModel } from '../models/User.model';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { IUserResponse, IUserListItem } from '../types';
+import { IUserListItem } from '../types';
+import { validateNumber } from '../utils/validation';
+import NotFoundError from '../errors/notFoundError';
+import BadRequestError from '../errors/badRequestError';
 
-// @desc    Get user by ID
-// @route   GET /api/users/:userId
-// @access  Public
-export const getUserById = async (req: Request, res: Response): Promise<void> => {
+const getParamAsString = (param: string | string[]): string => {
+  return Array.isArray(param) ? param[0] : param;
+};
+
+// GET /api/users/:userId
+export const getUserById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const userId = getParamAsString(req.params.userId);
+    const currentUserId = req.userId;
+
     const user = await UserModel.findById(userId).select('-password');
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
+
+    let isFollowing = false;
+    if (currentUserId && currentUserId !== userId) {
+      const currentUser = await UserModel.findById(currentUserId);
+      isFollowing = currentUser?.following?.some(id => id.toString() === userId) || false;
+    }
+
+    const userData = user.toJSON();
 
     res.json({
       success: true,
-      data: user.toJSON() as unknown as IUserResponse // fix this later
+      data: {
+        ...userData,
+        isFollowing,
+        followersCount: user.followers?.length || 0,
+        followingCount: user.following?.length || 0,
+        recipeCount: user.createdRecipes?.length || 0
+      }
     });
   } catch (error) {
-    console.error('❌ Get user error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get user'
-    });
+    next(error);
   }
 };
 
-// @desc    Get user's saved recipes (private)
-// @route   GET /api/users/:userId/saved
-// @access  Private (only the user themselves)
-export const getSavedRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { userId } = req.params;
-    const currentUser = req.userId;
 
-    // Check if the requesting user is the owner
-    if (currentUser !== userId) {
-      res.status(403).json({
-        success: false,
-        error: 'Not authorized to view saved recipes'
-      });
-      return;
-    }
+// GET /api/users/:userId/saved
+export const getCreatedRecipes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = getParamAsString(req.params.userId);
 
     const user = await UserModel.findById(userId)
-      .select('savedRecipes')
-      .populate('savedRecipes');
+      .select('createdRecipes')
+      .populate('createdRecipes');
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
 
     res.json({
       success: true,
       data: {
-        savedRecipes: user.savedRecipes || []
+        createdRecipes: user.createdRecipes || []
       }
     });
   } catch (error) {
-    console.error('❌ Get saved recipes error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get saved recipes'
-    });
+    next(error);
   }
 };
 
-// @desc    Get user's favorites (public)
-// @route   GET /api/users/:userId/favorites
-// @access  Public
-export const getFavorites = async (req: Request, res: Response): Promise<void> => {
+// GET /api/users/:userId/favorites
+export const getFavorites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const userId = getParamAsString(req.params.userId);
 
     const user = await UserModel.findById(userId)
       .select('favorites username')
-      .populate('favorites'); // если есть модель Recipe
+      .populate('favorites');
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
 
     res.json({
@@ -104,21 +92,24 @@ export const getFavorites = async (req: Request, res: Response): Promise<void> =
       }
     });
   } catch (error) {
-    console.error('❌ Get favorites error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get favorites'
-    });
+    next(error);
   }
 };
 
-export const getUsers = async (req: Request, res: Response): Promise<void> => {
+// GET /api/users
+export const getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = validateNumber(req.query.page, 1, 1, 100);
+    const limit = validateNumber(req.query.limit, 10, 1, 50);
     const search = req.query.search as string;
     const sortBy = (req.query.sortBy as string) || 'username';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+
+    // White list for sortBy to prevent injection
+    const allowedSortFields = ['username', 'createdAt'];
+    if (!allowedSortFields.includes(sortBy)) {
+      return next(BadRequestError('Invalid sort field'));
+    }
 
     const skip = (page - 1) * limit;
 
@@ -130,7 +121,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     }
 
     const users = await UserModel.find(query)
-      .select('username avatar bio savedRecipes')
+      .select('username avatar bio createdRecipes')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit);
@@ -143,7 +134,7 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         username: user.username,
         avatar: user.avatar,
         bio: user.bio,
-        recipeCount: user.savedRecipes?.length || 0
+        recipeCount: user.createdRecipes?.length || 0
       }));
 
       res.json({
@@ -156,10 +147,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       }
     });
   } catch (error) {
-    console.error('❌ Get users error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get users'
-    });
+    next(error);
   }
 };

@@ -4,6 +4,7 @@ import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import './Recipes.css';
 
 function Recipes() {
@@ -32,18 +33,17 @@ function Recipes() {
     setLoading(true);
     setError(null);
 
-    try {
-      const response = await recipesApi.getRandomRecipes(8, 1);
-      setRecipes(response.recipes || []);
-      setTotalResults(response.totalRecipes || 0);
+    const response = await recipesApi.getRandomRecipes(8, 1);
+
+    if (response.success) {
+      setRecipes(response.data?.recipes || []);
+      setTotalResults(response.data?.totalRecipes || 0);
       setPage(2);
       setHasMore(true);
-    } catch (err) {
-      setError('Failed to load recipes. Please try again later.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    } else {
+      setError(response.error || 'Failed to load recipes. Please try again later.');
     }
+    setLoading(false);
   };
 
   // Load more recipes for infinite scroll
@@ -51,9 +51,10 @@ function Recipes() {
     if (loadingMore || isSearching || !hasMore) return;
 
     setLoadingMore(true);
-    try {
-      const response = await recipesApi.getRandomRecipes(4, page);
-      const newRecipes = response.recipes || [];
+    const response = await recipesApi.getRandomRecipes(4, page);
+    
+    if (response.success) {
+      const newRecipes = response.data?.recipes || [];
       setRecipes(prev => {
         const existingIds = new Set(prev.map(r => r._id));
         const uniqueNewRecipes = newRecipes.filter(r => !existingIds.has(r._id));
@@ -63,11 +64,10 @@ function Recipes() {
 
       // For random recipes hasMore is always true
       setHasMore(true);
-    } catch (err) {
-      console.error('Failed to load more recipes:', err);
-    } finally {
-      setLoadingMore(false);
+    } else {
+      console.error('Failed to load more recipes:', response.error);
     }
+    setLoadingMore(false);
   }, [page, loadingMore, isSearching, hasMore]);
 
   const { lastElementRef } = useInfiniteScroll({
@@ -87,19 +87,17 @@ function Recipes() {
     setIsSearching(true);
     setLoading(true);
     setError(null);
+    
+    const result = await recipesApi.searchRecipesByName(query, 1);
 
-    try {
-      const result = await recipesApi.searchRecipes(query, 1);
-      setRecipes(result.recipes || []);
-      setTotalResults(result.total || 0);
-      setHasMore(false); 
-      console.log('✅ State updated with', result.recipes?.length, 'recipes');
-    } catch (err) {
-      setError('Failed to search recipes. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      setRecipes(result.data?.recipes || []);
+      setTotalResults(result.data?.total || 0);
+      setHasMore(false);
+    } else {
+      setError(result.error || 'Failed to search recipes. Please try again.');
     }
+    setLoading(false);
   };
 
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,7 +183,7 @@ function Recipes() {
       <div className="recipes-page__grid">
         {recipes.map((recipe, index) => (
           <div
-            key={recipe._id || index}
+            key={`${recipe._id}-${index}`}
             ref={index === recipes.length - 1 ? lastElementRef : null}
           >
             <RecipeCard recipe={recipe} />
@@ -216,6 +214,7 @@ function Recipes() {
           <p>You've reached the end! 🎉</p>
         </div>
       )}
+      <ScrollToTop threshold={400} behavior="smooth" />
     </div>
   );
 }

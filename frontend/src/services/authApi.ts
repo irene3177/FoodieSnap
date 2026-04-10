@@ -1,99 +1,55 @@
-import axios, { isAxiosError } from 'axios';
+import { get, post, put, postWithFormData, del } from '../utils/apiClient';
 import {
+  User,
+  ApiResponse,
   LoginCredentials,
   RegisterCredentials,
-  AuthResponse,
-  UpdateProfileData
+  UpdateProfileData,
+  ChangePasswordData,
+  UserProfile
 } from '../types';
 
-const handleApiError = (error: unknown): AuthResponse => {
-  if (isAxiosError(error)) {
-    // Server-side error
-    return {
-      success: false,
-      error: error.response?.data?.error ||
-            error.response?.data?.message ||
-            error.message ||
-            'Request failed'
-    };
-  }
-
-  if (error instanceof Error) {
-    // JS error
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-
-  // Unexpected error
-  return {
-    success: false,
-    error: 'An unexpected error occurred'
-  };
-};
-
-// Create axios instance for auth
-const authApiClient = axios.create({
-  baseURL: 'http://localhost:5001/api/auth', // backend URL
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true, // Include cookies for session management
-  timeout: 10000
-});
 
 export const authApi = {
   // Register a new user
-  register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-    try {
-      const response = await authApiClient.post('/register', credentials);
-
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  register: async (credentials: RegisterCredentials): Promise<ApiResponse<User>> => {
+    return post<User>('/auth/register', credentials);
   },
 
   // Login user
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    try {
-      const response = await authApiClient.post('/login', credentials);
-
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  login: async (credentials: LoginCredentials): Promise<ApiResponse<User>> => {
+    return post<User>('/auth/login', credentials);
   },
 
   // Get current user profile
-  getMe: async(): Promise<AuthResponse> => {
-    try {
-      const response = await authApiClient.get('/me');
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  getMe: async(): Promise<ApiResponse<UserProfile>> => {
+    return get<UserProfile>('/auth/me');
   },
 
   // Update user profile
-  updateProfile: async (data: UpdateProfileData): Promise<AuthResponse> => {
-    try {
-      const response = await authApiClient.put('/profile', data);
+  updateProfile: async (data: UpdateProfileData): Promise<ApiResponse<User>> => {
+    return put<User>('/auth/profile', data);
+  },
 
-      return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+  // Update avatar
+  updateAvatar: async (file: File): Promise<ApiResponse<User>> => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return postWithFormData<User>('/auth/avatar', formData);
+  },
+
+  // Change password
+  changePassword: async (data: ChangePasswordData): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return put<{ success: boolean; message: string }>('/auth/password', data);
+  },
+
+  // Delete user account
+  deleteAccount: async (): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return del<{ success: boolean; message: string }>('/auth/user');
   },
 
   // Logout user
-  logout: async (): Promise<void> => {
-    try {
-      await authApiClient.post('/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  logout: async (): Promise<ApiResponse<{ success: boolean }>> => {
+    return post<{ success: boolean }>('/auth/logout');
   }
 };
-

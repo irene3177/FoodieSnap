@@ -7,7 +7,7 @@ export interface IUser {
   password: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: Types.ObjectId[];
+  createdRecipes?: Types.ObjectId[];
   favorites?: Types.ObjectId[];
   followers?: Types.ObjectId[];
   following?: Types.ObjectId[];
@@ -23,9 +23,14 @@ export interface IUserResponse {
   email: string;
   avatar?: string;
   bio?: string;
-  savedRecipes?: string[];
+  createdRecipes?: string[];
   favorites?: string[];
+  followers?: string[];
+  following?: string[];
   recipeCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  isFollowing?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -36,4 +41,5 @@ export interface IUserListItem {
   avatar?: string;
   bio?: string;
   recipeCount: number;
+  isFollowing?: boolean;
 }

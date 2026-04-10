@@ -1,52 +1,55 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../models/User.model';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { IApiResponse } from '../types';
-
+import { RecipeModel } from '../models/Recipe.model';
+import { CommentModel } from '../models/Comment.model';
+import { AuthRequest } from '../types';
+import { deleteOldAvatarIfLocal } from '../middleware/upload.middleware';
+import { config } from '../config';
+import ConflictError from '../errors/conflictError';
+import UnauthorizedError from '../errors/unauthorizedError';
+import NotFoundError from '../errors/notFoundError';
+import BadRequestError from '../errors/badRequestError';
  
 
 const generateToken = (userId: string): string => {
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET! as string,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' } as any
+    config.jwtSecret as string,
+    { expiresIn: config.jwtExpire || '7d' } as any
   );
 };
 
 const setTokenCookie = (res: Response, token: string): void => {
   res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
-    path: '/'
+    httpOnly: config.cookieOptions.httpOnly,
+    secure: config.cookieOptions.secure,
+    sameSite: config.cookieOptions.sameSite,
+    maxAge: config.cookieOptions.maxAge,
+    expires: config.cookieOptions.expires,
+    path: config.cookieOptions.path,
+    domain: config.cookieOptions.domain
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+// POST /api/auth/register
 export const register = async (
   req: Request,
-  res: Response<IApiResponse<any>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { username, email, password } = req.body;
-
+  
     // Check if user already exists
     const existingUser = await UserModel.findOne({
       $or: [{ email }, { username }]
     });
-
+  
     if (existingUser) {
-      res.status(400).json({
-        success: false,
-        error: 'User already exists'
-      });
-      return;
+      return next(ConflictError('User already exists'));
     }
-
+  
     // Create new user
     const user = new UserModel({
       username,
@@ -54,15 +57,15 @@ export const register = async (
       password,
       avatar: 'https://picsum.photos/200/200'
     });
-
+  
     await user.save();
-
+  
     // Generate token
     const token = generateToken(user._id.toString());
-
+  
     // Set token in cookie
    setTokenCookie(res, token);
-
+  
     // Return token and user data
     res.status(201).json({
       success: true,
@@ -77,125 +80,110 @@ export const register = async (
       }
     });
   } catch (error) {
-    console.error('❌ Registration error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Registration failed'
-    });
+    next(error);
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
+// POST /api/auth/login
 export const login = async (
   req: Request,
-  res: Response<IApiResponse<any>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { email, password } = req.body;
-
+  
     // Find user by email
-    const user = await UserModel.findOne({ email });
-
+    const user = await UserModel.findOne({ email }).select('+password');
     if (!user) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid credentials'
-      });
-      return;
+      return next(UnauthorizedError('Invalid credentials'));
     }
-
+  
     // Check password
     const isPasswordValid = await user.comparePassword(password);
-
     if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid credentials'
-      });
-      return;
+      return next(UnauthorizedError('Invalid credentials'));
     }
-
+  
     // Generate token
     const token = generateToken(user._id.toString());
     
     // Set token in cookie
     setTokenCookie(res, token);
 
+    const { password: _, ...userWithoutPassword } = user.toObject();
+
     // Return token and user data
     res.json({
       success: true,
       data: {
         user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-          bio: user.bio
+          _id: userWithoutPassword._id,
+          username: userWithoutPassword.username,
+          email: userWithoutPassword.email,
+          avatar: userWithoutPassword.avatar,
+          bio: userWithoutPassword.bio
         }
       }
     });
   } catch (error) {
-    console.error('❌ Login error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Login failed'
-    });
+    next(error);
   }
 };
 
-// @desc    Get current user profile
-// @route   GET /api/auth/me
-// @access  Private
+// GET /api/auth/me
 export const getMe = async (
   req: AuthRequest,
-  res: Response<IApiResponse<any>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const user = await UserModel.findById(req.userId)
       .select('-password');
-
+  
+    if (!user) {
+      return next(NotFoundError('User not found'));
+    }
+  
     res.json({
       success: true,
       data: user
     });
   } catch (error) {
-    console.error('❌ Get profile error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve profile'
-    });
+    next(error);
   }
 };
 
-// @desc Update user profile
-// @route PUT /api/auth/profile
-// @access Private
+// PUT /api/auth/profile
 export const updateProfile = async (
   req: AuthRequest,
-  res: Response<IApiResponse<any>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { username, bio, avatar } = req.body;
-
+    let oldAvatarUrl: string | undefined;
+  
     const user = await UserModel.findById(req.userId);
-
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
+    // Store old avatar URL before updating
+    oldAvatarUrl = user.avatar;
+  
     // Update fields if provided
     if (username) user.username = username;
     if (bio !== undefined) user.bio = bio;
     if (avatar) user.avatar = avatar;
-
+  
     await user.save();
-
+  
+    if (oldAvatarUrl && avatar !== oldAvatarUrl) {
+      deleteOldAvatarIfLocal(oldAvatarUrl);
+    }
+  
     res.json({
       success: true,
       data: {
@@ -207,78 +195,170 @@ export const updateProfile = async (
       }
     });
   } catch (error) {
-    console.error('❌ Update profile error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update profile'
-    });
+    next(error);
   }
 };
 
-// @desc Change user password
-// @route PUT /api/auth/password
-// @access Private
+// POST /api/auth/avatar
+export const updateAvatar = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    let oldAvatarUrl: string | undefined;
+    
+    if (!req.file) {
+      return next(BadRequestError('No file uploaded'));
+    }
+  
+    const userId = req.userId!;
+    const user = await UserModel.findById(userId);
+  
+    if (!user) {
+      return next(NotFoundError('User not found'));
+    }
+  
+    oldAvatarUrl = user.avatar;
+  
+    // Construct the URL for the uploaded avatar
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+  
+    // Update user avatar
+    user.avatar = avatarUrl;
+    await user.save();
+  
+    if (oldAvatarUrl) {
+      deleteOldAvatarIfLocal(oldAvatarUrl);
+    }
+  
+    res.json({
+      success: true,
+      data: {
+        avatar: avatarUrl
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}; 
+
+// PUT /api/auth/password
 export const changePassword = async (
   req: AuthRequest,
-  res: Response<IApiResponse<any>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-
-    const user = await UserModel.findById(req.userId);
-
+  
+    const user = await UserModel.findById(req.userId).select('+password');
+  
     if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-      return;
+      return next(NotFoundError('User not found'));
     }
-
+  
     // Check current password
     const isPasswordValid = await user.comparePassword(currentPassword);
-
     if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        error: 'Current password is incorrect'
-      });
-      return;
+      return next(UnauthorizedError('Current password is incorrect'));
     }
-
+  
     // Update to new password
     user.password = newPassword;
     await user.save();
-
+  
     res.json({
       success: true,
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('❌ Change password error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to change password'
-    });
+    next(error);
   }
 };
 
-// @desc Logout user
-// @route POST /api/auth/logout
-// @access Private
+// DELETE /api/auth/user
+export const deleteUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+    
+    // Find user
+    const user = await UserModel.findById(userId);
+    
+    if (!user) {
+      return next(NotFoundError('User not found'));
+    }
+    
+    // Delete user's avatar if it's local
+    if (user.avatar && user.avatar.includes('/uploads/')) {
+      deleteOldAvatarIfLocal(user.avatar);
+    }
+    
+    // Delete all user's recipes
+    await RecipeModel.deleteMany({ author: userId });
+    
+    // Delete all user's comments
+    await CommentModel.deleteMany({ userId: userId });
+    
+    // Remove user from favorites and createdRecipes of other users
+    await UserModel.updateMany(
+      { favorites: userId },
+      { $pull: { favorites: userId } }
+    );
+    
+    await UserModel.updateMany(
+      { createdRecipes: userId },
+      { $pull: { createdRecipes: userId } }
+    );
+    
+    // Delete the user
+    await UserModel.findByIdAndDelete(userId);
+    
+    // Clear token cookie
+    res.clearCookie('token', {
+      httpOnly: config.cookieOptions.httpOnly,
+      secure: config.cookieOptions.secure,
+      sameSite: config.cookieOptions.sameSite,
+      expires: config.cookieOptions.expires,
+      path: config.cookieOptions.path,
+      domain: config.cookieOptions.domain
+    });
+    
+    res.json({
+      success: true,
+      message: 'User account deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/auth/logout
 export const logout = async (
   _req: AuthRequest,
-  res: Response<IApiResponse<null>>
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/'
-  });
-  
-  res.json({
-    success: true,
-    message: 'Logged out successfully'
-  });
+  try {
+    res.clearCookie('token', {
+      httpOnly: config.cookieOptions.httpOnly,
+      secure: config.cookieOptions.secure,
+      sameSite: config.cookieOptions.sameSite,
+      expires: config.cookieOptions.expires,
+      path: config.cookieOptions.path,
+      domain: config.cookieOptions.domain
+    });
+    
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
 };

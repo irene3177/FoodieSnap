@@ -1,20 +1,22 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
 import {
   getUserById,
-  getSavedRecipes,
+  getCreatedRecipes,
   getFavorites,
   getUsers
 } from '../controllers/user.controller';
+import { optionalAuth } from '../middleware/optionalAuth';
+import { validate } from '../middleware/validationHandler';
+import { validateUserId, validateGetUsers } from '../validations/users.validation'; 
 
 const router = express.Router();
 
 // Public routes
-router.get('/', getUsers);
-router.get('/:userId', getUserById);
-router.get('/:userId/favorites', getFavorites);
+router.get('/', validate(validateGetUsers), getUsers);
+router.get('/:userId', validate(validateUserId), optionalAuth, getUserById);
+router.get('/:userId/favorites', validate(validateUserId), getFavorites);
+router.get('/:userId/recipes', validate(validateUserId), getCreatedRecipes);
 
 // Private routes
-router.get('/:userId/saved', authMiddleware, getSavedRecipes);
 
 export default router;

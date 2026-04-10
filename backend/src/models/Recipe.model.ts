@@ -53,7 +53,8 @@ const RecipeSchema = new Schema<IRecipeDocument>({
   },
   author: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    default: null
   },
   rating: {
     type: Number,

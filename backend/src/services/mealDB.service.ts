@@ -18,7 +18,7 @@ const extractIngredients = (meal: TheMealDBMeal): string[] => {
 };
 
 
-const mapToRecipeModel = (meal: TheMealDBMeal, userId?: string) => ({
+const mapToRecipeModel = (meal: TheMealDBMeal) => ({
   title: meal.strMeal,
   description: meal.strInstructions?.substring(0, 200)?.replace(/\r?\n|\r/g, ' ') + '...' || '',
   ingredients: extractIngredients(meal),
@@ -33,7 +33,6 @@ const mapToRecipeModel = (meal: TheMealDBMeal, userId?: string) => ({
   tags: meal.strTags?.split(',').map(tag => tag.trim()) || [],
   cookingTime: 30,
   difficulty: 'medium' as const,
-  author: userId,
   source: 'theMealDB' as const,
   sourceId: meal.idMeal,
   rating: 0,
@@ -51,7 +50,7 @@ export const fetchFromMealDB = async <T>(endpoint: string, params: any = {}): Pr
   }
 };
 
-export const findOrCreateRecipe = async (mealId: string, userId?: string) => {
+export const findOrCreateRecipe = async (mealId: string) => {
   // First looking up in our BD
   let recipe = await RecipeModel.findOne({
     source: 'theMealDB',
@@ -68,15 +67,14 @@ export const findOrCreateRecipe = async (mealId: string, userId?: string) => {
     }
 
     // Create a new one
-    const recipeData = mapToRecipeModel(meal, userId);
+    const recipeData = mapToRecipeModel(meal);
     recipe = await RecipeModel.create(recipeData);
-    console.log(`✅ Created recipe: ${recipe.title} (${recipe._id})`);
   }
 
   return recipe;
 };
 
-export const getRecipeById = async (mealId: string, userId?: string) => {
+export const getRecipeById = async (mealId: string) => {
   // First check in the DB
   let recipe = await RecipeModel.findOne({
     source: 'theMealDB',
@@ -93,9 +91,8 @@ export const getRecipeById = async (mealId: string, userId?: string) => {
     }
 
     // Save the result in our DB
-    const recipeData = mapToRecipeModel(meal, userId);
+    const recipeData = mapToRecipeModel(meal);
     recipe = await RecipeModel.create(recipeData);
-    console.log(`✅ Created new recipe: ${recipe.title}`);
   }
 
   return recipe;
@@ -120,7 +117,6 @@ export const searchRecipes = async (
       // Create
       const recipeData = mapToRecipeModel(meal);
       recipe = await RecipeModel.create(recipeData);
-      console.log(`✅ Created new recipe from search: ${recipe.title}`);
     }
     
     recipes.push(recipe);
@@ -139,8 +135,7 @@ export const searchRecipes = async (
 
 export const getRandomRecipes = async (
   count: number = 10,
-  page: number = 1,
-  userId?: string
+  page: number = 1
 ) => {
   const recipes = [];
   
@@ -155,7 +150,7 @@ export const getRandomRecipes = async (
       
       if (!recipe) {
         // Create
-        const recipeData = mapToRecipeModel(meal, userId);
+        const recipeData = mapToRecipeModel(meal);
         recipe = await RecipeModel.create(recipeData);
       }
       

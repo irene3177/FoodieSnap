@@ -1,15 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
+import usersReducer from './usersSlice';
 import favoritesReducer from './favoritesSlice';
-import toastReducer from './toastSlice';
-import ratingReducer from './ratingSlice';
 import commentsReducer from './commentsSlice';
+import ratingReducer from './ratingSlice';
+import unreadReducer from './unreadSlice';
+import toastReducer from './toastSlice';
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
+    users: usersReducer,
     favorites: favoritesReducer,
-    toast: toastReducer,
+    comments: commentsReducer,
     ratings: ratingReducer,
-    comments: commentsReducer
+    unread: unreadReducer,
+    toast: toastReducer
   }
 });
 

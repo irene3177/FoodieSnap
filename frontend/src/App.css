@@ -1,3 +1,4 @@
+/*
 .App {
   min-height: 100vh;
   display: flex;
@@ -6,4 +7,97 @@
 
 .main-content {
   flex: 1;
+  max-width: 1400px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app--chat {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app__content {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.app__content:hover {
+  scrollbar-color: var(--accent-primary) var(--bg-secondary);
+}
+
+.app__main {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app__main--full {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.app__content::-webkit-scrollbar {
+  width: 8px;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.app__content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.app__content::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.app__content:hover::-webkit-scrollbar-thumb,
+.app__content:active::-webkit-scrollbar-thumb,
+.app__content:focus-within::-webkit-scrollbar-thumb {
+  background-color: var(--accent-primary);
+}
+
+.app__content:hover::-webkit-scrollbar-track,
+.app__content:active::-webkit-scrollbar-track,
+.app__content:focus-within::-webkit-scrollbar-track {
+  background-color: var(--bg-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app__main {
+    padding: 1rem;
+  }
 }

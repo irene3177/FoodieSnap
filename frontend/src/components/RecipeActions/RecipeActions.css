@@ -1,0 +1,145 @@
+.recipe-actions {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.recipe-card:hover .recipe-actions {
+  opacity: 1;
+}
+
+.recipe-actions__btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-secondary);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.recipe-actions__btn--edit {
+  color: var(--accent-primary);
+  background: white;
+}
+
+.recipe-actions__btn--edit:hover {
+  background: var(--accent-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.recipe-actions__btn--delete {
+  color: #dc2626;
+  background: white;
+}
+
+.recipe-actions__btn--delete:hover {
+  background: #dc2626;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Modal styles */
+.recipe-actions__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.recipe-actions__modal {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-actions__modal h3 {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.recipe-actions__modal p {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.recipe-actions__warning {
+  color: #dc2626 !important;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.recipe-actions__modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.recipe-actions__modal-cancel,
+.recipe-actions__modal-confirm {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.recipe-actions__modal-cancel {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.recipe-actions__modal-cancel:hover {
+  background: var(--border-color);
+}
+
+.recipe-actions__modal-confirm {
+  background: #dc2626;
+  color: white;
+}
+
+.recipe-actions__modal-confirm:hover {
+  background: #b91c1c;
+}
+
+.recipe-actions__modal-cancel:disabled,
+.recipe-actions__modal-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .recipe-actions {
+    opacity: 1;
+  }
+  
+  .recipe-actions__btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+  }
+}

@@ -18,6 +18,8 @@ export interface IRecipe {
   ratingCount: number;
   source: 'user' | 'theMealDB';
   sourceId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IRecipeInput {
@@ -31,10 +33,23 @@ export interface IRecipeInput {
 }
 
 export interface IRecipeFilters {
-  difficulty?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
   maxCookingTime?: number;
+  minCookingTime?: number;
   search?: string;
   sort?: 'newest' | 'popular' | 'rating';
+  minRating?: number;
+  category?: string;
+  area?: string;
+  source?: 'user' | 'theMealDB';
+  tags?: string[];
+  ingredients?: string[];
+  hasVideo?: boolean;
+  hasImage?: boolean;
+  minRatingCount?: number;
+  exactMatch?: boolean;
+  page?: number;
+  limit?: number;
 }
 
 export interface IFavoriteResponse {

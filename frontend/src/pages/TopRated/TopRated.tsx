@@ -3,6 +3,7 @@ import { recipesApi } from '../../services/recipesApi';
 import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
+import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import './TopRated.css';
 
 function TopRated() {
@@ -13,15 +14,15 @@ function TopRated() {
   useEffect(() => {
     const loadTopRated = async () => {
       setLoading(true);
-      try {
-        const topRecipes = await recipesApi.getTopRatedRecipes(10);
-        setRecipes(topRecipes);
-      } catch (error) {
-        setError('Failed to load top rated recipes');
-        console.error(error);
-      } finally {
-        setLoading(false);
-      } 
+      setError(null);
+
+      const result = await recipesApi.getTopRatedRecipes(10);
+      if (result.success && result.data) {
+        setRecipes(result.data);
+      } else {
+        setError(result.error || 'Failed to load top rated recipes');
+      }
+      setLoading(false);
     };
     loadTopRated();
   }, []);
@@ -55,6 +56,7 @@ function TopRated() {
           ))}
         </div>
       )}
+      <ScrollToTop threshold={300} behavior="smooth" />
     </div>
   );
 }
