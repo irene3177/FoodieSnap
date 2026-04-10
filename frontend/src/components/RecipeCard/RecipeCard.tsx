@@ -3,12 +3,16 @@ import { Recipe } from '../../types';
 import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import RatingStars from '../RatingStars/RatingStars';
 import './RecipeCard.css';
+import RecipeActions from '../RecipeActions/RecipeActions';
 
 interface RecipeCardProps {
   recipe: Recipe;
+  onEdit?: (recipe: Recipe) => void;
+  onDelete?: (recipeId: string) => void;
+  isOwner?: boolean;
 }
 
-function RecipeCard({ recipe }: RecipeCardProps) {
+function RecipeCard({ recipe, onEdit, onDelete, isOwner = false }: RecipeCardProps) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -31,6 +35,12 @@ function RecipeCard({ recipe }: RecipeCardProps) {
       tabIndex={0}
       aria-label={`View details for ${recipe.title}`}
     >
+      <RecipeActions
+        recipe={recipe}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        isOwner={isOwner} 
+      />
       <div className="recipe-card__image-container">
         <img
           src={recipe.imageUrl}

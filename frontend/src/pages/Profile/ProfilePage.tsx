@@ -8,6 +8,7 @@ import EditProfileModal from '../../components/EditProfileModal/EditProfileModal
 import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
 import FollowModal from '../../components/FollowModal/FollowModal';
 import MessageModal from '../../components/MessageModal/MessageModal';
+import EditRecipeModal from '../../components/EditRecipeModal/EditRecipeModal';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useProfileData } from '../../hooks/useProfileData';
 import { useAppDispatch } from '../../store/store';
@@ -30,6 +31,9 @@ function ProfilePage() {
   
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
+
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [isEditRecipeModalOpen, setIsEditRecipeModalOpen] = useState(false);
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -152,6 +156,29 @@ function ProfilePage() {
     setIsUploadingAvatar(false);
   };
 
+  const handleEditRecipe = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setIsEditRecipeModalOpen(true);
+  };
+
+  const handleDeleteRecipe = (recipeId: string) => {
+    setUserRecipes(prev => prev.filter(r => r._id !== recipeId));
+  };
+
+  const handleUpdateRecipeSuccess = () => {
+    if (profile?._id) {
+      const loadUserRecipes = async () => {
+        const result = await recipesApi.getUserRecipes(profile._id);
+        if (result.success && result.data) {
+          setUserRecipes(result.data);
+        }
+      };
+      loadUserRecipes();
+    }
+    setIsEditRecipeModalOpen(false);
+    setEditingRecipe(null);
+  };
+
   if (!currentUser && !userId) {
     return <div className="profile-error">
       Please log in to view your profile
@@ -205,7 +232,7 @@ function ProfilePage() {
           
           <div className="profile-stats">
             <div className="profile-stat">
-              <span className="profile-stat-value">{profile.recipeCount || 0}</span>
+              <span className="profile-stat-value">{userRecipes.length}</span>
               <span className="profile-stat-label">Recipes</span>
             </div>
             <div
@@ -287,7 +314,7 @@ function ProfilePage() {
             style={!isOwnProfile ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
             My Recipes
-            <span className="profile-tab-count">{profile.createdRecipes?.length || 0}</span>
+            <span className="profile-tab-count">{userRecipes.length}</span>
           </button>
           <button
             className={`profile-tab ${activeTab === 'about' ? 'profile-tab--active' : ''}`}
@@ -343,7 +370,13 @@ function ProfilePage() {
               ) : userRecipes.length > 0 ? (
                 <div className="profile-recipes-grid">
                   {userRecipes.map((recipe) => (
-                    <RecipeCard key={recipe._id} recipe={recipe} />
+                    <RecipeCard
+                      key={recipe._id}
+                      recipe={recipe}
+                      onEdit={handleEditRecipe}
+                      onDelete={handleDeleteRecipe}
+                      isOwner={isOwnProfile}
+                    />
                   ))}
                 </div>
               ) : (
@@ -385,15 +418,12 @@ function ProfilePage() {
               <div className="profile-about-section">
                 <h3 className="profile-about-title">Stats</h3>
                 <div className="profile-about-item">
-                  <span>📚</span>
-                  <span>{profile.recipeCount || 0} recipes {profile.recipeCount === 1 ? 'shared' : 'shared'}</span>
+                  <span>{userRecipes.length || 0} recipe{userRecipes.length !== 1 ? 's' : ''} shared</span>
                 </div>
                 <div className="profile-about-item">
-                  <span>❤️</span>
                   <span>{favorites.length} favorite {favorites.length === 1 ? 'recipe' : 'recipes'}</span>
                 </div>
                 <div className="profile-about-item">
-                  <span>👥</span>
                   <span>{profile.followersCount || 0} followers · {profile.followingCount || 0} following</span>
                 </div>
               </div>
@@ -437,6 +467,16 @@ function ProfilePage() {
         type="following"
         initialCount={profile.followingCount || 0}
         onUpdate={handleFollowUpdate}
+      />
+
+      <EditRecipeModal
+        isOpen={isEditRecipeModalOpen}
+        onClose={() => {
+          setIsEditRecipeModalOpen(false);
+          setEditingRecipe(null);
+        }}
+        recipe={editingRecipe}
+        onSuccess={handleUpdateRecipeSuccess}
       />
     </>
   );

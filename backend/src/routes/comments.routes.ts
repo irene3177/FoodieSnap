@@ -15,8 +15,6 @@ import {
   validateRecipeId
 } from '../validations/comments.validation';
 
-
-
 const router = Router();
 
 router.get('/recipe/:recipeId', validate(validateRecipeId), getRecipeComments);

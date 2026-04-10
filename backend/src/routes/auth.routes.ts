@@ -11,6 +11,7 @@ import {
   deleteUser
 } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { authLimiter } from '../middleware/rateLimit.middleware';
 import { validate } from '../middleware/validationHandler';
 import {
   registerValidation,
@@ -23,8 +24,8 @@ import {
 const router = Router();
 
 // Public routes
-router.post('/register', validate(registerValidation), register);
-router.post('/login', validate(loginValidation), login);
+router.post('/register',authLimiter, validate(registerValidation), register);
+router.post('/login', authLimiter, validate(loginValidation), login);
 router.post('/logout', logout);
 
 // Protected routes (require authentication)

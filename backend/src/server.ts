@@ -1,61 +1,65 @@
-import express, { Application } from 'express';
+import express, { Express } from 'express';
 import http from 'http';
 import path from 'path';
 import mongoose from 'mongoose';
-import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import { config } from './config';
-import commentsRoutes from './routes/comments.routes';
+import { corsMiddleware } from './middleware/cors.middleware';
+import { configureSecurity } from './middleware/security.middleware';
+import { generalLimiter } from './middleware/rateLimit.middleware';
+import { requestLogger, errorLogger } from './middleware/logger';
+import { initializeSocketIO } from './services/socket.service';
+import errorHandler from './middleware/errorHandler';
+import notFoundHandler from './middleware/notFound';
+
 import authRoutes from './routes/auth.routes';
+import commentsRoutes from './routes/comments.routes';
 import recipesRoutes from './routes/recipes.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import ratingRoutes from './routes/rating.routes';
 import usersRoutes from './routes/user.routes';
 import messageRoutes from './routes/message.routes';
 import followRoutes from './routes/follow.routes';
-import errorHandler from './middleware/errorHandler';
-import notFoundHandler from './middleware/notFound';
-import { requestLogger, errorLogger } from './middleware/logger';
-import { initializeSocketIO } from './services/socket.service';
 
-const app: Application = express();
+const app: Express = express();
 
+// ============ Security ============
+configureSecurity(app);
 
-// Middleware
-app.use(cors({
-  // origin: '*',
-  origin: config.frontendUrl,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Cookie',
-    'Cache-Control',
-    'Pragma'
-  ],
-  exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 200,
-  // Safari needs this
-  preflightContinue: false
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ============ CORS ============
+app.use(corsMiddleware);
+
+// ============ Compression ============
+app.use(compression());
+
+// ============ Standart middleware ============
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// ============ Logging ============
 app.use(requestLogger);
 
+// ============ Rate Limiting ============
+if (config.nodeEnv === 'production') {
+  app.use('/api', generalLimiter);
+}
+
+// ============ Static files ============
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-// Health check
+
+// ============ Health check ============
 app.get('/api/health', (_req, res) => {
   res.json({ 
     success: true, 
     message: 'FoodieSnap API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
   });
 });
 
-// Routes
+// ============ API Routes ============
 app.use('/api/auth', authRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/recipes', recipesRoutes);
@@ -65,15 +69,12 @@ app.use('/api/users', usersRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/follow', followRoutes);
 
-// 404 handler
+// ============ Error Handling ============
 app.use(notFoundHandler);
-
 app.use(errorLogger);
-
-// Error handling middleware
 app.use(errorHandler);
 
-// Create HTTP server from Express app
+// ============ Server Initialization ============
 const server = http.createServer(app);
 
 // Initialize Socket.IO
@@ -82,16 +83,29 @@ initializeSocketIO(server, config.frontendUrl);
 const startServer = async (): Promise<void> => {
   try {
     await mongoose.connect(config.mongoUri);
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
 
     server.listen(config.port, () => {
       console.log(`🚀 Server is running on port ${config.port}`);
       console.log(`📡 WebSocket server is ready`);
+      console.log(`🔒 Environment: ${config.nodeEnv || 'development'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
+
+// ============ Graceful Shutdown ============
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+  
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed');
+  process.exit(0);
+});
 
 startServer();

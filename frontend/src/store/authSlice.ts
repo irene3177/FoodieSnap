@@ -41,40 +41,20 @@ export const checkSession = createAsyncThunk(
   async (_, { getState }) => {
     const state = getState() as RootState;
 
-    // if (state.auth.isLoading) {
-    //   console.log('🔍 checkSession: already loading, skipping');
-    //   return null;
-    // }
+    if (state.auth.hasCheckedSession) return null;
 
-    if (state.auth.hasCheckedSession) {
-      console.log('🔍 checkSession: already checked, skipping');
-      return null;
-    }
-
-    if (state.auth.isLoggingOut || state.auth.isLoggedOut) {
-      console.log('🔍 checkSession: logging out, skipping');
-      return null;
-    }
-    
-    console.log('🔍 checkSession started');
+    if (state.auth.isLoggingOut || state.auth.isLoggedOut) return null;
 
     const hasLogoutParam = window.location.search.includes('logout');
-    if (hasLogoutParam) {
-      console.log('🔍 checkSession: logout param detected');
-      return null;
-    }
+    if (hasLogoutParam) return null;
 
-    console.log('🔍 checkSession: calling authApi.getMe()');
     const response = await authApi.getMe();
-    console.log('🔍 checkSession: response', response);
     
     if (response.success && response.data) {
-      console.log('✅ checkSession: user authenticated', response.data.username);
       setAutoConnect(true);
       return response.data;
     }
     
-    console.log('❌ checkSession: user not authenticated');
     return null;
   }
 );
