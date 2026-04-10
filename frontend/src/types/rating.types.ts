@@ -1,4 +1,4 @@
-import { RatingStats } from "../store/ratingSlice";
+import { RatingStats } from '../store/ratingSlice';
 export interface Rating {
   recipeId: string;
   userRating: number;   // 1-5 stars

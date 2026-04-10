@@ -20,7 +20,6 @@ export const optionalAuth = async (
     }
   } catch (error) {
     // Ignore token errors - user just won't be authenticated
-    console.log('Optional auth: invalid or no token');
   }
   next();
 };

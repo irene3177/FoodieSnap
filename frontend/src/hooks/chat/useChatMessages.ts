@@ -17,11 +17,23 @@ export const useChatMessages = (conversationId: string | undefined, currentUser:
     if (!conversationId) return;
     
     const load = async () => {
-      const res = await messagesApi.getConversationById(conversationId);
-      if (res.success && isMountedRef.current) {
-        setMessages(res.data?.messages || []);
+      try {
+        const res = await messagesApi.getConversationById(conversationId);
+        if (res.success && isMountedRef.current) {
+          setMessages(res.data?.messages || []);
+        } else if (isMountedRef.current) {
+          setMessages([]);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        if (isMountedRef.current) {
+          setMessages([]);
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     };
     
     load();

@@ -11,13 +11,13 @@ const apiClient = axios.create({
   withCredentials: true
 });
 // let isRedirecting = false;
+let isHandling401 = false;
 
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Do not log out in case network errors (server is restarting)
     if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
-      console.log('⚠️ Network error, not logging out');
       return Promise.reject(error);
     }
 
@@ -32,8 +32,18 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !isLoggingOut) {
-      console.log('🔑 401 Unauthorized, logging out');
+    const isMeEndpoint = error.config?.url?.includes('/auth/me');
+
+    if (error.response?.status === 401 && !isLoggingOut && !isHandling401) {
+
+      if (isMeEndpoint) {
+        return Promise.reject(error);
+      }
+      
+      isHandling401 = true;
+      setTimeout(() => {
+        isHandling401 = false;
+      }, 1000);
       // isRedirecting = true;
       // if (isAuthenticated) {
       //   store.dispatch(logout());
@@ -46,8 +56,6 @@ apiClient.interceptors.response.use(
       //   }
       // }, 100);
       return Promise.reject(error);
-    } else if (error.response?.status === 401 && isLoggingOut) {
-      console.log('🔑 401 Unauthorized, but already logging out - skipping');
     }
     
     return Promise.reject(error);

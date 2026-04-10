@@ -30,7 +30,6 @@ function App() {
   const unreadLoaded = useRef(false);
   const isLoggingOut = useSelector(selectIsLoggingOut);
   
-  console.log('📍 App location changed:', location.pathname);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -50,7 +49,6 @@ function App() {
 
   useEffect(() => {
     if (user?._id && isAuthenticated && socketConnected.current && !unreadLoaded.current) {
-      console.log('📊 App: Loading unread counts for user:', user._id);
       dispatch(loadUnreadCounts(user._id));
       unreadLoaded.current = true;
     }
@@ -59,18 +57,8 @@ function App() {
   useUnreadListener(user?._id);
   
   useEffect(() => {
-    console.log('🔍 App: checkSession effect', {
-      isLoggingOut,
-      checkSessionCalled: checkSessionCalled.current,
-      hasCheckedSession,
-      isLoading,
-      isAuthenticated
-    });
     if (isLoggingOut) return;
-    // if (!isAuthenticated && !isLoggingOut && hasCheckedSession) {
-    //   console.log('📱 App: user is logged out, skipping checkSession');
-    //   return;
-    // }
+
     if (!isAuthenticated && hasCheckedSession) {
       return;
     }
@@ -98,4 +86,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

@@ -135,7 +135,6 @@ describe('Rating Controller Integration Tests', () => {
       
       // Verify ratings were created
       const count = await RatingModel.countDocuments({ recipeId: testRecipeId });
-      console.log('Ratings count in DB:', count);
       expect(count).toBe(3);
       
       // Update recipe rating stats to match the ratings

@@ -5,7 +5,6 @@ import { config } from '../config';
 let socket: Socket | null = null;
 let shouldAutoConnect = true;
 export let isLoggedOut = false;
-let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
 export const setAutoConnect = (value: boolean) => {
@@ -39,25 +38,20 @@ export const connectSocket = (userId: string) => {
   });
   
   socket.on('connect', () => {
-    console.log('🔌 Connected');
-    reconnectAttempts = 0;
     if (userId) {
       socket?.emit('register', userId);
     }
   });
 
-  socket.on('disconnect', (reason) => {
-    console.log('🔌 Socket disconnected, reason:', reason);
+  socket.on('disconnect', () => {
     
     // if (reason === 'transport close' || reason === 'transport error') {
-    //   console.log('🔄 Server restart detected, will reconnect in 2 seconds...');
     //   setTimeout(() => {
     //     if (socket && !socket.connected) {
     //       socket.connect();
     //     }
     //   }, 2000);
     // } else if (reason === 'ping timeout') {
-    //   console.log('🔄 Ping timeout, reconnecting immediately...');
     //   setTimeout(() => {
     //     if (socket && !socket.connected) {
     //       socket.connect();
@@ -68,10 +62,7 @@ export const connectSocket = (userId: string) => {
 
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
-    reconnectAttempts++;
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      console.log('Max reconnection attempts reached, will retry on next action');
-    }
+
   });
   
   return socket;
@@ -84,7 +75,6 @@ export const forceDisconnect = () => {
     socket.removeAllListeners();
     socket.disconnect();
     socket = null;
-    console.log('🔌 Socket forcefully disconnected');
   }
 };
 
