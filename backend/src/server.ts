@@ -67,11 +67,12 @@ app.use('/api/follow', followRoutes);
 const frontendPath = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendPath));
 
-// ============ SPA FALLBACK - все остальные запросы отдаем index.html ============
-app.get('/*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
+// ============ SPA FALLBACK ============
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
     return next();
   }
+  
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
