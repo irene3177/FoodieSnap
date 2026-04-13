@@ -21,7 +21,6 @@ const generateToken = (userId: string): string => {
 };
 
 const setTokenCookie = (res: Response, token: string): void => {
-  console.log(config.cookieOptions);
   res.cookie('token', token, {
     ...config.cookieOptions
   });
