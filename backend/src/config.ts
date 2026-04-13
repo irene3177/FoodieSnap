@@ -20,7 +20,7 @@ interface Config {
     maxAge: number;
     expires: Date;
     path: string;
-    domain: string;
+    domain?: string;
   };
   rateLimitMaxRequests: string;
 }
@@ -62,12 +62,12 @@ export const config: Config = {
   cookieOptions: {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: isProduction ? 'none' as const : 'lax' as const,
+    maxAge: 60 * 60 * 24 * 7 * 1000, // 7 days
     expires: getExpiresDate(),
     path: '/',
     domain: isProduction 
     ? (process.env.COOKIE_DOMAIN || '.foodiesnap.com')
-    : 'localhost'
+    : undefined,
   }
 };

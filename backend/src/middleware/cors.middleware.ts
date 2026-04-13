@@ -1,8 +1,28 @@
 import cors from 'cors';
 import { config } from '../config';
 
+const allowedOrigins = [
+  config.frontendUrl,
+  'https://foodiesnap.vercel.app',
+  'https://foodiesnap.com',
+  'http://localhost'
+];
+
 export const corsOptions = {
-  origin: config.frontendUrl,
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is allowed
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
@@ -12,6 +32,7 @@ export const corsOptions = {
     'Cache-Control',
     'Pragma',
     'X-Requested-With',
+    'Accept'
   ],
   exposedHeaders: ['Set-Cookie'],
   maxAge: 86400, // 24 hours

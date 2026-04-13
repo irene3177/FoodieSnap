@@ -7,7 +7,6 @@ import compression from 'compression';
 import { config } from './config';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { configureSecurity } from './middleware/security.middleware';
-import { generalLimiter } from './middleware/rateLimit.middleware';
 import { requestLogger, errorLogger } from './middleware/logger';
 import { initializeSocketIO } from './services/socket.service';
 import errorHandler from './middleware/errorHandler';
@@ -40,11 +39,6 @@ app.use(cookieParser());
 
 // ============ Logging ============
 app.use(requestLogger);
-
-// ============ Rate Limiting ============
-if (config.nodeEnv === 'production') {
-  app.use('/api', generalLimiter);
-}
 
 // ============ Static files ============
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

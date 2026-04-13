@@ -18,6 +18,7 @@ export const useUnreadListener = (userId: string | undefined | null) => {
     const currentProcessedIds = processedMessageIds.current;
 
     const handleNewMessage = (message: Message) => {
+      
       if (currentProcessedIds.has(message._id)) return;
 
       currentProcessedIds.add(message._id);

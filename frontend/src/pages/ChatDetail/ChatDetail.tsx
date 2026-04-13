@@ -25,6 +25,13 @@ function ChatDetail() {
   const hasMarkedRead = useRef(false);
   const hasJoinedRoom = useRef(false);
 
+  // Ensure connection
+  useEffect(() => {
+    if (user?._id) {
+      socket.ensureConnection(user._id);
+    }
+  }, [user?._id]);
+
   // Custom hooks
   const {
     recipientName,
@@ -53,12 +60,6 @@ function ChatDetail() {
     handleClearChat
   } = useChatOptions(conversationId, () => setMessages([]));
 
-  // Ensure connection
-  // useEffect(() => {
-  //   if (user?._id) {
-  //     socket.ensureConnection(user._id);
-  //   }
-  // }, [user?._id]);
 
   // Join chat room
   useEffect(() => {
@@ -104,9 +105,9 @@ function ChatDetail() {
       socket.ensureConnection(user._id);
       
       // Re-join the conversation
-      if (conversationId) {
-        socket.joinChat(conversationId);
-      }
+      // if (conversationId) {
+      //   socket.joinChat(conversationId);
+      // }
     }
   };
   
@@ -128,7 +129,7 @@ function ChatDetail() {
   if (loading) {
     return (
       <div className="chat-detail">
-        <ChatHeaderSkeleton /> {/* опционально */}
+        <ChatHeaderSkeleton />
         <MessageListSkeleton />
         <MessageInputSkeleton />
       </div>

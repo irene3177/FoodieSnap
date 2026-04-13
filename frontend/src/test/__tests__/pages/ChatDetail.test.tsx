@@ -157,7 +157,6 @@ describe('ChatDetail', () => {
       sending: false,
       sendMessage: vi.fn().mockResolvedValue(true),
       setMessages: vi.fn(),
-      handleMessage: vi.fn(),
     });
 
     const mockUseChatScroll = vi.mocked(useChatScroll);
@@ -208,7 +207,6 @@ describe('ChatDetail', () => {
       sending: false,
       sendMessage: vi.fn().mockResolvedValue(true),
       setMessages: vi.fn(),
-      handleMessage: vi.fn(),
     });
 
     renderComponent();

@@ -29,7 +29,7 @@ export const connectSocket = (userId: string) => {
   
   socket = io(config.baseUrl, {
     withCredentials: true,
-    transports: ['polling', 'websocket'],
+    transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
     reconnectionDelay: 1000,
@@ -38,6 +38,12 @@ export const connectSocket = (userId: string) => {
   });
   
   socket.on('connect', () => {
+    if (userId) {
+      socket?.emit('register', userId);
+    }
+  });
+
+  socket.on('reconnect', () => {
     if (userId) {
       socket?.emit('register', userId);
     }

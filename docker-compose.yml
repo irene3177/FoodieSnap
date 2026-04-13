@@ -1,0 +1,64 @@
+services:
+  mongodb:
+    image: mongo:6
+    container_name: foodiesnap-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: foodiesnap
+    env_file: 
+      - .env
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - internal
+
+  backend:
+    build: 
+       context: ./backend
+       dockerfile: Dockerfile
+    image: foodiesnap-backend:latest
+    container_name: foodiesnap-backend
+    restart: always
+    ports:
+      - "5001:5001"
+    env_file: 
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/foodiesnap?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    depends_on:
+      - mongodb
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: foodiesnap-frontend
+    container_name: foodiesnap-frontend
+    restart: always
+    networks:
+      - external
+      - internal
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
+      VITE_BASE_URL: ${VITE_BASE_URL:-ws://localhost:5001}
+
+volumes:
+  mongodb_data:
+
+networks: 
+  internal:
+  external:

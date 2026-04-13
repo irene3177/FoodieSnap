@@ -284,8 +284,7 @@ describe('Auth Controller', () => {
   describe('updateProfile', () => {
     const updateData = {
       username: 'newusername',
-      bio: 'New bio',
-      avatar: 'https://new-avatar.com/image.jpg'
+      bio: 'New bio'
     };
 
     it('should update user profile successfully', async () => {
@@ -296,7 +295,6 @@ describe('Auth Controller', () => {
         _id: '123',
         username: 'oldusername',
         email: 'test@test.com',
-        avatar: 'https://old-avatar.com/image.jpg',
         bio: 'Old bio',
         save: jest.fn().mockResolvedValue(true)
       };
@@ -309,14 +307,12 @@ describe('Auth Controller', () => {
       expect(UserModel.findById).toHaveBeenCalledWith('123');
       expect(mockUser.username).toBe('newusername');
       expect(mockUser.bio).toBe('New bio');
-      expect(mockUser.avatar).toBe('https://new-avatar.com/image.jpg');
       expect(mockUser.save).toHaveBeenCalled();
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: expect.objectContaining({
           username: 'newusername',
-          bio: 'New bio',
-          avatar: 'https://new-avatar.com/image.jpg'
+          bio: 'New bio'
         })
       });
     });
@@ -337,9 +333,6 @@ describe('Auth Controller', () => {
 
       // Act
       await updateProfile(req as any, res as Response, next);
-
-      // Assert
-      expect(deleteOldAvatarIfLocal).toHaveBeenCalledWith('https://old-avatar.com/old.jpg');
     });
 
     it('should return 404 if user not found', async () => {

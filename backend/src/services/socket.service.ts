@@ -57,7 +57,7 @@ const saveMessage = async (conversationId: string, senderId: string, text: strin
 export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
   const io = new Server(server, {
     cors: { origin: corsOrigin, credentials: true },
-    transports: ['polling', 'websocket']
+    transports: ['websocket', 'polling']
   });
 
   io.on('connection', (socket) => {
@@ -88,6 +88,7 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
 
     socket.on('join-chat', (conversationId: string) => {
       socket.join(conversationId);
+      socket.emit('joined-chat', { conversationId });
     });
 
     socket.on('leave-chat', (conversationId: string) => {
@@ -137,7 +138,7 @@ export const initializeSocketIO = (server: HttpServer, corsOrigin: string) => {
         await ConversationModel.findByIdAndUpdate(
           conversationId,
           { $set: { [`unreadCount.${userId}`]: 0 } },
-          { new: true }
+          { returnDocument: 'after' }
         );
         
         // Also update all messages as read (optional)

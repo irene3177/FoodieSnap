@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useUnreadListener } from '../../../hooks/chat/useUnreadListener';
@@ -27,36 +28,13 @@ interface Participant {
   avatar?: string;
 }
 
-// Action types
-type IncrementUnreadAction = {
-  type: 'unread/incrementUnread';
-  payload: string;
-};
-
-type ResetUnreadAction = {
-  type: 'unread/resetUnread';
-  payload: string;
-};
-
-type UpdateLastMessageAction = {
-  type: 'unread/updateLastMessage';
-  payload: {
-    conversationId: string;
-    text: string;
-    createdAt: string;
-    senderId: string;
-  };
-};
-
-type UnreadAction = IncrementUnreadAction | ResetUnreadAction | UpdateLastMessageAction;
-
-// Mock reducer
+// Mock reducer with proper Redux typing
 const initialState: UnreadState = {
   unreadCounts: {},
   lastMessages: {},
 };
 
-const unreadReducer = (state: UnreadState = initialState, action: UnreadAction): UnreadState => {
+const unreadReducer = (state: UnreadState = initialState, action: { type: string; payload?: any }): UnreadState => {
   switch (action.type) {
     case 'unread/incrementUnread':
       return {

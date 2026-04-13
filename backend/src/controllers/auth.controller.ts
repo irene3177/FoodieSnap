@@ -22,13 +22,7 @@ const generateToken = (userId: string): string => {
 
 const setTokenCookie = (res: Response, token: string): void => {
   res.cookie('token', token, {
-    httpOnly: config.cookieOptions.httpOnly,
-    secure: config.cookieOptions.secure,
-    sameSite: config.cookieOptions.sameSite,
-    maxAge: config.cookieOptions.maxAge,
-    expires: config.cookieOptions.expires,
-    path: config.cookieOptions.path,
-    domain: config.cookieOptions.domain
+    ...config.cookieOptions
   });
 };
 
@@ -54,8 +48,7 @@ export const register = async (
     const user = new UserModel({
       username,
       email,
-      password,
-      avatar: 'https://picsum.photos/200/200'
+      password
     });
   
     await user.save();
@@ -161,8 +154,7 @@ export const updateProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { username, bio, avatar } = req.body;
-    let oldAvatarUrl: string | undefined;
+    const { username, bio } = req.body;
   
     const user = await UserModel.findById(req.userId);
   
@@ -170,19 +162,11 @@ export const updateProfile = async (
       return next(NotFoundError('User not found'));
     }
   
-    // Store old avatar URL before updating
-    oldAvatarUrl = user.avatar;
-  
     // Update fields if provided
     if (username) user.username = username;
     if (bio !== undefined) user.bio = bio;
-    if (avatar) user.avatar = avatar;
   
     await user.save();
-  
-    if (oldAvatarUrl && avatar !== oldAvatarUrl) {
-      deleteOldAvatarIfLocal(oldAvatarUrl);
-    }
   
     res.json({
       success: true,

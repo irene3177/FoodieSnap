@@ -18,24 +18,17 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
   
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  const [avatar, setAvatar] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [avatarPreview, setAvatarPreview] = useState('');
 
   useEffect(() => {
     if (user) {
       setUsername(user.username || '');
       setBio(user.bio || '');
-      setAvatar(user.avatar || '');
       setAvatarPreview(user.avatar || '');
     }
   }, [user]);
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setAvatar(url);
-    setAvatarPreview(url);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +46,7 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
     try {
       const response = await authApi.updateProfile({
         username: username.trim(),
-        bio: bio.trim() || undefined,
-        avatar: avatar.trim() || undefined
+        bio: bio.trim() || undefined
       });
 
       if (response.success) {
@@ -118,19 +110,6 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
                       <span>{username.charAt(0).toUpperCase() || 'U'}</span>
                     )}
                   </div>
-                </div>
-
-                {/* Avatar URL Input */}
-                <div className="edit-profile-modal__field">
-                  <label htmlFor="avatar">Avatar URL</label>
-                  <input
-                    type="url"
-                    id="avatar"
-                    value={avatar}
-                    onChange={handleAvatarChange}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                  <small>Enter a valid image URL (optional)</small>
                 </div>
 
                 {/* Username Input */}

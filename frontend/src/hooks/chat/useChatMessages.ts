@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as socket from '../../services/socket';
 import { messagesApi } from '../../services/messagesApi';
 import { Message, User } from '../../types';
@@ -11,6 +11,31 @@ export const useChatMessages = (conversationId: string | undefined, currentUser:
   const pendingMessagesRef = useRef<Map<string, string>>(new Map());
   const hasJoinedRef = useRef(false);
   const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    if (!conversationId) return;
+      
+    const unsubscribe = socket.onMessage((msg: Message) => {
+      
+      if (msg.conversationId !== conversationId) return;
+      
+      setMessages(prev => {
+        // Replace temp message if exists
+        const tempId = pendingMessagesRef.current.get(msg.text);
+        if (tempId) {
+          pendingMessagesRef.current.delete(msg.text);
+          return prev.map(m => m._id === tempId ? msg : m);
+        }
+        
+        // Avoid duplicates
+        if (prev.some(m => m._id === msg._id)) return prev;
+        
+        return [...prev, msg];
+      });
+    });
+    
+    return () => unsubscribe();
+  }, [conversationId]);
 
   // Load messages
   useEffect(() => {
@@ -52,25 +77,6 @@ export const useChatMessages = (conversationId: string | undefined, currentUser:
     };
   }, [conversationId]);
 
-  const handleMessage = useCallback((msg: Message) => {
-    // If the message is not for current conversation 
-    if (msg.conversationId !== conversationId) return;
-
-    // For current conversation
-    setMessages(prev => {
-      const tempId = pendingMessagesRef.current.get(msg.text);
-      if (tempId) {
-        pendingMessagesRef.current.delete(msg.text);
-        
-        return prev.map(m => 
-          m._id === tempId ? msg : m
-        );
-      }
-      if (prev.some(m => m._id === msg._id)) return prev;
-      
-      return [...prev, msg];
-    });
-  }, [conversationId]);
 
   // Send message
   const sendMessage = async (text: string) => {
@@ -119,7 +125,7 @@ export const useChatMessages = (conversationId: string | undefined, currentUser:
     };
   }, []);
 
-  return { messages, loading, sending, sendMessage, setMessages, handleMessage };
+  return { messages, loading, sending, sendMessage, setMessages };
 };
 
 

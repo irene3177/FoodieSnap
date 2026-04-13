@@ -31,7 +31,6 @@ export interface RegisterCredentials {
 export interface UpdateProfileData {
   username?: string;
   email?: string;
-  avatar?: string;
   bio?: string;
 }
 

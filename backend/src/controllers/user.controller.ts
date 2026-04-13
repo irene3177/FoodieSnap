@@ -104,6 +104,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
     const search = req.query.search as string;
     const sortBy = (req.query.sortBy as string) || 'username';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+    const currentUserId = req.user?._id;
 
     // White list for sortBy to prevent injection
     const allowedSortFields = ['username', 'createdAt'];
@@ -134,7 +135,8 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
         username: user.username,
         avatar: user.avatar,
         bio: user.bio,
-        recipeCount: user.createdRecipes?.length || 0
+        recipeCount: user.createdRecipes?.length || 0,
+        isFollowing: user.followers?.includes(currentUserId) || false
       }));
 
       res.json({

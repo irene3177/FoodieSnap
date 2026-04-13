@@ -27,7 +27,7 @@ const UserSchema = new Schema<IUserDocument>({
   },
   avatar: {
     type: String,
-    default: 'https://picsum.photos/200/200'
+    default: null
   },
   bio: {
     type: String,

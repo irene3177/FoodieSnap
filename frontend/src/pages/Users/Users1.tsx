@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import {
@@ -12,7 +12,9 @@ import {
   selectSearchQuery,
   setPage
 } from '../../store/usersSlice';
+// change later
 import Loader from '../../components/Loader/Loader';
+import UserCard from '../../components/UserCard/UserCard';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useDebounce } from '../../hooks/useDebounce';
 import './Users.css';
@@ -36,7 +38,7 @@ function Users() {
   // Load users on mount and when page changes
   useEffect(() => {
     if (!isSearching && !debouncedSearch) {
-      dispatch(fetchUsers({ page: currentPage, limit: 20 }));
+      dispatch(fetchUsers({ page: currentPage, limit: 12 }));
     }
   }, [dispatch, currentPage, isSearching, debouncedSearch]);
 
@@ -47,7 +49,7 @@ function Users() {
       dispatch(searchUsers(debouncedSearch));
     } else if (isSearching) {
       setIsSearching(false);
-      dispatch(fetchUsers({ page: 1, limit: 20 }));
+      dispatch(fetchUsers({ page: 1, limit: 12 }));
     }
   }, [debouncedSearch, dispatch, isSearching]);
 
@@ -58,7 +60,7 @@ function Users() {
   const handleClearSearch = () => {
     setSearchTerm('');
     setIsSearching(false);
-    dispatch(fetchUsers({ page: 1, limit: 20 }));
+    dispatch(fetchUsers({ page: 1, limit: 12 }));
   };
 
   const handlePageChange = (page: number) => {
@@ -69,10 +71,6 @@ function Users() {
   const handleUserClick = (userId: string) => {
     navigate(`/user/${userId}`);
   };
-
-  if (loading && users.length === 0) {
-    return <Loader message="Loading users..." />;
-  }
 
   return (
     <div className="users-page">
@@ -117,43 +115,31 @@ function Users() {
       {error && (
         <div className="users-page__error">
           <p>{error}</p>
-          <button onClick={() => dispatch(fetchUsers({ page: 1, limit: 20 }))}>
+          <button
+            onClick={() => dispatch(fetchUsers({ page: 1, limit: 12 }))}
+          >
             Try Again
           </button>
         </div>
       )}
 
-      {/* Users List - как в чатах */}
+      {/* Loading state */}
+      {loading && users.length === 0 && (
+        <div className="users-page__loading">
+          <Loader />
+        </div>
+      )}
+
+      {/* Users grid */}
       {!loading && users.length > 0 && (
         <>
-          <div className="users-page__list">
+          <div className="users-page__grid">
             {users.map((user) => (
-              <div
+              <UserCard
                 key={user._id}
-                className="user-item"
+                user={user}
                 onClick={() => handleUserClick(user._id)}
-              >
-                <div className="user-item__avatar">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.username} />
-                  ) : (
-                    <span>{user.username?.charAt(0).toUpperCase() || '?'}</span>
-                  )}
-                </div>
-                
-                <div className="user-item__info">
-                  <div className="user-item__header">
-                    <span className="user-item__name">{user.username}</span>
-                    {user.isFollowing && (
-                      <span className="user-item__follow-badge">Following</span>
-                    )}
-                  </div>
-                  {user.bio && (
-                    <p className="user-item__bio">{user.bio.length > 60 ? `${user.bio.substring(0, 60)}...` : user.bio}</p>
-                  )}
-                </div>
-                
-              </div>
+              />
             ))}
           </div>
 

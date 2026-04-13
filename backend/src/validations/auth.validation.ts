@@ -40,12 +40,7 @@ export const updateProfileValidation = [
     .optional()
     .trim()
     .isLength({ max: 200 })
-    .withMessage('Bio must be less than 200 characters'),
-  
-  body('avatar')
-    .optional()
-    .isURL()
-    .withMessage('Avatar must be a valid URL')
+    .withMessage('Bio must be less than 200 characters')
 ];
 
 export const changePasswordValidation = [
