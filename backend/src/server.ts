@@ -67,6 +67,9 @@ app.use('/api/follow', followRoutes);
 const frontendPath = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendPath));
 
+console.log('Current directory:', process.cwd());
+console.log('__dirname:', __dirname);
+console.log('Frontend path:', frontendPath);
 // ============ SPA FALLBACK ============
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
