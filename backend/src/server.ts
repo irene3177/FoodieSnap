@@ -68,7 +68,7 @@ const frontendPath = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendPath));
 
 // ============ SPA FALLBACK - все остальные запросы отдаем index.html ============
-app.get('*', (req, res, next) => {
+app.get('/*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();
   }
