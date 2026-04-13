@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/server.ts",
+    "start": "node dist/server.js",
     "clean": "rm -rf dist",
     "cleanup:avatars": "ts-node src/scripts/cleanupOrphanedAvatars.ts",
     "cleanup:avatars:prod": "node dist/scripts/cleanupOrphanedAvatars.js",
