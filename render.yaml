@@ -1,20 +1,36 @@
 services:
   - type: web
-    name: foodiesnap-api
+    name: foodiesnap
     runtime: node
     plan: free
-    buildCommand: cd backend && npm install --include=dev && npm run build
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install --include=dev && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NPM_CONFIG_PRODUCTION
-        value: false
       - key: JWT_SECRET
         generateValue: true
       - key: MONGODB_URI
         sync: false
-      - key: FRONTEND_URL
-        value: https://${FOODIESNAP}.onrender.com
-      - key: COOKIE_DOMAIN
-        value: .onrender.com
+
+
+# services:
+#   - type: web
+#     name: foodiesnap-api
+#     runtime: node
+#     plan: free
+#     buildCommand: cd backend && npm install --include=dev && npm run build
+#     startCommand: cd backend && npm start
+#     envVars:
+#       - key: NODE_ENV
+#         value: production
+#       - key: NPM_CONFIG_PRODUCTION
+#         value: false
+#       - key: JWT_SECRET
+#         generateValue: true
+#       - key: MONGODB_URI
+#         sync: false
+#       - key: FRONTEND_URL
+#         value: https://${FOODIESNAP}.onrender.com
+#       - key: COOKIE_DOMAIN
+#         value: .onrender.com

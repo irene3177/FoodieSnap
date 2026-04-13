@@ -62,12 +62,12 @@ export const config: Config = {
   cookieOptions: {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' as const : 'lax' as const,
+    sameSite: /*isProduction ? 'none' as const : */'lax' as const,
     maxAge: 60 * 60 * 24 * 7 * 1000, // 7 days
     expires: getExpiresDate(),
     path: '/',
-    domain: isProduction 
-    ? (process.env.COOKIE_DOMAIN || '.onrender.com')
-    : undefined,
+    // domain: isProduction 
+    // ? (process.env.COOKIE_DOMAIN || '.onrender.com')
+    // : undefined,
   }
 };

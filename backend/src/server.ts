@@ -23,7 +23,7 @@ import followRoutes from './routes/follow.routes';
 
 const app: Express = express();
 
-app.set('trust proxy', 1);
+// app.set('trust proxy', 1);
 
 // ============ Security ============
 configureSecurity(app);
@@ -64,6 +64,18 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/follow', followRoutes);
+
+// ============ SERVEFRONTEND STATIC FILES ============
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendPath));
+
+// ============ SPA FALLBACK - все остальные запросы отдаем index.html ============
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 // ============ Error Handling ============
 app.use(notFoundHandler);
