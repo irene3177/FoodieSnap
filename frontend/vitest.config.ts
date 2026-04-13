@@ -10,10 +10,5 @@ export default defineConfig({
     include: ['src/test/__tests__/**/*.test.{ts, tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**'],
     passWithNoTests: true,
-    // css: true,
-    // coverage: {
-    //   provider: 'v8',
-    //   reporter: ['text', 'json', 'html'],
-    // },
   },
 });

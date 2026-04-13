@@ -211,7 +211,7 @@ Edit `.env` with your values:
 
 ```env
 VITE_API_URL='http://localhost:5001/api'
-VITE_BASE_URL='http://localhost:5001'
+VITE_WS_URL='http://localhost:5001'
 VITE_API_TIMEOUT=30000
 ```
 

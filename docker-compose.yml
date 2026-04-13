@@ -54,7 +54,7 @@ services:
       - backend
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
-      VITE_BASE_URL: ${VITE_BASE_URL:-ws://localhost:5001}
+      VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:5001}
 
 volumes:
   mongodb_data:

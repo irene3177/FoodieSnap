@@ -238,7 +238,7 @@ npm run test:ui
 
 ```env
 VITE_API_URL=https://api.foodiesnap.com
-VITE_BASE_URL=https://foodiesnap.com
+VITE_WS_URL=https://foodiesnap.com
 VITE_API_TIMEOUT=30000
 ```
 
