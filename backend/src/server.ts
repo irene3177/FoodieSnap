@@ -23,8 +23,6 @@ import followRoutes from './routes/follow.routes';
 
 const app: Express = express();
 
-// app.set('trust proxy', 1);
-
 // ============ Security ============
 configureSecurity(app);
 
