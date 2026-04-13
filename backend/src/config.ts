@@ -67,7 +67,7 @@ export const config: Config = {
     expires: getExpiresDate(),
     path: '/',
     domain: isProduction 
-    ? (process.env.COOKIE_DOMAIN || '.foodiesnap.com')
+    ? (process.env.COOKIE_DOMAIN || '.onrender.com')
     : undefined,
   }
 };
