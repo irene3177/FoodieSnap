@@ -17,9 +17,7 @@ services:
       - key: COOKIE_DOMAIN
         value: .onrender.com
 
-  - type: web
-    name: foodiesnap
-    runtime: static
+  - type: static
     plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
