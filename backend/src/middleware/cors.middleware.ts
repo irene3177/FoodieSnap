@@ -3,7 +3,7 @@ import { config } from '../config';
 
 const allowedOrigins = [
   config.frontendUrl,
-  'https://foodiesnap.vercel.app',
+  'https://foodiesnap.onrender.com',
   'https://foodiesnap.com',
   'http://localhost',
   'http://localhost:5173'

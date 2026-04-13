@@ -49,7 +49,7 @@ export const config: Config = {
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   mealdbApiUrl: process.env.MEALDB_API_URL || 'https://www.themealdb.com/api/json/v1/1',
   nodeEnv: (process.env.NODE_ENV as Config['nodeEnv']) || 'development',
-  rateLimitMaxRequests: process.env.RATE_LIMIT_MAX_REQUESTS || '100',
+  rateLimitMaxRequests: process.env.RATE_LIMIT_MAX_REQUESTS || '10000',
 
   get isProduction() {
     return this.nodeEnv === 'production';
