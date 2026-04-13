@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Test Backend
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm test
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/foodiesnap_test
+          JWT_SECRET: test_secret
+      
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm test
+        env:
+          CI: true
+      
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build
+      
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
