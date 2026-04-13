@@ -82,7 +82,6 @@ const startServer = async (): Promise<void> => {
     server.listen(config.port, () => {
       console.log(`🚀 Server is running on port ${config.port}`);
       console.log(`📡 WebSocket server is ready`);
-      console.log(`🔒 Environment: ${config.nodeEnv || 'development'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

@@ -5,7 +5,8 @@ const allowedOrigins = [
   config.frontendUrl,
   'https://foodiesnap.vercel.app',
   'https://foodiesnap.com',
-  'http://localhost'
+  'http://localhost',
+  'http://localhost:5173'
 ];
 
 export const corsOptions = {

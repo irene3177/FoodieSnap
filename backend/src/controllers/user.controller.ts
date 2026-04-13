@@ -97,7 +97,7 @@ export const getFavorites = async (req: Request, res: Response, next: NextFuncti
 };
 
 // GET /api/users
-export const getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page = validateNumber(req.query.page, 1, 1, 100);
     const limit = validateNumber(req.query.limit, 10, 1, 50);
