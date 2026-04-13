@@ -6,7 +6,8 @@ const allowedOrigins = [
   'https://foodiesnap.onrender.com',
   'https://foodiesnap.com',
   'http://localhost',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'https://foodiesnap-jie9.onrender.com'
 ];
 
 export const corsOptions = {
