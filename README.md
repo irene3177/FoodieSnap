@@ -58,13 +58,18 @@ Due to the free hosting tier limitations:
 - **express-rate-limit** for DDoS protection
 - **compression** for response optimization
 
+### Cloud Services
+
+- **Cloudinary** - Image storage and optimization (avatars)
+- **TheMealDB API** - External recipe data source
+
 ### Deployment
 
 - **Frontend & Backend:** Render.com (free tier)
 - **Database:** MongoDB Atlas (free tier)
-- **File Storage:** Local uploads on Render (ephemeral storage)
+- **Image Storage:** Cloudinary (free tier)
 
-> **Note:** Avatar images are stored locally and may be lost during redeploys.
+> **✅ Persistent Storage:** User avatars are stored on **Cloudinary**, a cloud-based image management service. This ensures that uploaded avatars persist across server restarts and redeploys, unlike local file storage.
 
 ## ✨ Core Features
 
@@ -75,6 +80,7 @@ Due to the free hosting tier limitations:
 - Session persistence across page reloads
 - Login/Register with validation
 - Profile management (username, avatar, bio)
+- Avatar upload to Cloudinary
 - Password change functionality
 - Account deletion with cascade
 
@@ -158,6 +164,18 @@ Due to the free hosting tier limitations:
 4. Frontend makes authenticated requests with cookie
 5. AuthContext checks `/api/auth/me` on mount to restore session
 
+### Avatar Upload Flow (Cloudinary)
+
+1. User selects image file (max 5MB, allowed formats: JPG, PNG, GIF, WEBP)
+2. Frontend sends FormData with file to `/api/auth/avatar`
+3. Multer middleware processes file upload
+4. CloudinaryStorage automatically uploads to Cloudinary
+5. Image is automatically resized to 200x200 pixels
+6. Cloudinary returns secure HTTPS URL
+7. Backend saves URL to user profile in MongoDB
+8. Old avatar is automatically deleted from Cloudinary (if exists)
+9. Frontend updates UI with new avatar
+
 ### Real-time Chat Flow
 
 1. User joins conversation room via Socket.IO
@@ -216,6 +234,11 @@ FRONTEND_URL=http://localhost:5173
 MEALDB_API_URL = 'https://www.themealdb.com/api/json/v1/1'
 RATE_LIMIT_MAX_REQUESTS=10000
 NODE_ENV=development
+
+# Cloudinary Configuration (required for avatar uploads)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 4. **Install frontend dependencies**
@@ -397,7 +420,8 @@ npm run test:coverage # Coverage report
 - **CORS** with whitelisted origins
 - **XSS prevention** via sanitization
 - **SQL injection protection** (Mongoose)
-- **File upload validation** (type, size limits)
+- **File upload validation** (type: images only, size: max 5MB)
+- **Cloudinary secure URLs** (HTTPS only)
 
 ## 📈 Performance Optimizations
 
@@ -418,6 +442,22 @@ npm run test:coverage # Coverage report
 - Rate limiting for DDoS protection
 - Winston logging with rotation
 - Graceful shutdown handling
+
+## ☁️ Cloudinary Integration
+
+User avatars are stored on Cloudinary, providing:
+
+- **Persistent Storage** - Images survive server restarts and redeploys
+- **CDN Delivery** - Fast global image delivery
+- **Free Tier** - 25GB storage and 25GB monthly bandwidth
+- **Secure URLs** - HTTPS-only access
+- **Automatic Cleanup** - Old avatars are deleted when replaced
+
+### Avatar Upload Limits
+
+- **Max file size:** 5MB
+- **Allowed formats:** JPEG, PNG, GIF, WEBP
+- **Storage:** Cloudinary cloud storage
 
 ## 🔜 Future Improvements
 
@@ -447,6 +487,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 🙏 Acknowledgments
 
 - **[TheMealDB](https://www.themealdb.com/)** - for recipe data API
+- **[Cloudinary](https://cloudinary.com/)** - for image storageand optimization
 - **[React Documentation](https://react.dev/)**
 - **[Redux Toolkit Guide](https://redux-toolkit.js.org/)**
 - **[Socket.IO Docs](https://socket.io/docs/v4/)**

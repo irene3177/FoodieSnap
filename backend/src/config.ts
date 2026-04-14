@@ -7,6 +7,9 @@ interface Config {
   baseUrl: string;
   mongoUri: string;
   mongoTestUri: string;
+  cloudinaryCloudName: string;
+  cloudinaryApiKey: string;
+  cloudinaryApiSecret: string;
   jwtSecret: string;
   jwtExpire: string;
   frontendUrl: string;
@@ -46,6 +49,9 @@ export const config: Config = {
   baseUrl: process.env.BASE_URL || 'https://foodiesnap-jie9.onrender.com',
   mongoUri: process.env.MONGODB_URI!,
   mongoTestUri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/foodie_snap_test',
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY!,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET!,
   jwtSecret: process.env.JWT_SECRET!,
   jwtExpire: process.env.JWT_EXPIRE || '7d',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',

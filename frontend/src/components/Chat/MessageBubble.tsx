@@ -9,17 +9,9 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) => {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = diff / (1000 * 60 * 60);
+
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    if (hours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (hours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
   };
 
   return (
@@ -28,7 +20,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMess
     >
       {!isOwnMessage && (
         <img 
-          src={message.senderId.avatar || 'https://picsum.photos/32/32'}
+          src={message.senderId.avatar || message.senderId.username.charAt(0).toUpperCase()}
           alt={message.senderId.username}
           className="message__avatar"
         />

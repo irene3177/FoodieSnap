@@ -28,11 +28,6 @@
   gap: 0.5rem;
 }
 
-.favorites-page__subtitle::before {
-  content: '👆';
-  font-size: 1rem;
-}
-
 .favorites-page__clear-button {
   padding: 0.5rem 1rem;
   background-color: transparent;
@@ -186,7 +181,8 @@
 
   .favorites-page__header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
+    margin-bottom: 1rem;
   }
 
   .favorites-page__subtitle {
@@ -194,7 +190,11 @@
   }
 
   .favorites-page__clear-button {
-    align-self: flex-start;
+    align-self: center;
+  }
+
+  .favorites-page__stats {
+    margin-bottom: 0;
   }
 
   .favorites-page__grid {

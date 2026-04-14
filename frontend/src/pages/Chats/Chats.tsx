@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectUnreadCount, selectLastMessages } from '../../store/unreadSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { messagesApi } from '../../services/messagesApi';
-import Loader from '../../components/Loader/Loader';
+import { ChatsSkeleton } from '../../components/Skeleton/ChatsSkeleton';
 import { Participant, Conversation } from '../../types';
 import * as socket from '../../services/socket';
 import './Chats.css';
@@ -115,7 +115,7 @@ function Chats() {
   };
 
   if (loading) {
-    return <Loader message="Loading conversations..." />;
+    return <ChatsSkeleton />;
   }
 
   if (!user) {

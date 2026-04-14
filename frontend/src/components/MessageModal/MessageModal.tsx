@@ -9,6 +9,7 @@ import { useChatScroll } from '../../hooks/chat/useChatScroll';
 import { MessageList } from '../Chat/MessageList';
 import { MessageInput } from '../Chat/MessageInput';
 import { ScrollToBottomButton } from '../Chat/ScrollToBottomButton';
+import { MessageModalSkeleton } from '../Skeleton/MessageModalSkeleton';
 import * as socket from '../../services/socket';
 import './MessageModal.css';
 
@@ -102,7 +103,7 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
                 </div>
                 <button className="message-modal__close" onClick={onClose}>✕</button>
               </div>
-              <div className="message-modal__loading">Loading conversation...</div>
+              <MessageModalSkeleton />
             </motion.div>
           </motion.div>
         )}
