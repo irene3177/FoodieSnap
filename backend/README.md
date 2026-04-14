@@ -15,6 +15,7 @@ RESTful API for FoodieSnap - a social recipe sharing platform. Built with Node.j
 - **Performance**: Compression
 - **Logging**: Winston
 - **File Upload**: Multer
+- **Image Storage**: Cloudinary (cloud-based)
 
 ## 🔧 Installation
 
@@ -22,6 +23,7 @@ RESTful API for FoodieSnap - a social recipe sharing platform. Built with Node.j
 
 - Node.js 18+
 - MongoDB Atlas account or local MongoDB
+- Cloudinary account (free tier)
 - npm or yarn
 
 ### Setup
@@ -45,7 +47,26 @@ npm install
 cp .env.example .env
 ```
 
-4. **Run development server**
+4. **Configure environment variables**
+
+```env
+PORT=5001
+MONGODB_URI=mongodb://localhost:27017/foodiesnap
+MONGODB_TEST_URI=mongodb://localhost:27017/foodie_snap_test
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRE=7d
+FRONTEND_URL=http://localhost:5173
+MEALDB_API_URL=https://www.themealdb.com/api/json/v1/1
+RATE_LIMIT_MAX_REQUESTS=10000
+NODE_ENV=development
+
+# Cloudinary Configuration (required for avatar uploads)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
+
+5. **Run development server**
 
 ```bash
 npm run dev
@@ -142,17 +163,45 @@ npm run dev
 | **DELETE** | `/conversation/:conversationId/messages` | Clear chat history | Private |
 | **DELETE** | `/conversation/:conversationId` | Delete conversation | Private |
 
+## ☁️ Cloudinary Integration
+
+### Avatar Upload Flow
+
+1. **Frontend sends image file** to /api/auth/avatar
+2. **Multer middleware** processes the upload using CloudinaryStorage
+3. **Cloudinary automatically:**
+  - Uploads image to cloud storage
+  - Optimizes for web delivery
+  - Returns secure HTTPS URL
+4. **Backend saves URL** to user profile in MongoDB
+5. **Old avatar is deleted** from Cloudinary (if exists)
+6. **Frontend receives new avatar URL** and updates UI
+
+### File Validation
+
+- **Max file size:** 5MB
+- **Allowed formats:** JPEG, PNG, GIF, WEBP
+
+### Benefits of Cloudinary
+
+- ✅ **Persistent storage** - Avatars survive server restarts
+- ✅ **CDN delivery** - Fast global image loading
+- ✅ **Automatic optimization** - Images optimized for web
+- ✅ **Free tier** - 25GB storage + 25GB monthly bandwidth
+- ✅ **Secure** - HTTPS-only URLs
+
 ## 🔒 Security Features
 
 - **JWT Authentication** with HTTP-only cookies
 - **Password Hashing** with bcrypt
 - **Input Validation** with express-validator
-- **Rate Limiting** (100 requests/15min, 5 attempts for auth)
+- **Rate Limiting** (10000 requests/15min, 5 attempts for auth)
 - **Helmet.js** for security headers
 - **CORS** with whitelisted origins
 - **XSS Protection**
 - **SQL Injection Prevention** (via Mongoose)
-- **File Upload Validation** (type, size)
+- **File Upload Validation** (type: images only, size: max 5MB)
+- **Cloudinary Secure URLs** (HTTPS enforced)
 
 ## 🔌 WebSocket Events (Socket.IO)
 
@@ -213,7 +262,12 @@ MONGODB_URI=production_mongodb_uri
 JWT_SECRET=strong_secret_key
 FRONTEND_URL=https://your-frontend.com
 RATE_LIMIT_MAX_REQUESTS=100
-MEALDB_API_URL = 'https://www.themealdb.com/api/json/v1/1'
+MEALDB_API_URL=https://www.themealdb.com/api/json/v1/1
+
+# Cloudinary (required)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 ## 🔍 Monitoring & Health Checks
@@ -257,6 +311,23 @@ HTTP Status Codes:
 - `429` - Too Many Requests
 - `500` - Internal Server Error
 
+## 📦 Deployment on Render.com
+
+### Important Notes for Render Deployment
+
+1. **Cloudinary is REQUIRED** - Local file storage is not used
+2. **Set environment variables** in Render dashboard:
+- All variables from `.env` file
+- Cloudinary credentials
+3. **Build command:** `npm install && npm run build`
+4. **Start command:** `npm start`
+
+### Free Tier Limitations
+
+- Server sleeps after 15 minutes of inactivity
+- Cold start takes 20-30 seconds
+- Cloudinary free tier: 25GB storage, 25GB monthly bandwidth
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
@@ -264,3 +335,6 @@ Contributions, issues, and feature requests are welcome!
 ## 📄 License
 
 This project is for educational purposes.
+
+---
+Built with ❤️ using Node.js, Express, MongoDB, Socket.IO, and Cloudinary

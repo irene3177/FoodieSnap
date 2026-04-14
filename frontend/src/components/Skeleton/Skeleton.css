@@ -133,7 +133,7 @@
 }
 
 .skeleton-detail__ingredient-item .skeleton:first-child {
-  flex: 0 0 16px;  /* Кружок фиксированного размера */
+  flex: 0 0 16px;
 }
 
 .skeleton-favorites {

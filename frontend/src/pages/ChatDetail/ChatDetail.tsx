@@ -11,11 +11,8 @@ import { ChatHeader } from '../../components/Chat/ChatHeader';
 import { MessageList } from '../../components/Chat/MessageList';
 import { MessageInput } from '../../components/Chat/MessageInput';
 import { ScrollToBottomButton } from '../../components/Chat/ScrollToBottomButton';
-import { MessageListSkeleton } from '../../components/Skeleton/MessageListSkeleton';
-import { ChatHeaderSkeleton } from '../../components/Skeleton/ChatHeaderSkeleton';
-import { MessageInputSkeleton } from '../../components/Skeleton/MessageInputSkeleton';
+import { ChatDetailSkeleton } from '../../components/Skeleton/ChatDetailSkeleton';
 import * as socket from '../../services/socket';
-// import Loader from '../../components/Loader/Loader';
 import './ChatDetail.css';
 
 function ChatDetail() {
@@ -103,11 +100,6 @@ function ChatDetail() {
     if (document.visibilityState === 'visible' && user?._id) {
       // Ensure socket is connected
       socket.ensureConnection(user._id);
-      
-      // Re-join the conversation
-      // if (conversationId) {
-      //   socket.joinChat(conversationId);
-      // }
     }
   };
   
@@ -127,13 +119,7 @@ function ChatDetail() {
   };
 
   if (loading) {
-    return (
-      <div className="chat-detail">
-        <ChatHeaderSkeleton />
-        <MessageListSkeleton />
-        <MessageInputSkeleton />
-      </div>
-    );
+    return <ChatDetailSkeleton />;
   }
 
   return (

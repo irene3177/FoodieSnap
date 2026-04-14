@@ -6,10 +6,11 @@ export const useChatScroll = (messages: Message[]) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wasAtBottomRef = useRef(true);
-  const isInitialLoadRef = useRef(true);
+  // const isInitialLoadRef = useRef(true);
+  const prevMessagesLengthRef = useRef(0);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     wasAtBottomRef.current = true;
   };
 
@@ -22,29 +23,51 @@ export const useChatScroll = (messages: Message[]) => {
     }
   };
 
-  // Auto-scroll when new messages arrive (but NOT on initial load)
+  // Auto-scroll when new messages arrive
   useEffect(() => {
-    if (messages.length > 0 && messagesContainerRef.current) {
-      if (isInitialLoadRef.current) {
-        isInitialLoadRef.current = false;
-        return;
-      }
-      if (wasAtBottomRef.current) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
-      }
+    if (messages.length === 0) return;
+
+    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+    prevMessagesLengthRef.current = messages.length;
+
+
+    // Scroll only if:
+    // 1. It's a new message AND user was at bottom, OR
+    // 2. It's the first time loading messages (prevLength was 0)
+    const shouldScroll = (isNewMessage && wasAtBottomRef.current)
+      || prevMessagesLengthRef.current === messages.length;
+    
+    if (shouldScroll) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
+    // if (messages.length > 0 && messagesContainerRef.current) {
+    //   if (isInitialLoadRef.current) {
+    //     isInitialLoadRef.current = false;
+    //     return;
+    //   }
+    //   if (wasAtBottomRef.current) {
+    //     setTimeout(() => {
+    //       scrollToBottom();
+    //     }, 100);
+    //   }
+    // }
   }, [messages]);
 
   // Set initial scroll position to bottom without animation
   useEffect(() => {
     if (messages.length > 0 && messagesContainerRef.current) {
-      // Immediately scroll to bottom without animation on initial load
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      wasAtBottomRef.current = true;
+      setTimeout(() => {
+        scrollToBottom();
+      }, 150);
     }
-  }, [messages]);
+    // if (messages.length > 0 && messagesContainerRef.current) {
+    //   // Immediately scroll to bottom without animation on initial load
+    //   messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    //   wasAtBottomRef.current = true;
+    // }
+  }, [messages.length]);
 
   return {
     showScrollButton,

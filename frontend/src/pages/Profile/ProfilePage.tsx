@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useFollow } from '../../hooks/useFollow';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import Loader from '../../components/Loader/Loader';
+import { ProfileSkeleton } from '../../components/Skeleton/ProfileSkeleton';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
 import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
 import FollowModal from '../../components/FollowModal/FollowModal';
@@ -54,7 +54,6 @@ function ProfilePage() {
     profile?.isFollowing || false,
     {
       onFollowChange: (newIsFollowing, newFollowersCount) => {
-        // refresh();
         updateFollowStats(newIsFollowing, newFollowersCount);
       }
     }
@@ -185,7 +184,7 @@ function ProfilePage() {
     </div>;
   }
 
-  if (loading) return <Loader message="Loading profile..." />;
+  if (loading) return <ProfileSkeleton />;
   if (error) return <div className="profile-error">{error}</div>;
   if (!profile) return <div className="profile-error">User not found</div>;
 

@@ -1,0 +1,304 @@
+.skeleton-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--bg-primary);
+}
+
+/* ========== HEADER SKELETON ========== */
+.skeleton-chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  min-height: 70px;
+  gap: 1rem;
+}
+
+.skeleton-chat__back {
+  width: 60px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__recipient {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.skeleton-chat__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__recipient-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-chat__name {
+  width: 120px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__status {
+  width: 60px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__options {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========== MESSAGES AREA SKELETON ========== */
+.skeleton-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Date Divider */
+.skeleton-chat__date-divider {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+
+.skeleton-chat__date-divider-line {
+  width: 80px;
+  height: 24px;
+  border-radius: 20px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Message Row */
+.skeleton-chat__message {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  max-width: 70%;
+}
+
+.skeleton-chat__message--received {
+  align-self: flex-start;
+}
+
+.skeleton-chat__message--sent {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+/* Message Avatar */
+.skeleton-chat__message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+/* Message Bubble */
+.skeleton-chat__message-bubble {
+  height: 40px;
+  border-radius: 18px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__message-bubble--received {
+  border-bottom-left-radius: 4px;
+  width: 200px;
+}
+
+.skeleton-chat__message-bubble--sent {
+  border-bottom-right-radius: 4px;
+  width: 180px;
+}
+
+.skeleton-chat__message-bubble--long {
+  width: 280px;
+  height: 60px;
+}
+
+.skeleton-chat__message-bubble--short {
+  width: 120px;
+  height: 36px;
+}
+
+/* ========== INPUT AREA SKELETON ========== */
+.skeleton-chat__input-area {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  flex-shrink: 0;
+  min-height: 70px;
+}
+
+.skeleton-chat__input {
+  flex: 1;
+  height: 44px;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chat__send {
+  width: 80px;
+  height: 44px;
+  border-radius: 24px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========== ANIMATION ========== */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .skeleton-chat__header {
+    padding: 0.75rem 1rem;
+    min-height: 60px;
+  }
+
+  .skeleton-chat__name {
+    width: 100px;
+    height: 14px;
+  }
+
+  .skeleton-chat__status {
+    width: 50px;
+    height: 10px;
+  }
+
+  .skeleton-chat__message {
+    max-width: 85%;
+  }
+
+  .skeleton-chat__message-bubble--received {
+    width: 160px;
+  }
+
+  .skeleton-chat__message-bubble--sent {
+    width: 140px;
+  }
+
+  .skeleton-chat__message-bubble--long {
+    width: 220px;
+  }
+
+  .skeleton-chat__message-bubble--short {
+    width: 100px;
+  }
+
+  .skeleton-chat__input-area {
+    padding: 0.75rem;
+    min-height: 60px;
+  }
+
+  .skeleton-chat__input {
+    height: 40px;
+  }
+
+  .skeleton-chat__send {
+    width: 70px;
+    height: 40px;
+  }
+}

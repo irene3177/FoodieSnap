@@ -12,7 +12,7 @@ import {
   selectSearchQuery,
   setPage
 } from '../../store/usersSlice';
-import Loader from '../../components/Loader/Loader';
+import { UsersSkeleton } from '../../components/Skeleton/UsersSkeleton';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useDebounce } from '../../hooks/useDebounce';
 import './Users.css';
@@ -71,7 +71,7 @@ function Users() {
   };
 
   if (loading && users.length === 0) {
-    return <Loader message="Loading users..." />;
+    return <UsersSkeleton />;
   }
 
   return (

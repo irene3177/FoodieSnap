@@ -399,6 +399,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -568,7 +569,12 @@
     min-height: 60px;
   }
 
+  .chat-detail__input {
+    font-size: 16px !important;
+  }
+
   .chat-detail__send {
     padding: 0.75rem 1rem;
+    font-size: 14px;
   }
 }

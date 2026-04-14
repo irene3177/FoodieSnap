@@ -55,11 +55,6 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
                     <span>U</span>
                   )}
                 </div>
-                <img 
-                  src={currentUserAvatar} 
-                  alt=""
-                  className="chat-detail__options-avatar"
-                />
                 My Profile
               </Link>
             )}

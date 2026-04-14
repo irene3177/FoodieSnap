@@ -1,34 +1,50 @@
-import path from 'path';
-import fs from 'fs';
-import { uploadAvatar, isLocalAvatar, deleteOldAvatarIfLocal } from '../../middleware/upload.middleware';
+import { uploadAvatar, isCloudinaryAvatar, deleteOldAvatarFromCloudinary } from '../../middleware/upload.middleware';
+import { v2 as cloudinary } from 'cloudinary';
 
-// Mock fs
-jest.mock('fs');
-jest.mock('path');
+// Mock cloudinary
+jest.mock('cloudinary', () => ({
+  v2: {
+    config: jest.fn(),
+    uploader: {
+      destroy: jest.fn()
+    }
+  }
+}));
 
-describe('Upload Middleware', () => {
+describe('Upload Middleware - Cloudinary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('isLocalAvatar', () => {
-    it('should return true for local avatar URL', () => {
+  describe('isCloudinaryAvatar', () => {
+    it('should return true for Cloudinary avatar URL', () => {
       // Arrange
-      const url = 'http://localhost:5001/uploads/avatars/avatar-123.jpg';
+      const url = 'https://res.cloudinary.com/dyb6cegae/image/upload/v1234567890/avatars/avatar-123.jpg';
 
       // Act
-      const result = isLocalAvatar(url);
+      const result = isCloudinaryAvatar(url);
 
       // Assert
       expect(result).toBe(true);
     });
 
-    it('should return false for external avatar URL', () => {
+    it('should return false for external non-Cloudinary URL', () => {
       // Arrange
       const url = 'https://picsum.photos/200/200';
 
       // Act
-      const result = isLocalAvatar(url);
+      const result = isCloudinaryAvatar(url);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return false for local URL', () => {
+      // Arrange
+      const url = 'http://localhost:5001/uploads/avatars/avatar-123.jpg';
+
+      // Act
+      const result = isCloudinaryAvatar(url);
 
       // Assert
       expect(result).toBe(false);
@@ -36,7 +52,7 @@ describe('Upload Middleware', () => {
 
     it('should return false for undefined avatar URL', () => {
       // Act
-      const result = isLocalAvatar(undefined);
+      const result = isCloudinaryAvatar(undefined);
 
       // Assert
       expect(result).toBe(false);
@@ -44,94 +60,74 @@ describe('Upload Middleware', () => {
 
     it('should return false for empty string', () => {
       // Act
-      const result = isLocalAvatar('');
+      const result = isCloudinaryAvatar('');
 
       // Assert
       expect(result).toBe(false);
     });
   });
 
-  describe('deleteOldAvatarIfLocal', () => {
-    const mockUploadDir = '/fake/path/uploads/avatars';
-
-    beforeEach(() => {
-      (path.join as jest.Mock).mockReturnValue(mockUploadDir);
-    });
-
-    it('should not delete if avatarUrl is undefined', () => {
+  describe('deleteOldAvatarFromCloudinary', () => {
+    it('should not delete if avatarUrl is undefined', async () => {
       // Act
-      deleteOldAvatarIfLocal(undefined);
+      await deleteOldAvatarFromCloudinary(undefined);
 
       // Assert
-      expect(fs.existsSync).not.toHaveBeenCalled();
-      expect(fs.unlinkSync).not.toHaveBeenCalled();
+      expect(cloudinary.uploader.destroy).not.toHaveBeenCalled();
     });
 
-    it('should not delete external avatar URL', () => {
+    it('should not delete if avatarUrl is not from Cloudinary', async () => {
       // Arrange
       const url = 'https://picsum.photos/200/200';
 
       // Act
-      deleteOldAvatarIfLocal(url);
+      await deleteOldAvatarFromCloudinary(url);
 
       // Assert
-      expect(fs.existsSync).not.toHaveBeenCalled();
-      expect(fs.unlinkSync).not.toHaveBeenCalled();
+      expect(cloudinary.uploader.destroy).not.toHaveBeenCalled();
     });
 
-    it('should delete local avatar file if exists', () => {
+    it('should delete Cloudinary avatar file', async () => {
       // Arrange
       const filename = 'avatar-123.jpg';
-      const url = `http://localhost:5001/uploads/avatars/${filename}`;
-      const filePath = path.join(mockUploadDir, filename);
+      const publicId = `avatars/${filename.split('.')[0]}`;
+      const url = `https://res.cloudinary.com/dyb6cegae/image/upload/v1234567890/avatars/${filename}`;
       
-      (path.join as jest.Mock).mockReturnValue(filePath);
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.unlinkSync as jest.Mock).mockImplementation(() => {});
+      (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({ result: 'ok' });
 
       // Act
-      deleteOldAvatarIfLocal(url);
+      await deleteOldAvatarFromCloudinary(url);
 
       // Assert
-      expect(fs.existsSync).toHaveBeenCalledWith(filePath);
-      expect(fs.unlinkSync).toHaveBeenCalledWith(filePath);
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith(publicId);
     });
 
-    it('should not delete local avatar file if does not exist', () => {
+    it('should handle Cloudinary URL with different format', async () => {
       // Arrange
-      const filename = 'avatar-123.jpg';
-      const url = `http://localhost:5001/uploads/avatars/${filename}`;
-      const filePath = path.join(mockUploadDir, filename);
+      const url = 'https://res.cloudinary.com/dyb6cegae/image/upload/avatars/avatar-456.png';
+      const publicId = 'avatars/avatar-456';
       
-      (path.join as jest.Mock).mockReturnValue(filePath);
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({ result: 'ok' });
 
       // Act
-      deleteOldAvatarIfLocal(url);
+      await deleteOldAvatarFromCloudinary(url);
 
       // Assert
-      expect(fs.existsSync).toHaveBeenCalledWith(filePath);
-      expect(fs.unlinkSync).not.toHaveBeenCalled();
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith(publicId);
     });
 
-    it('should handle errors gracefully', () => {
+    it('should handle errors gracefully', async () => {
       // Arrange
-      const filename = 'avatar-123.jpg';
-      const url = `http://localhost:5001/uploads/avatars/${filename}`;
-      const filePath = path.join(mockUploadDir, filename);
+      const url = 'https://res.cloudinary.com/dyb6cegae/image/upload/v1234567890/avatars/avatar-123.jpg';
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       
-      (path.join as jest.Mock).mockReturnValue(filePath);
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.unlinkSync as jest.Mock).mockImplementation(() => {
-        throw new Error('Permission denied');
-      });
+      (cloudinary.uploader.destroy as jest.Mock).mockRejectedValue(new Error('Cloudinary error'));
 
       // Act
-      deleteOldAvatarIfLocal(url);
+      await deleteOldAvatarFromCloudinary(url);
 
       // Assert
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error deleting old avatar from Cloudinary:', expect.any(Error));
       consoleErrorSpy.mockRestore();
     });
   });

@@ -1,0 +1,260 @@
+.skeleton-users {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* ========== HEADER SKELETON ========== */
+.skeleton-users__header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.skeleton-users__title {
+  width: 250px;
+  height: 48px;
+  margin: 0 auto 0.5rem;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-secondary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-users__subtitle {
+  width: 300px;
+  height: 20px;
+  margin: 0 auto 1.5rem;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Search bar */
+.skeleton-users__search {
+  max-width: 500px;
+  margin: 0 auto 1rem;
+}
+
+.skeleton-users__search-input {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Results count */
+.skeleton-users__results-count {
+  width: 150px;
+  height: 16px;
+  margin: 0.5rem auto 0;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========== USERS LIST SKELETON ========== */
+.skeleton-users__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* User Item */
+.skeleton-users__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.skeleton-users__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-users__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-users__name {
+  width: 140px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-users__bio {
+  width: 80%;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-users__bio--long {
+  width: 95%;
+}
+
+.skeleton-users__bio--short {
+  width: 50%;
+}
+
+/* ========== PAGINATION SKELETON ========== */
+.skeleton-users__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.skeleton-users__pagination-prev,
+.skeleton-users__pagination-next {
+  width: 100px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-users__pagination-pages {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.skeleton-users__pagination-page {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========== ANIMATION ========== */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .skeleton-users {
+    padding: 1rem;
+  }
+
+  .skeleton-users__title {
+    width: 200px;
+    height: 36px;
+  }
+
+  .skeleton-users__subtitle {
+    width: 220px;
+    height: 16px;
+  }
+
+  .skeleton-users__search-input {
+    height: 42px;
+  }
+
+  .skeleton-users__item {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .skeleton-users__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .skeleton-users__name {
+    width: 120px;
+    height: 18px;
+  }
+
+  .skeleton-users__bio {
+    height: 14px;
+  }
+
+  .skeleton-users__pagination-prev,
+  .skeleton-users__pagination-next {
+    width: 80px;
+    height: 36px;
+  }
+
+  .skeleton-users__pagination-page {
+    width: 32px;
+    height: 32px;
+  }
+}

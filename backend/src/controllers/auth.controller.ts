@@ -4,7 +4,8 @@ import { UserModel } from '../models/User.model';
 import { RecipeModel } from '../models/Recipe.model';
 import { CommentModel } from '../models/Comment.model';
 import { AuthRequest } from '../types';
-import { deleteOldAvatarIfLocal } from '../middleware/upload.middleware';
+import { deleteOldAvatarFromCloudinary } from '../middleware/upload.middleware';
+// import { deleteOldAvatarIfLocal } from '../middleware/upload.middleware';
 import { config } from '../config';
 import ConflictError from '../errors/conflictError';
 import UnauthorizedError from '../errors/unauthorizedError';
@@ -204,17 +205,21 @@ export const updateAvatar = async (
     }
   
     oldAvatarUrl = user.avatar;
+    const avatarUrl = (req.file as any).path;
+    if (!avatarUrl) {
+      return next(BadRequestError('Failed to upload avatar to Cloudinary'));
+    }
   
-    // Construct the URL for the uploaded avatar
-    const baseUrl = config.baseUrl || `${req.protocol}://${req.get('host')}`;
-    const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+    // // Construct the URL for the uploaded avatar
+    // const baseUrl = config.baseUrl || `${req.protocol}://${req.get('host')}`;
+    // const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
   
     // Update user avatar
     user.avatar = avatarUrl;
     await user.save();
   
     if (oldAvatarUrl) {
-      deleteOldAvatarIfLocal(oldAvatarUrl);
+      await deleteOldAvatarFromCloudinary(oldAvatarUrl);
     }
   
     res.json({
@@ -279,8 +284,8 @@ export const deleteUser = async (
     }
     
     // Delete user's avatar if it's local
-    if (user.avatar && user.avatar.includes('/uploads/')) {
-      deleteOldAvatarIfLocal(user.avatar);
+    if (user.avatar/* && user.avatar.includes('/uploads/')*/) {
+      deleteOldAvatarFromCloudinary(user.avatar);
     }
     
     // Delete all user's recipes
