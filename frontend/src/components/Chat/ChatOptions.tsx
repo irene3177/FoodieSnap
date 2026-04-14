@@ -45,8 +45,18 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
                 className="chat-detail__options-item"
                 onClick={() => setShowOptions(false)}
               >
+                <div className="chat-detail__options-avatar">
+                  {currentUserAvatar ? (
+                    <img 
+                      src={currentUserAvatar} 
+                      alt=""
+                    />
+                  ) : (
+                    <span>U</span>
+                  )}
+                </div>
                 <img 
-                  src={currentUserAvatar || 'https://picsum.photos/20/20'} 
+                  src={currentUserAvatar} 
                   alt=""
                   className="chat-detail__options-avatar"
                 />

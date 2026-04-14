@@ -1,5 +1,13 @@
 # 🍽️ FoodieSnap - Social Recipe Sharing Platform
 
+## 🌐 Live Demo
+
+**Frontend:** [https://foodiesnap-jie9.onrender.com](https://foodiesnap-jie9.onrender.com)
+
+**Backend API:** [https://foodiesnap-jie9.onrender.com/api/health](https://foodiesnap-jie9.onrender.com/api/health)
+
+> **⚠️ Important Note:** This application runs on a **free hosting plan** (Render.com). The server goes to sleep after 15 minutes of inactivity. When you first visit the site, it may take **20-30 seconds to wake up**. Please be patient. After the initial load, the app will run normally. 🚀
+
 ## 📋 About The Project
 
 FoodieSnap is a full-stack web application where food enthusiasts can discover, share, and save recipes. Users can create profiles, upload recipes with images, rate and comment on dishes, follow other cooks, and manage favorites - all in one place with real-time chat functionality.
@@ -15,6 +23,14 @@ FoodieSnap is a full-stack web application where food enthusiasts can discover, 
 - **🔍 Advanced Search** - Filter recipes by difficulty, time, cuisine, rating
 - **📱 Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - **🌓 Dark/Light Theme** - User preference persists across sessions
+
+### 🐢 Performance Note
+
+Due to the free hosting tier limitations:
+
+- **First request after inactivity:** 20-30 seconds (cold start)
+- **Subsequent requests:** 1-3 seconds (warm server)
+- **TheMealDB API calls:** May take 2-5 seconds (external free API)
 
 ## 🏗️ Tech Stack
 
@@ -41,6 +57,14 @@ FoodieSnap is a full-stack web application where food enthusiasts can discover, 
 - **Helmet.js** for security headers
 - **express-rate-limit** for DDoS protection
 - **compression** for response optimization
+
+### Deployment
+
+- **Frontend & Backend:** Render.com (free tier)
+- **Database:** MongoDB Atlas (free tier)
+- **File Storage:** Local uploads on Render (ephemeral storage)
+
+> **Note:** Avatar images are stored locally and may be lost during redeploys.
 
 ## ✨ Core Features
 
@@ -190,7 +214,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-this
 JWT_EXPIRE=7d
 FRONTEND_URL=http://localhost:5173
 MEALDB_API_URL = 'https://www.themealdb.com/api/json/v1/1'
-RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_MAX_REQUESTS=10000
 NODE_ENV=development
 ```
 
@@ -212,7 +236,7 @@ Edit `.env` with your values:
 ```env
 VITE_API_URL='http://localhost:5001/api'
 VITE_WS_URL='http://localhost:5001'
-VITE_API_TIMEOUT=30000
+VITE_API_TIMEOUT=50000
 ```
 
 6. **Start the development servers**
@@ -427,6 +451,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - **[Redux Toolkit Guide](https://redux-toolkit.js.org/)**
 - **[Socket.IO Docs](https://socket.io/docs/v4/)**
 - **[Framer Motion API](https://www.framer.com/motion/)**
+
+## 📧 Contact
+
+Project Link: https://github.com/irene3177/FoodieSnap
+
+Live Demo: https://foodiesnap-api.onrender.com
 
 ---
 Built with ❤️ using React, Node.js, and MongoDB

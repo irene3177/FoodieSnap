@@ -88,11 +88,16 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
             >
               <div className="message-modal__header">
                 <div className="message-modal__recipient">
-                  <img 
-                    src={recipientAvatar || 'https://picsum.photos/40/40'} 
-                    alt={recipientName}
-                    className="message-modal__avatar"
-                  />
+                  <div className="message-modal__avatar">
+                    {recipientAvatar ? (
+                      <img 
+                        src={recipientAvatar} 
+                        alt={recipientName}
+                      />
+                    ) : (
+                      <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
+                    )}
+                  </div>
                   <span className="message-modal__name">{recipientName}</span>
                 </div>
                 <button className="message-modal__close" onClick={onClose}>✕</button>
@@ -124,11 +129,16 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
           >
             <div className="message-modal__header">
               <div className="message-modal__recipient">
-                <img 
-                  src={recipientAvatar || 'https://picsum.photos/40/40'} 
-                  alt={recipientName}
-                  className="message-modal__avatar"
-                />
+                  <div className="message-modal__avatar">
+                    {recipientAvatar ? (
+                      <img 
+                        src={recipientAvatar} 
+                        alt={recipientName}
+                      />
+                    ) : (
+                      <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
+                    )}
+                  </div>
                 <span className="message-modal__name">{recipientName}</span>
               </div>
               <button className="message-modal__close" onClick={onClose}>✕</button>

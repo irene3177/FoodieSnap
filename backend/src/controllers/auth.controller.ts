@@ -206,7 +206,7 @@ export const updateAvatar = async (
     oldAvatarUrl = user.avatar;
   
     // Construct the URL for the uploaded avatar
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = config.baseUrl || `${req.protocol}://${req.get('host')}`;
     const avatarUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
   
     // Update user avatar

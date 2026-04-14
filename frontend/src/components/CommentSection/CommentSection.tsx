@@ -106,6 +106,9 @@ function CommentSection({ recipeId }: CommentSectionProps) {
     return date.toLocaleDateString();
   };
 
+  // Get user initial from username
+  const userInitial = user?.username?.charAt(0).toUpperCase() || 'U';
+
   return (
     <div className="comment-section">
       <h3 className="comment-section__title">
@@ -115,11 +118,16 @@ function CommentSection({ recipeId }: CommentSectionProps) {
       {/* Add comment form */}
       <form className="comment-section__form" onSubmit={handleSubmit}>
         <div className="comment-section__form-header">
-          <img 
-            src={user?.avatar || 'https://picsum.photos/32/32'}
-            alt="User avatar" 
-            className="comment-section__avatar"
-          />
+          <div className="comment-section__avatar">
+            {user?.avatar ? (
+              <img 
+                src={user?.avatar}
+                alt="User avatar"
+              />
+            ) : (
+              <span>{userInitial}</span>
+            )}
+          </div>
           <div className="comment-section__form-fields">
             <textarea
               className="comment-section__input"

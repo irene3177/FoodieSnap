@@ -81,10 +81,10 @@ function ProfilePage() {
       setLoadingUserRecipes(false);
     };
 
-    if (profile?._id && isOwnProfile) {
+    if (profile?._id) {
       loadUserRecipes();
     }
-  }, [profile?._id, isOwnProfile, dispatch]);
+  }, [profile?._id, dispatch]);
 
   const handleEditSuccess = async () => {
     await refreshUser();
@@ -310,10 +310,8 @@ function ProfilePage() {
           <button
             className={`profile-tab ${activeTab === 'myRecipes' ? 'profile-tab--active' : ''}`}
             onClick={() => setActiveTab('myRecipes')}
-            disabled={!isOwnProfile}
-            style={!isOwnProfile ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
           >
-            My Recipes
+            {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
             <span className="profile-tab-count">{userRecipes.length}</span>
           </button>
           <button
@@ -361,33 +359,39 @@ function ProfilePage() {
           {activeTab === 'myRecipes' && (
             <>
               <div className="profile-content-title">
-                My Recipes
-                <span>Your creations</span>
+                {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
+                <span>{isOwnProfile ? 'Your creations' : 'Public recipes'}</span>
               </div>
 
               {loadingUserRecipes ? (
-                <div className="profile-loading">Loading your recipes...</div>
+                <div className="profile-loading">Loading recipes...</div>
               ) : userRecipes.length > 0 ? (
                 <div className="profile-recipes-grid">
                   {userRecipes.map((recipe) => (
                     <RecipeCard
                       key={recipe._id}
                       recipe={recipe}
-                      onEdit={handleEditRecipe}
-                      onDelete={handleDeleteRecipe}
+                      onEdit={isOwnProfile ? handleEditRecipe : undefined}
+                      onDelete={isOwnProfile ? handleDeleteRecipe : undefined}
                       isOwner={isOwnProfile}
                     />
                   ))}
                 </div>
               ) : (
                 <div className="profile-no-recipes">
-                  <p>You haven't created any recipes yet.</p>
-                  <button
-                    className="profile-create-button"
-                    onClick={() => setIsCreateModalOpen(true)}
-                  >
-                    Create Your First Recipe
-                  </button>
+                  <p>
+                    {isOwnProfile 
+                      ? "You haven't created any recipes yet."
+                      : `${profile.username} hasn't created any recipes yet.`}
+                  </p>
+                  {isOwnProfile && (
+                    <button
+                      className="profile-create-button"
+                      onClick={() => setIsCreateModalOpen(true)}
+                    >
+                      Create Your First Recipe
+                    </button>
+                  )}
                 </div>
               )}
             </>

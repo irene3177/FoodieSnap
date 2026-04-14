@@ -355,11 +355,18 @@ describe('Auth Controller', () => {
       // Arrange
       req.userId = '123';
       req.file = { filename: 'new-avatar.jpg' };
+
+      jest.mock('../../config', () => ({
+        config: {
+          baseUrl: 'https://localhost:5001'
+        }
+      }));
+
       const mockReq = {
         ...req,
         userId: '123',
         file: { filename: 'new-avatar.jpg' },
-        protocol: 'http',
+        protocol: 'https',
         get: jest.fn().mockReturnValue('localhost:5001')
       };
       
@@ -375,12 +382,12 @@ describe('Auth Controller', () => {
 
       // Assert
       expect(UserModel.findById).toHaveBeenCalledWith('123');
-      expect(mockUser.avatar).toBe('http://localhost:5001/uploads/avatars/new-avatar.jpg');
+      expect(mockUser.avatar).toBe('https://localhost:5001/uploads/avatars/new-avatar.jpg');
       expect(mockUser.save).toHaveBeenCalled();
       expect(deleteOldAvatarIfLocal).toHaveBeenCalledWith('https://old-avatar.com/old.jpg');
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        data: { avatar: 'http://localhost:5001/uploads/avatars/new-avatar.jpg' }
+        data: { avatar: 'https://localhost:5001/uploads/avatars/new-avatar.jpg' }
       });
     });
 

@@ -71,11 +71,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onViewProfile()}
       >
-        <img 
-          src={recipientAvatar || 'https://picsum.photos/40/40'} 
-          alt={recipientName}
-          className="chat-detail__avatar"
-        />
+        <div className="chat-detail__avatar">
+          {recipientAvatar ? (
+            <img 
+              src={recipientAvatar} 
+              alt={recipientName}
+            />
+          ) : (
+            <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
+          )}
+        </div>
         <div className="chat-detail__recipient-info">
           <span className="chat-detail__name">{recipientName || 'User'}</span>
           <span className={`chat-detail__status ${status.className}`}>

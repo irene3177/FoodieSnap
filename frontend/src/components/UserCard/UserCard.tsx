@@ -13,7 +13,7 @@ function UserCard({ user, onClick}: UserCardProps) {
         {user.avatar ? (
           <img src={user.avatar} alt={user.username} />
         ) : (
-          <span>{user.username.charAt(0).toUpperCase()}</span>
+          <span>{user.username.charAt(0).toUpperCase() || 'U'}</span>
         )}
       </div>
       <div className="user-card__info">

@@ -4,6 +4,7 @@ dotenv.config();
 
 interface Config {
   port: number;
+  baseUrl: string;
   mongoUri: string;
   mongoTestUri: string;
   jwtSecret: string;
@@ -42,6 +43,7 @@ const getExpiresDate = () => {
 
 export const config: Config = {
   port: parseInt(process.env.PORT || '5001', 10),
+  baseUrl: process.env.BASE_URL || 'https://foodiesnap-jie9.onrender.com',
   mongoUri: process.env.MONGODB_URI!,
   mongoTestUri: process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/foodie_snap_test',
   jwtSecret: process.env.JWT_SECRET!,

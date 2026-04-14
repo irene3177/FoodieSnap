@@ -3,7 +3,7 @@ export const config = {
   apiUrl: '/api',
   baseUrl: window.location.origin,
   // baseUrl: import.meta.env.VITE_WS_URL || 'http://localhost:5001',
-  timeout: import.meta.env.TIMEOUT || 10000,
+  timeout: import.meta.env.TIMEOUT || 50000,
   isDevelopment: import.meta.env.DEV,
   isProduction: import.meta.env.PROD
 };
