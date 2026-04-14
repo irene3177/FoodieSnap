@@ -3,7 +3,7 @@ import { UserModel } from '../models/User.model';
 import path from 'path';
 import fs from 'fs';
 import { config } from '../config';
-import { isLocalAvatar } from '../middleware/upload.middleware';
+// import { isLocalAvatar } from '../middleware/upload.middleware';
 
 const uploadDir = path.join(__dirname, '../../uploads/avatars');
 
@@ -15,7 +15,7 @@ async function cleanupOrphanedAvatars() {
   const usedFiles = new Set<string>();
   
   for (const user of users) {
-    if (user.avatar && isLocalAvatar(user.avatar)) {
+    if (user.avatar/* && isLocalAvatar(user.avatar)*/) {
       const filename = user.avatar.split('/').pop();
       if (filename) usedFiles.add(filename);
     }
