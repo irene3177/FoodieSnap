@@ -296,6 +296,7 @@
   .header__mobile-buttons {
     flex-direction: row;
     gap: 1rem;
+    margin-top: 1.5rem;
   }
 
   .header__mobile-buttons .header__auth-button {

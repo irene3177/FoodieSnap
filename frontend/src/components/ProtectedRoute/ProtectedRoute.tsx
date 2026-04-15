@@ -1,7 +1,7 @@
 // src/components/ProtectedRoute/ProtectedRoute.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import Loader from '../Loader/Loader';
+import OverlayLoader from '../Loader/OverlayLoader';
 
 interface ProtectedRouteProps {
   redirectTo?: string;
@@ -12,7 +12,14 @@ function ProtectedRoute({ redirectTo = '/' }: ProtectedRouteProps) {
   const location = useLocation();
 
   if (isLoading || !hasCheckedSession) {
-    return <Loader message="Checking authentication..." />;
+    return (
+      <>
+        <div className="protected-content">
+          <Outlet />
+        </div>
+        <OverlayLoader message="Checking authentication..." />
+      </>
+    );
   }
 
   if (!isAuthenticated) {
