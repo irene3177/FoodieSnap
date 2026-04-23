@@ -135,7 +135,7 @@ function UserMenu() {
                   <span>👤</span> My Profile
                 </Link>
                 <Link to="/chats" className="user-menu__item" onClick={closeMenu}>
-                  <span>💬</span> Messages
+                  Messages
                   {totalUnread > 0 && (
                     <span className="user-menu__badge user-menu__badge--chat">
                       {totalUnread > 99 ? '99+' : totalUnread}
@@ -143,7 +143,7 @@ function UserMenu() {
                   )}
                 </Link>
                 <Link to="/favorites" className="user-menu__item" onClick={closeMenu}>
-                  <span>❤️</span> Favorites
+                  Favorites
                   {user.favorites && user.favorites.length > 0 && (
                     <span className="user-menu__badge">{user.favorites.length}</span>
                   )}
@@ -156,7 +156,7 @@ function UserMenu() {
                   className="user-menu__item user-menu__item--password" 
                   onClick={handleChangePassword}
                 >
-                  <span>🔒</span> Change Password
+                  Change Password
                 </button>
                 
                 {/* Delete Account */}
@@ -167,7 +167,7 @@ function UserMenu() {
                     setIsOpen(false);
                   }}
                 >
-                  <span>🗑️</span> Delete Account
+                  Delete Account
                 </button>
 
                 <button 
@@ -175,7 +175,7 @@ function UserMenu() {
                   onClick={handleLogout}
                   disabled={isLoading}
                 >
-                  <span>🚪</span> {isLoading ? 'Logging out...' : 'Logout'}
+                  {isLoading ? 'Logging out...' : 'Logout'}
                 </button>
               </div>
             </motion.div>

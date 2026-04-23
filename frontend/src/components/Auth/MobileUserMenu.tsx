@@ -5,6 +5,7 @@ import { showToast } from '../../store/toastSlice';
 import { deleteAccount } from '../../store/authSlice';
 import { useAuth } from '../../hooks/useAuth';
 import ChangePasswordModal from '../ChangePasswordModal/ChangePasswordModal';
+import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import './MobileUserMenu.css';
 
 interface MobileUserMenuProps {
@@ -70,35 +71,42 @@ function MobileUserMenu({ onClose }: MobileUserMenuProps) {
 
         <div className="mobile-user-menu__items">
           <Link to="/me" className="mobile-user-menu__item" onClick={handleLinkClick}>
-            👤 My Profile
+            My Profile
           </Link>
           <Link to="/chats" className="mobile-user-menu__item" onClick={handleLinkClick}>
-            💬 Chats
+            Chats
           </Link>
           <Link to="/favorites" className="mobile-user-menu__item" onClick={handleLinkClick}>
-            ❤️ Favorites
+            Favorites
           </Link>
+          <div className="mobile-user-menu__separator"></div>
+
+          <div className="mobile-user-menu__theme-toggle">
+            <span className="mobile-user-menu__theme-label">Dark / Light Mode</span>
+            <ThemeToggle />
+          </div>
+
           <div className="mobile-user-menu__separator"></div>
 
           <button 
             className="mobile-user-menu__item mobile-user-menu__item--password" 
             onClick={handleChangePassword}
           >
-            🔒 Change Password
+            Change Password
           </button>
 
           <button 
             className="mobile-user-menu__item mobile-user-menu__item--delete" 
             onClick={() => setShowDeleteConfirm(true)}
           >
-            🗑️ Delete Account
+            Delete Account
           </button>
           <button 
             className="mobile-user-menu__item mobile-user-menu__item--logout" 
             onClick={handleLogout}
             disabled={isLoading}
           >
-            🚪 {isLoading ? 'Logging out...' : 'Logout'}
+            {isLoading ? 'Logging out...' : 'Logout'}
           </button>
         </div>
       </div>
