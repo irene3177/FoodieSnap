@@ -132,7 +132,7 @@ function UserMenu() {
 
               <div className="user-menu__items">
                 <Link to={`/me`} className="user-menu__item" onClick={closeMenu}>
-                  <span>👤</span> My Profile
+                  My Profile
                 </Link>
                 <Link to="/chats" className="user-menu__item" onClick={closeMenu}>
                   Messages
