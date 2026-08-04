@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TextareaAutosize from 'react-textarea-autosize';
 import { selectCommentsByRecipeId } from '../../store/commentsSlice';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import {
@@ -9,11 +10,13 @@ import {
   deleteComment,
   toggleLike
 } from '../../store/commentsSlice';
+import Avatar from '../Avatar';
 import RatingStars from '../RatingStars/RatingStars';
 import { Comment } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { showToast } from '../../store/toastSlice';
-import './CommentSection.css';
+import { MdEdit, MdDelete, MdFavorite, MdFavoriteBorder } from 'react-icons/md';
+import { Link } from 'react-router-dom';
 
 interface CommentSectionProps {
   recipeId: string;
@@ -106,31 +109,28 @@ function CommentSection({ recipeId }: CommentSectionProps) {
     return date.toLocaleDateString();
   };
 
-  // Get user initial from username
-  const userInitial = user?.username?.charAt(0).toUpperCase() || 'U';
+  const isLiked = (comment: Comment) => {
+    console.log(comment.userId);
+    return comment.likedBy?.includes(user?._id || '');
+  };
+
 
   return (
-    <div className="comment-section">
-      <h3 className="comment-section__title">
-        Comments ({comments.length})
+    <div className="mt-12 pt-8 border-t-2">
+      <h3 className="text-2xl text-secondary mb-6">
+        Comments <span className="text-lg text-muted">({comments.length})</span>
       </h3>
 
       {/* Add comment form */}
-      <form className="comment-section__form" onSubmit={handleSubmit}>
-        <div className="comment-section__form-header">
-          <div className="comment-section__avatar">
-            {user?.avatar ? (
-              <img 
-                src={user?.avatar}
-                alt="User avatar"
-              />
-            ) : (
-              <span>{userInitial}</span>
-            )}
-          </div>
-          <div className="comment-section__form-fields">
-            <textarea
-              className="comment-section__input"
+      <form className="mb-8 bg-secondary rounded-xl p-6 border" onSubmit={handleSubmit}>
+        <div className="flex gap-4 flex-col sm:flex-row">
+          {/* Avatar */}
+          <Avatar to="/me" src={user?.avatar} username={user?.username} size="lg" border />
+          <div className="flex-1 space-y-3">
+            <TextareaAutosize
+              className="input
+                resize-none min-h-[60px]
+                disabled:opacity-60 overflow-hidden scrollbar-hide"
               placeholder={user ? "Share your thoughts..." : "Please log in to leave a comment"}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -140,12 +140,12 @@ function CommentSection({ recipeId }: CommentSectionProps) {
             
             {showRating && user && (
               <motion.div 
-                className="comment-section__rating"
+                className="flex flex-wrap items-center gap-4 rounded-lg"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <span>Rate this recipe:</span>
+                <span className="text-sm text-secondary">Rate this recipe:</span>
                 <RatingStars 
                   recipeId={recipeId} 
                   size="small" 
@@ -156,17 +156,17 @@ function CommentSection({ recipeId }: CommentSectionProps) {
             )}
 
             {user && (
-              <div className="comment-section__form-actions">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <button
                   type="button"
-                  className="comment-section__rating-toggle"
+                  className="text-sm text-accent hover:text-accent-hover transition-colors bg-transparent border-none cursor-pointer"
                   onClick={() => setShowRating(!showRating)}
                 >
-                  {showRating ? '− Remove rating' : '+ Add rating'}
+                  {showRating ? '- Remove rating' : '+ Add rating'}
                 </button>
                 <motion.button
                   type="submit"
-                  className="comment-section__submit"
+                  className="btn-primary text-sm"
                   disabled={!newComment.trim() || loading}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -180,26 +180,31 @@ function CommentSection({ recipeId }: CommentSectionProps) {
       </form>
 
       {/* Comments list */}
-      <div className="comment-section__list">
-        <AnimatePresence>
+      <div className="space-y-4">
+        <AnimatePresence mode="popLayout">
           {comments.map((comment) => (
             <motion.div
               key={comment._id}
-              className="comment-section__item"
+              className="bg-secondary rounded-xl p-5 border"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -100 }}
               layout
             >
-              <div className="comment-section__item-header">
-                <img 
-                  src={comment.userAvatar || 'https://picsum.photos/32/32'} 
-                  alt={comment.userName}
-                  className="comment-section__avatar"
+              <div className="flex gap-3 mb-3">
+                <Avatar
+                  src={comment.userAvatar}
+                  username={comment.userName}
+                  to={`/user/${comment.userId}`}
+                  size="md"
+                  border
                 />
-                <div className="comment-section__item-info">
-                  <span className="comment-section__user-name">{comment.userName}</span>
-                  <span className="comment-section__timestamp">
+                <div className="flex flex-col">
+                  <Link
+                    to={`/user/${comment.userId}`}
+                    className="font-semibold text-primary text-sm flex-shrink-0 transition-all duration-700"
+                  >{comment.userName}</Link>
+                  <span className="text-xs text-muted cursor-default">
                     {formatDate(comment.createdAt)}
                     {comment.isEdited && ' (edited)'}
                   </span>
@@ -207,55 +212,74 @@ function CommentSection({ recipeId }: CommentSectionProps) {
               </div>
 
               {editingId === comment._id ? (
-                <div className="comment-section__edit-form">
-                  <textarea
-                    className="comment-section__edit-input"
+                <div className="space-y-3">
+                  <TextareaAutosize
+                    className="input
+                      resize-none min-h-[60px]
+                      disabled:opacity-60 overflow-hidden scrollbar-hide"
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     rows={2}
                     autoFocus
                   />
-                  <div className="comment-section__edit-actions">
+                  <div className="flex gap-2 justify-end">
                     <button
-                      className="comment-section__edit-save"
-                      onClick={() => handleSaveEdit(comment._id)}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="comment-section__edit-cancel"
+                      className="btn-secondary"
                       onClick={() => setEditingId(null)}
                     >
                       Cancel
+                    </button>
+                    <button
+                      className="btn-primary text-sm"
+                      onClick={() => handleSaveEdit(comment._id)}
+                    >
+                      Save
                     </button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <p className="comment-section__text">{comment.text}</p>
+                  <p className="text-primary leading-relaxed my-3 whitespace-pre-wrap text-sm">{comment.text}</p>
                   
-                  <div className="comment-section__item-footer">
+                  <div className="flex justify-between items-center mt-2">
                     <button
-                      className={`comment-section__like ${comment.likedBy?.includes(user?._id || '') ? 'comment-section__like--liked' : ''}`}
+                      className="
+                        flex items-center gap-1.5 text-sm
+                        bg-transparent border-none cursor-pointer
+                        hover:scale-105
+                        transition-all duration-700"
                       onClick={() => handleLike(comment._id)}
                     >
-                      ❤️ {comment.likes > 0 && comment.likes}
+                      {isLiked(comment) ? (
+                        <MdFavorite className="text-heart hover:text-heart-hover" />
+                      ) : (
+                        <MdFavoriteBorder className="text-muted hover:text-heart-hover" />
+                      )} 
+                      {comment.likes > 0 ? (
+                        <span className="text-xs">{comment.likes}</span>
+                      ) : (
+                        <span className="text-xs">Like comment</span>
+                      )}
                     </button>
 
 
                     {user?._id === comment.userId && (
-                      <div className="comment-section__item-actions">
+                      <div className="flex gap-3">
                         <button
-                          className="comment-section__item-action"
+                          title="Edit comment"
+                          className="text-muted hover:text-accent transition-colors bg-transparent border-none cursor-pointer flex items-center"
                           onClick={() => handleEdit(comment)}
+                          aria-label="Edit comment"
                         >
-                          Edit
+                          <MdEdit className="text-lg" />
                         </button>
                         <button
-                          className="comment-section__item-action comment-section__item-action--delete"
+                          title="Delete comment"
+                          className="text-muted hover:text-accent transition-colors bg-transparent border-none cursor-pointer flex items-center"
                           onClick={() => handleDelete(comment._id)}
+                          aria-label="Delete comment"
                         >
-                          Delete
+                          <MdDelete className="text-lg" />
                         </button>
                       </div>
                     )}

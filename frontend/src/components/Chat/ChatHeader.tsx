@@ -1,4 +1,3 @@
-// src/components/Chat/ChatHeader.tsx
 import React from 'react';
 import { useUserStatus } from '../../hooks/chat/useUserStatus';
 import { ChatOptions } from './ChatOptions';

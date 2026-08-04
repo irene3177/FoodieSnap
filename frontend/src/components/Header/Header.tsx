@@ -5,109 +5,86 @@ import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import LoginModal from '../Auth/LoginModal';
 import RegisterModal from '../Auth/RegisterModal';
 import UserMenu from '../Auth/UserMenu';
-import './Header.css';
-import MobileUserMenu from '../Auth/MobileUserMenu';
+import { RiMenu3Fill } from 'react-icons/ri';
+import { NavLinks } from '../../constants';
+import { PiBowlFoodLight } from 'react-icons/pi';
+import AppMenu from '../AppMenu';
+import Avatar from '../Avatar';
 
 function Header() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  const closeMenu = () => setIsAppMenuOpen(false);
+  const closeUserMenu = () => setIsUserMenuOpen(false);
 
-  const getActiveClass = ({ isActive}: { isActive: boolean }): string => {
-    return isActive ? 'header__nav-link header__nav-link--active' : 'header__nav-link';
-  };
-
-  const closeMenu = () => setIsMobileMenuOpen(false);
   return (
-    <header className="header">
-      <div className="header__container">
-        <Link to="/" className="header__logo" onClick={closeMenu}>
-          🍳 FoodieSnap
+    <header className="flex-shrink-0 bg-header shadow-theme z-[1000]">
+      <div className="flex justify-between items-center px-8 py-[clamp(0.5rem,2vw,1rem)] 
+        max-w-[1400px] mx-auto gap-[clamp(0.5rem,2vw,1.5rem)]">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="text-[clamp(1.6rem,2.5vw,2rem)] select-none  text-accent whitespace-nowrap
+            hover:text-accent transition-all duration-1000 hover:scale-[1.02] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)]"
+          onClick={closeMenu}
+        >
+          <span className="flex items-center gap-1">
+            <PiBowlFoodLight className="inline" />
+            <h2 className="tracking-tight">FoodieSnap</h2>
+          </span>
         </Link>
 
-        {/* Mobile menu button */}
-        <button 
-          className="header__menu-button"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Menu"
-        >
-          <span className={`header__menu-icon ${isMobileMenuOpen ? 'header__menu-icon--open' : ''}`} />
-        </button>
-
-        {/* Navigation */}
-        <nav className={`header__nav ${isMobileMenuOpen ? 'header__nav--open' : ''}`}>
-          <ul className="header__nav-list">
-            <li className="header__nav-item">
-              <NavLink to="/recipes" className={getActiveClass} onClick={closeMenu}>
-                Discover
-              </NavLink>
-            </li>
-            <li className="header__nav-item">
-              <NavLink to="/search" className={getActiveClass} onClick={closeMenu}>
-                Search
-              </NavLink>
-            </li>
-            <li className="header__nav-item">
-              <NavLink to="/top-rated" className={getActiveClass} onClick={closeMenu}>
-                Top Rated
-              </NavLink>
-            </li>
-            <li className="header__nav-item">
-              <NavLink to="/users" className={getActiveClass} onClick={closeMenu}>
-                Community
-              </NavLink>
-            </li>
+        <nav className="hidden md:flex flex-1 min-w-0 md:justify-center md:items-center">
+          <ul className="flex gap-[clamp(0.5rem,2vw,2rem)] w-full  md:w-auto">
+            {NavLinks.map(({ path, label }) => (
+              <li key={label} className="w-full md:w-auto whitespace-nowrap">
+                <NavLink
+                  to={path}
+                  onClick={closeMenu}>
+                  {({ isActive }) => (
+                    <span className={`
+                      relative block px-3 py-2 text-left md:text-left md:px-0 md:py-2 md:text-[clamp(0.8rem,1.3vw,2rem)]
+                      ${isActive ? 'text-accent' : 'text-primary hover:text-accent transition-colors duration-700'}
+                    `}>
+                      {label}
+                      <span className={`
+                        absolute bottom-0 left-0 h-0.5 rounded-full bg-accent 
+                        transition-all duration-1000
+                        ${isActive ? 'md:w-full opacity-100' : 'w-0 opacity-0'}
+                      `} />
+                    </span>
+                  )}
+                </NavLink>
+              </li>
+            ))}
           </ul>
-
-          {/* Mobile auth buttons */}
-          <div className="header__mobile-actions">
-            {!isAuthenticated ? (
-              <div className="header__mobile-buttons">
-                <button
-                  className="header__auth-button header__auth-button--login"
-                  onClick={() => {
-                    closeMenu();
-                    setShowLogin(true);
-                  }}
-                >
-                  Login
-                </button>
-                <button
-                  className="header__auth-button header__auth-button--register"
-                  onClick={() => {
-                    closeMenu();
-                    setShowRegister(true);
-                  }}
-                >
-                  Sign Up
-                </button>
-              </div>
-            ) : (
-              <div className="header__mobile-user">
-                <MobileUserMenu onClose={closeMenu} />
-              </div>
-            )}
-          </div>
         </nav>
 
-        {/* Desktop actions */}
-        <div className="header__actions">
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-3 lg:gap-4 flex-shrink-0">
           <ThemeToggle />
 
           {isAuthenticated ? (
-            <UserMenu />
+            <button
+              onClick={() => setIsUserMenuOpen(true)}
+              className=""
+            >
+              <Avatar src={user?.avatar} border />
+            </button>
           ) : (
             <>
               <button
-                className="header__auth-button header__auth-button--login"
+                className="btn-secondary transition-all duration-1000"
                 onClick={() => setShowLogin(true)}
               >
                 Login
               </button>
               <button
-                className="header__auth-button header__auth-button--register"
+                className="btn-primary transition-all duration-1000"
                 onClick={() => setShowRegister(true)}
               >
                 Sign Up
@@ -115,7 +92,29 @@ function Header() {
             </>
           )}
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className={`flex items-center text-text-secondary justify-center w-10 h-10 p-2 hover:text-accent bg-transparent border-none cursor-pointer relative z-[1001] flex-shrink-0 transition-colors duration-700 md:hidden
+          ${(isAppMenuOpen) ? 'hidden' : ''}
+          `}
+          onClick={() => setIsAppMenuOpen(!isAppMenuOpen)}
+          aria-label="Menu"
+        >
+          <RiMenu3Fill className="w-8 h-8" />
+        </button>
       </div>
+
+      <AppMenu
+        isOpen={isAppMenuOpen}
+        onClose={closeMenu}
+      />
+
+      <UserMenu 
+        isOpen={isUserMenuOpen}
+        onClose={closeUserMenu}
+      />
+
 
       {/* Auth Modals */}
       <LoginModal 
