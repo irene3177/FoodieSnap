@@ -3,7 +3,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Recipe } from '../../types';
 import RecipeCard from '../RecipeCard/RecipeCard';
-import './SortableRecipeCard.css';
 
 interface SortableRecipeCardProps {
   recipe: Recipe;
@@ -17,9 +16,11 @@ function SortableRecipeCard({ recipe }: SortableRecipeCardProps) {
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging
-  } = useSortable({ id: recipe._id });
+  } = useSortable({ id: recipe._id, transition: {
+      duration: 150,
+      easing: 'ease-out'
+    } });
 
   useEffect(() => {
     if (!isDragging && cardRef.current) {
@@ -28,8 +29,8 @@ function SortableRecipeCard({ recipe }: SortableRecipeCardProps) {
   }, [isDragging]);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: CSS.Translate.toString(transform),
+    transition: 'transform 150ms ease-out',
     opacity: isDragging ? 0.5 : 1
   };
 
@@ -44,7 +45,10 @@ function SortableRecipeCard({ recipe }: SortableRecipeCardProps) {
     <div
     ref={setRefs}
     style={style}
-    className="sortable-card"
+    className="relative h-full cursor-grab transition-all duration-200 active:cursor-grabbing 
+        hover:[&_.recipe-card]:shadow-theme-lg hover:[&_.recipe-card]:-translate-y-0.5
+        focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2
+        will-change-transform"
     {...attributes}
     {...listeners}
     tabIndex={0}

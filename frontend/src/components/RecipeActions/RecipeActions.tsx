@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch } from '../../store/store';
 import { recipesApi } from '../../services/recipesApi';
 import { showToast } from '../../store/toastSlice';
 import { Recipe } from '../../types';
-import './RecipeActions.css';
+import { RiEdit2Fill, RiDeleteBin6Line } from 'react-icons/ri';
+// import './RecipeActions.css';
 
 interface RecipeActionsProps {
   recipe: Recipe;
@@ -54,66 +56,79 @@ function RecipeActions({ recipe, onEdit, onDelete, isOwner = false }: RecipeActi
 
   return (
     <>
-      <div className="recipe-actions" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="absolute top-3 left-3 flex gap-2 z-10
+          opacity-0 group-hover:opacity-100 transition-opacity
+          duration-200 md:opacity-100"
+        onClick={(e) => e.stopPropagation()}
+      >
         <motion.button
-          className="recipe-actions__btn recipe-actions__btn--edit"
+          title="Edit Recipe"
+          className="w-10 h-10 rounded-full border-none
+            bg-secondary bg-opacity-15 text-muted shadow-md 
+            flex items-center justify-center cursor-pointer"
           onClick={handleEdit}
-          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Edit recipe"
         >
-          ✏️
+          <RiEdit2Fill className="hover:scale-110 hover:text-accent transition-all duration-500" />
         </motion.button>
         <motion.button
-          className="recipe-actions__btn recipe-actions__btn--delete"
+          title="Delete Recipe"
+          className="w-10 h-10 rounded-full border-none
+            bg-secondary bg-opacity-15 text-muted shadow-md 
+            flex items-center justify-center cursor-pointer"
           onClick={handleDeleteClick}
-          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Delete recipe"
         >
-          🗑️
+          <RiDeleteBin6Line className="hover:scale-110 hover:text-accent transition-all duration-500" />
         </motion.button>
       </div>
 
-      <AnimatePresence>
-        {showConfirm && (
-          <motion.div
-            className="recipe-actions__modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowConfirm(false)}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showConfirm && (
             <motion.div
-              className="recipe-actions__modal"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] px-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirm(false)}
             >
-              <h3>Delete Recipe?</h3>
-              <p>Are you sure you want to delete "{recipe.title}"?</p>
-              <p className="recipe-actions__warning">This action cannot be undone.</p>
-              <div className="recipe-actions__modal-buttons">
-                <button
-                  className="recipe-actions__modal-cancel"
-                  onClick={() => setShowConfirm(false)}
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="recipe-actions__modal-confirm"
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Deleting...' : 'Yes, Delete'}
-                </button>
-              </div>
+              <motion.div
+                className="bg-primary rounded-2xl p-6 max-w-md w-full shadow-2xl"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-3xl text-secondary mb-3">Delete Recipe?</h3>
+                <p className="text-secondary mb-2">
+                  Are you sure you want to delete <span className="font-semibold text-primary">"{recipe.title}"</span>?</p>
+                <p className="text-heart-hover text-sm mt-2">This action cannot be undone.</p>
+                <div className="flex gap-3 mt-6 justify-end">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setShowConfirm(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-primary"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }

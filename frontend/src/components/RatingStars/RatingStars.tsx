@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { rateRecipe, fetchRecipeRating, fetchUserRatings, deleteRating } from '../../store/ratingSlice';
 import { useAuth } from '../../hooks/useAuth';
-import './RatingStars.css';
+import clsx from 'clsx';
+import { MdStar } from 'react-icons/md';
 import { showToast } from '../../store/toastSlice';
 
 interface RatingStarsProps {
@@ -12,6 +13,24 @@ interface RatingStarsProps {
   showCount?: boolean;
   interactive?: boolean;
 }
+
+const sizeConfig = {
+  small: {
+    star: 'w-4 h-4',
+    text: 'text-sm',
+    gap: 'gap-0.5',
+  },
+  medium: {
+    star: 'w-5 h-5',
+    text: 'text-sm',
+    gap: 'gap-0.5',
+  },
+  large: {
+    star: 'w-6 h-6',
+    text: 'text-base',
+    gap: 'gap-1',
+  },
+};
 
 function RatingStars({
   recipeId,
@@ -31,6 +50,7 @@ function RatingStars({
   const average = stats?.averageRating || 0;
   const total = stats?.totalRatings || 0;
   const displayRating = hoverRating || userRating || average;
+  const sizeClasses = sizeConfig[size];
   
   useEffect(() => {
     dispatch(fetchRecipeRating(recipeId));
@@ -75,8 +95,6 @@ function RatingStars({
     }
   };
 
-  const sizeClass = `rating-stars--${size}`;
-
   // Animation variants
   const starVariants = {
     initial: { scale: 1 },
@@ -90,59 +108,75 @@ function RatingStars({
 
   return (
     <div
-      className={`rating-stars ${sizeClass} ${loading ? 'rating-stars--loading' : ''}`}
+      className={clsx(
+        "relative inline-flex items-center gap-2",
+        { "opacity-70 pointer-events-none" : loading }
+      )}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => {
         setShowTooltip(false);
         setHoverRating(0);
       }}
     >
-      <div className="rating-stars__container">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <motion.button
-            key={star}
-            className={`rating-stars__star ${
-              star <= displayRating ? 'rating-stars__star--filled' : ''
-            } ${star <= userRating ? 'rating-stars__star--user' : ''}`}
-            onClick={() => handleRatingClick(star)}
-            onMouseEnter={() => interactive && setHoverRating(star)}
-            variants={starVariants}
-            initial="initial"
-            whileHover="hover"
-            whileTap="tap"
-            animate={star <= userRating ? "rated" : "initial"}
-            disabled={!interactive || loading}
-            aria-label={`Rate ${star} out of 5 stars`}
-          >
-              <svg 
-                width={size === 'small' ? '16' : size === 'large' ? '24' : '20'}
-                height={size === 'small' ? '16' : size === 'large' ? '24' : '20'}
-                viewBox="0 0 32 32"
-                fill={star <= displayRating ? 'gold' : 'none'}
-                stroke={star <= displayRating ? 'gold' : '#ccc'}
-                strokeWidth="1.5"
-              >
-                <polygon 
-                  points="16,2 20.34,10.66 30,12.06 23,18.81 24.66,28.34 16,23.75 7.34,28.34 9,18.81 2,12.06 11.66,10.66"
-                  fill="currentColor"
-                  stroke="currentColor"
-                />
-              </svg>
-          </motion.button>
-        ))}
+      <div className={`flex ${sizeClasses.gap}`}>
+        {[1, 2, 3, 4, 5].map((star) => {
+          const isFilled = star <= displayRating;
+          const isUser = star <= userRating;
+          return (
+            <motion.button
+              key={star}
+              className={`
+                  bg-transparent border-none p-0 m-0
+                  inline-flex items-center justify-center
+                  cursor-pointer outline-none shadow-none
+                  transition-colors duration-200
+                  hover:scale-110 hover:drop-shadow-[0_0_6px_currentColor]
+                  disabled:cursor-default disabled:opacity-80 disabled:pointer-events-none
+                  focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 focus-visible:rounded
+                  ${isFilled ? 'text-star-filled' : 'text-star-empty'}
+                  ${isUser ? 'text-star-user drop-shadow-[0_0_2px_rgba(255,152,0,0.5)]' : ''}
+                  ${sizeClasses.star}
+                `}
+              onClick={() => handleRatingClick(star)}
+              onMouseEnter={() => interactive && setHoverRating(star)}
+              variants={starVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+              animate={star <= userRating ? "rated" : "initial"}
+              disabled={!interactive || loading}
+              aria-label={`Rate ${star} out of 5 stars`}
+            >
+              <MdStar className="w-full h-full" />
+            </motion.button>
+          );
+        }
+      )}
       </div>
 
       {showCount && total > 0 && (
-        <span className="rating-stars__info">
-          <span className="rating-stars__average">{average.toFixed(1)}</span>
-          <span className="rating-stars__total">({total} {total === 1 ? 'rating' : 'ratings'})</span>
+        <span className={`flex items-baseline gap-1 text-secondary ${sizeClasses.text}`}>
+          <span className="font-semibold text-primary">{average.toFixed(1)}</span>
+          <span className="text-xs text-muted">({total} {total === 1 ? 'rating' : 'ratings'})</span>
         </span>
       )}
 
       <AnimatePresence>
         {showTooltip && interactive && (
           <motion.div
-            className="rating-stars__tooltip"
+            className="
+              absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+              px-3 py-2
+              bg-secondary text-primary
+              text-xs rounded
+              whitespace-nowrap
+              shadow-theme border z-[1000]
+              after:content-[''] after:absolute after:top-full after:left-1/2
+              after:-translate-x-1/2
+              after:border-4 after:border-t-bg-secondary
+              after:border-x-transparent after:border-b-transparent
+              max-w-[200px] text-center sm:max-w-none sm:whitespace-nowrap
+            "
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
@@ -150,7 +184,7 @@ function RatingStars({
             {!user ? (
               <>Please log in to rate recipes</>
             ) : userRating ? (
-              <>Your rating: {userRating} ⭐ | Average: {average.toFixed(1)}</>
+              <>Your rating: {userRating} <MdStar className="inline" /> | Average: {average.toFixed(1)}</>
             ) : (
               <>Click to rate this resipe</>
             )}
