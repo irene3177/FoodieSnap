@@ -10,6 +10,9 @@ import ShareButtons from '../../components/ShareButtons/ShareButtons';
 import CommentSection from '../../components/CommentSection/CommentSection';
 import './RecipeDetail.css';
 
+
+// check for this recipe ingredients. http://localhost:5173/recipe/69c1afb9ed71853ffe40665a
+
 function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

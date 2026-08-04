@@ -7,7 +7,12 @@ import { messagesApi } from '../../services/messagesApi';
 import { ChatsSkeleton } from '../../components/Skeleton/ChatsSkeleton';
 import { Participant, Conversation } from '../../types';
 import * as socket from '../../services/socket';
-import './Chats.css';
+import EmptyState from '../../components/EmptyState';
+import Avatar from '../../components/Avatar';
+import { TbMessagesOff } from 'react-icons/tb';
+import { FiEdit } from 'react-icons/fi';
+import { PiBowlFoodLight } from 'react-icons/pi';
+import { MdOutlinePersonSearch } from 'react-icons/md';
 
 
 function Chats() {
@@ -120,11 +125,11 @@ function Chats() {
 
   if (!user) {
     return (
-      <div className="chats-page__unauthorized">
-        <div className="chats-page__empty-icon">💬</div>
-        <h2>Please log in</h2>
-        <p>You need to be logged in to view your messages</p>
-        <Link to="/login" className="chats-page__explore-link">
+      <div className="text-center py-16 px-8 max-w-md mx-auto mt-8">
+        <div className="text-6xl mb-4 opacity-70"><TbMessagesOff /></div>
+        <h2 className="text-2xl font-semibold text-primary mb-2">Please log in</h2>
+        <p className="text-secondary mb-6">You need to be logged in to view your messages</p>
+        <Link to="/login" className="inline-block px-6 py-3 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover hover:-translate-y-0.5 transition-all">
           Go to Login
         </Link>
       </div>
@@ -132,71 +137,87 @@ function Chats() {
   }
 
   return (
-    <div className="chats-page">
-      <div className="chats-page__header">
-        <h1 className="chats-page__title">Messages</h1>
-        <Link to="/users" className="chats-page__new-chat">
-          + New Chat
-        </Link>
-      </div>
+    <div className="max-w-3xl mx-auto px-4 py-8 min-h-[calc(100vh-120px)]">
 
+      {/* Error state */}
       {error && (
-        <div className="chats-page__error">
-          <p>{error}</p>
-          <button onClick={loadConversations}>Try Again</button>
+        <div className="text-center p-8 bg-error-bg rounded-xl text-error my-6">
+          <p className="mb-3">{error}</p>
+          <button
+            onClick={loadConversations}
+            className="px-5 py-2 bg-accent text-white rounded-md border-none cursor-pointer hover:bg-accent-hover transition-colors"
+          >Try Again</button>
         </div>
       )}
 
-      {conversations.length === 0 ? (
-        <div className="chats-page__empty">
-          <div className="chats-page__empty-icon">💬</div>
-          <h2>No messages yet</h2>
-          <p>Start a conversation with other food enthusiasts!</p>
-          <Link to="/users" className="chats-page__explore-link">
-            Find People to Chat With
-          </Link>
-        </div>
-      ) : (
-        <div className="chats-page__list">
-          {conversations.map((conversation) => {
-            const otherUser = getOtherParticipant(conversation);
-            const unreadCount = getUnreadCount(conversation);
-
-            if (!otherUser) return null;
-            
-            return (
-              <div
-                key={conversation._id}
-                className={`chat-item ${unreadCount > 0 ? 'chat-item--unread' : ''}`}
-                onClick={() => handleConversationClick(conversation._id, otherUser)}
-              >
-                <div className="chat-item__avatar">
-                  {otherUser?.avatar ? (
-                    <img src={otherUser.avatar} alt={otherUser.username} />
-                  ) : (
-                    <span>{otherUser?.username?.charAt(0).toUpperCase() || '?'}</span>
-                  )}
-                </div>
-                
-                <div className="chat-item__info">
-                  <div className="chat-item__header">
-                    <span className="chat-item__name">{otherUser?.username || 'Unknown User'}</span>
-                    <span className="chat-item__time">{formatTime(getLastMessageTime(conversation))}</span>
-                  </div>
-                  <div className="chat-item__preview">
-                    <p className="chat-item__message">
-                      {getLastMessage(conversation) || 'No messages yet'}
-                    </p>
-                    {unreadCount > 0 && (
-                      <span className="chat-item__badge">{unreadCount}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* Empty state */}
+      {conversations.length === 0 && !error && (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <EmptyState
+            icon={<PiBowlFoodLight />}
+            title="No Conversations Yet"
+            description="Start a conversation with fellow food lovers. Share recipes, ask questions, or just say hello!"
+            action={{
+              label: "Find People to Chat With",
+              to: "/users",
+              icon: <MdOutlinePersonSearch />
+            }}
+          />
         </div>
       )}
+      
+      {/* Chat list */}
+      {conversations.length > 0 && (
+        <>
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+            <h1 className="text-3xl font-headline-md text-primary m-0">Messages</h1>
+            <Link to="/users" className="btn-primary hover:text-button">
+              <FiEdit className="inline" /> New Chat
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {conversations.map((conversation) => {
+              const otherUser = getOtherParticipant(conversation);
+              const unreadCount = getUnreadCount(conversation);
+
+              if (!otherUser) return null;
+              
+              return (
+                <div
+                  key={conversation._id}
+                  className={`
+                    flex gap-3 p-4 bg-secondary rounded-xl cursor-pointer
+                    transition-all duration-200 border
+                    hover:bg-border hover:translate-x-1
+                    ${unreadCount > 0 ? 'bg-accent/10 border-l-4 border-l-accent' : ''}
+                  `}
+                  onClick={() => handleConversationClick(conversation._id, otherUser)}
+                >
+                  {/* Avatar */}
+                  <Avatar src={otherUser.avatar} username={otherUser.username} size="xl" border />
+                  
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline flex-wrap gap-2 mb-1">
+                      <span className="font-semibold text-primary text-base">{otherUser?.username || 'Unknown User'}</span>
+                      <span className="text-xs text-muted">{formatTime(getLastMessageTime(conversation))}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <p className="text-sm text-secondary truncate flex-1 m-0">
+                        {getLastMessage(conversation) || 'No messages yet'}
+                      </p>
+                      {unreadCount > 0 && (
+                        <span className="bg-accent text-white text-xs font-semibold px-2 py-0.5 rounded-full min-w-[20px] text-center flex-shrink-0">{unreadCount}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+        )}
     </div>
   );
 }
