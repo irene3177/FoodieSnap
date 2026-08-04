@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { useAppDispatch } from '../../store/store';
 import { showToast } from '../../store/toastSlice';
 import { changePassword } from '../../store/authSlice';
-import './ChangePasswordModal.css';
+import { MdLockReset, MdClose, MdKey, MdVisibilityOff, MdVisibility } from 'react-icons/md';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
   const [loading, setLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useScrollLock(isOpen);
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -33,6 +37,7 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
     setConfirmPassword('');
     setShowCurrentPassword(false);
     setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const validateForm = () => {
@@ -99,32 +104,47 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="change-password-modal__overlay"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleClose}
         >
           <motion.div
-            className="change-password-modal"
+            className="bg-primary rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="change-password-modal__header">
-              <h2>Change Password</h2>
-              <button className="change-password-modal__close" onClick={onClose}>
-                ✕
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-5 border-b bg-primary flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <MdLockReset className="text-accent text-3xl" />
+                <h2 className="text-3xl font-semibold text-secondary m-0 cursor-default">Change Password</h2>
+              </div>
+              <button
+                className="
+                  bg-transparent border-none text-muted
+                  rounded-lg w-8 h-8
+                  flex items-center justify-center
+                  hover:bg-border transition-colors
+                  duration-700
+                  "
+                onClick={onClose}
+              >
+                <MdClose className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="change-password-modal__content">
-              <form onSubmit={handleSubmit} className="change-password-modal__form">
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Current Password */}
-                <div className="change-password-modal__field">
-                  <label htmlFor="currentPassword">Current Password</label>
-                  <div className="password-input-wrapper">
+                <div className="space-y-2">
+                  <label htmlFor="currentPassword" className="block mb-2 font-medium text-md text-muted">Current Password</label>
+                  <div className="relative">
+                    <MdKey className="absolute left-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-default p-1 text-muted w-7 h-7" />
                     <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       id="currentPassword"
@@ -132,21 +152,25 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       required
                       autoComplete="current-password"
+                      className="input px-10"
                     />
                     <button
+                      title={showCurrentPassword ? 'Hide password' : 'Show password'}
                       type="button"
-                      className="password-toggle"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 rounded hover:text-accent transition-colors text-secondary"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showCurrentPassword ? '👁️' : '👁️‍🗨️'}
+                      {showCurrentPassword ? <MdVisibilityOff className="w-5 h-5" /> : <MdVisibility className="w-5 h-5" />}
                     </button>
                   </div>
                 </div>
 
                 {/* New Password */}
-                <div className="change-password-modal__field">
-                  <label htmlFor="newPassword">New Password</label>
-                  <div className="password-input-wrapper">
+                <div className="space-y-2">
+                  <label htmlFor="newPassword" className="block mb-2 font-medium text-md text-muted">New Password</label>
+                  <div className="relative">
+                    <MdKey className="absolute left-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-default p-1 text-muted w-7 h-7" />
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       id="newPassword"
@@ -155,41 +179,55 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
                       required
                       minLength={6}
                       autoComplete="new-password"
+                      className="input px-10"
                     />
                     <button
                       type="button"
-                      className="password-toggle"
+                      title={showNewPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 rounded hover:text-accent transition-colors text-secondary"
                       onClick={() => setShowNewPassword(!showNewPassword)}
+                      aria-label={showNewPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showNewPassword ? '👁️' : '👁️‍🗨️'}
+                      {showNewPassword ? <MdVisibilityOff className="w-5 h-5" /> : <MdVisibility className="w-5 h-5" />}
                     </button>
                   </div>
-                  <small>Minimum 6 characters</small>
+                  <small className="block text-xs text-muted mt-1.5 cursor-default">Minimum 6 characters</small>
                 </div>
 
                 {/* Confirm Password */}
-                <div className="change-password-modal__field">
-                  <label htmlFor="confirmPassword">Confirm New Password</label>
-                  <div className="password-input-wrapper">
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="block mb-2 font-medium text-md text-muted">Confirm New Password</label>
+                  <div className="relative">
+                    <MdKey className="absolute left-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-default p-1 text-muted w-7 h-7" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       id="confirmPassword"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                       autoComplete="new-password"
+                      className={`input px-10 ${confirmPassword && newPassword !== confirmPassword ? 'border-error focus:border-error' : ''}`}
                     />
+                    <button
+                      type="button"
+                      title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 rounded hover:text-accent transition-colors text-secondary"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <MdVisibilityOff className="w-5 h-5" /> : <MdVisibility className="w-5 h-5" />}
+                    </button>
                   </div>
                   {confirmPassword && newPassword !== confirmPassword && (
-                    <small className="error-message">Passwords do not match</small>
+                    <small className="block text-xs text-error mt-1.5 cursor-default">Passwords do not match</small>
                   )}
                 </div>
 
                 {/* Form Actions */}
-                <div className="change-password-modal__actions">
+                <div className="flex gap-3 justify-end mt-6 pt-4 border-t flex-col sm:flex-row">
                   <button
                     type="button"
-                    className="change-password-modal__cancel"
+                    className="btn-secondary"
                     onClick={handleClose}
                     disabled={loading}
                   >
@@ -197,10 +235,19 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
                   </button>
                   <button
                     type="submit"
-                    className={`change-password-modal__submit ${loading ? 'change-password-modal__submit--loading' : ''}`}
+                    className="btn-primary relative"
                     disabled={loading}
                   >
-                    {loading ? 'Changing...' : 'Change Password'}
+                    {loading ? (
+                      <>
+                        <span className="opacity-0">Changing...</span>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </span>
+                      </> 
+                    ) : (
+                      'Change Password'
+                    )}
                   </button>
                 </div>
               </form>

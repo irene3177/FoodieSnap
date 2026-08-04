@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { useAppDispatch } from '../../store/store';
 import { showToast } from '../../store/toastSlice';
 import { authApi } from '../../services/authApi';
-import './EditProfileModal.css';
+import { MdClose } from 'react-icons/md';
+import { RiEdit2Fill } from 'react-icons/ri';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -21,6 +24,8 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
   const [loading, setLoading] = useState(false);
 
   const [avatarPreview, setAvatarPreview] = useState('');
+
+  useScrollLock(isOpen);
 
   useEffect(() => {
     if (user) {
@@ -78,34 +83,47 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="edit-profile-modal__overlay"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="edit-profile-modal"
+            className="bg-primary rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="edit-profile-modal__header">
-              <h2>Edit Profile</h2>
-              <button className="edit-profile-modal__close" onClick={onClose}>
-                ✕
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-5 border-b bg-primary flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <RiEdit2Fill className="text-accent text-3xl" />
+                <h2 className="text-3xl font-semibold text-secondary m-0 cursor-default">Edit Profile</h2>
+              </div>
+              <button className="
+                bg-transparent border-none text-muted
+                rounded-lg w-8 h-8
+                flex items-center justify-center
+                hover:bg-border transition-colors
+                duration-700
+                "
+                onClick={onClose}>
+                <MdClose className="w-6 h-6" />
               </button>
             </div>
 
-            {/* ← Scrollable content area */}
-            <div className="edit-profile-modal__content">
-              <form onSubmit={handleSubmit} className="edit-profile-modal__form">
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar Preview */}
-                <div className="edit-profile-modal__avatar-section">
-                  <div className="edit-profile-modal__avatar-preview">
+                <div className="flex justify-center mb-4">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-accent-secondary
+                    flex items-center justify-center text-white text-4xl font-semibold overflow-hidden
+                    shadow-md hover:scale-105 transition-transform duration-200">
                     {avatarPreview ? (
-                      <img src={avatarPreview} alt="Avatar preview" />
+                      <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
                     ) : (
                       <span>{username.charAt(0).toUpperCase() || 'U'}</span>
                     )}
@@ -113,8 +131,8 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
                 </div>
 
                 {/* Username Input */}
-                <div className="edit-profile-modal__field">
-                  <label htmlFor="username">Username *</label>
+                <div className="space-y-2">
+                  <label htmlFor="username" className="block mb-2 font-medium text-md text-muted">Username *</label>
                   <input
                     type="text"
                     id="username"
@@ -123,29 +141,33 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
                     required
                     minLength={3}
                     maxLength={20}
+                    className="input"
                   />
-                  <small>3-20 characters</small>
+                  <small className="flex justify-end pr-1 text-xs text-muted mt-1.5 cursor-default">3-20 characters</small>
                 </div>
 
                 {/* Bio Input */}
-                <div className="edit-profile-modal__field">
-                  <label htmlFor="bio">Bio</label>
-                  <textarea
+                <div className="space-y-2">
+                  <label htmlFor="bio" className="block mb-2 font-medium text-md text-muted">Bio</label>
+                  <TextareaAutosize
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tell us about yourself..."
                     rows={4}
                     maxLength={200}
+                    className="input
+                      resize-none min-h-[60px]
+                      disabled:opacity-60 overflow-hidden scrollbar-hide"
                   />
-                  <small className="bio-counter">{bio.length}/200 characters</small>
+                  <small className="flex justify-end pr-1 text-xs text-muted mt-1.5 cursor-default">{bio.length}/200 characters</small>
                 </div>
 
                 {/* Form Actions */}
-                <div className="edit-profile-modal__actions">
+                <div className="flex gap-3 justify-end mt-6 pt-4 border-t flex-col sm:flex-row">
                   <button
                     type="button"
-                    className="edit-profile-modal__cancel"
+                    className="btn-secondary"
                     onClick={onClose}
                     disabled={loading}
                   >
@@ -153,10 +175,19 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
                   </button>
                   <button
                     type="submit"
-                    className={`edit-profile-modal__submit ${loading ? 'edit-profile-modal__submit--loading' : ''}`}
+                    className="btn-primary"
                     disabled={loading || !username.trim()}
                   >
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? (
+                      <>
+                        <span className="opacity-0">Saving...</span>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </span>
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                 </div>
               </form>
