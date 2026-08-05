@@ -1,5 +1,6 @@
 import React from 'react';
 import { Message } from '../../types';
+import Avatar from '../Avatar';
 
 interface MessageBubbleProps {
   message: Message;
@@ -16,18 +17,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMess
 
   return (
     <div
-      className={`message ${isOwnMessage ? 'message--sent' : 'message--received'}`}
+      className={`
+        flex gap-2 items-start max-w-[80%] mb-3
+        ${isOwnMessage ? 'flex-row-reverse self-end ml-auto' : 'self-start'}
+      `}
     >
+      {/* Avatar */}
       {!isOwnMessage && (
-        <img 
-          src={message.senderId.avatar || message.senderId.username.charAt(0).toUpperCase()}
-          alt={message.senderId.username}
-          className="message__avatar"
-        />
+        <Avatar to={`/user/${message.senderId._id}`} src={message.senderId.avatar} username={message.senderId.username} size="sm" border />
       )}
-      <div className="message__bubble">
-        <p className="message__text">{message.text || ''}</p>
-        <span className="message__time">{formatTime(message.createdAt)}</span>
+      {/* Bubble */}
+      <div className={`
+          max-w-full px-4 py-3 rounded-2xl break-words relative text-secondary
+          ${isOwnMessage
+            ? 'bg-accent-secondary-bg  rounded-br-[4px]'
+            : 'bg-secondary rounded-bl-[4px]'
+          }
+        `}>
+        <p className="text-sm leading-relaxed m-0 mb-0.5 break-words">{message.text || ''}</p>
+        <span className="text-xs block text-right text-muted">{formatTime(message.createdAt)}</span>
       </div>
     </div>
   );

@@ -48,24 +48,28 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <div
-      className="chat-detail__messages"
+      className="flex-1 overflow-y-auto px-8 pt-4 pb-2 scrollbar-thin"
       ref={messagesContainerRef}
       onScroll={onScroll}
     >
-      {Object.entries(messageGroups).map(([date, dateMessages]) => (
-        <div key={date}>
-          <div className="chat-detail__date-divider">
-            <span>{formatDate(dateMessages[0].createdAt)}</span>
+      <div className="max-w-[776px] mx-auto relative">
+        {Object.entries(messageGroups).map(([date, dateMessages]) => (
+          <div key={date}>
+            {/* Date divider */}
+            <div className="text-center my-4 relative">
+              <span className="bg-secondary px-4 py-1 rounded-full text-xs text-secondary inline-block">{formatDate(dateMessages[0].createdAt)}</span>
+            </div>
+            {/* Messages */}
+            {dateMessages.map((msg) => (
+              <MessageBubble
+                key={msg._id}
+                message={msg}
+                isOwnMessage={msg.senderId._id === currentUserId}
+              />
+            ))}
           </div>
-          {dateMessages.map((msg) => (
-            <MessageBubble
-              key={msg._id}
-              message={msg}
-              isOwnMessage={msg.senderId._id === currentUserId}
-            />
-          ))}
-        </div>
-      ))}
+        ))}
+      </div>
       <div ref={messagesEndRef} />
     </div>
   );
