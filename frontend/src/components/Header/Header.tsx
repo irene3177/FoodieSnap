@@ -28,7 +28,7 @@ function Header() {
         {/* Logo */}
         <Link
           to="/"
-          className="text-[clamp(1.6rem,2.5vw,2rem)] select-none  text-accent whitespace-nowrap
+          className="text-[clamp(1.6rem,3vw,3rem)] select-none  text-accent whitespace-nowrap
             hover:text-accent transition-all duration-1000 hover:scale-[1.02] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)]"
           onClick={closeMenu}
         >

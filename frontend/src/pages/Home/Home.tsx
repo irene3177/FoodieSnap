@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import LoginModal from '../../components/Auth/LoginModal';
-import './Home.css'
+import { MdExplore } from 'react-icons/md';
 
 function Home() {
   const { isAuthenticated } = useAuth();
@@ -31,18 +31,18 @@ function Home() {
 
   return (
     <>
-      <div className="home-page">
-        <section className="hero">
-          <div className="hero__content">
-            <h1 className="hero__title">Welcome to FoodieSnap!</h1>
-            <p className="hero__subtitle">
+      <div className="min-h-[calc(100vh-60px)] flex items-center justify-center w-full terracotta-gradient text-white">
+        <section>
+          <div className="w-full max-w-3xl mx-auto px-4 sm:px-8 text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-headline-md mb-4 leading-tight">Welcome to FoodieSnap!</h1>
+            <p className="text-lg sm:text-xl md:text-2xl mb-6 opacity-90 leading-relaxed">
               Discover delicious recipes from around the world!
             </p>
             <button 
-              className="hero__cta"
+              className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-3.5 text-base sm:text-lg font-medium bg-white text-accent border-none rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-bg-secondary hover:text-accent-hover hover:shadow-theme-lg focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
               onClick={handleExploreClick}
             >
-              Explore Recipes
+              <MdExplore /> Explore Recipes
             </button>
           </div>
         </section>

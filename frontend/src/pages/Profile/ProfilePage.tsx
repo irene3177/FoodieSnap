@@ -16,7 +16,8 @@ import { recipesApi } from '../../services/recipesApi';
 import { showToast } from '../../store/toastSlice';
 import { authApi } from '../../services/authApi';
 import { Recipe } from '../../types';
-import './ProfilePage.css';
+// import Avatar from '../../components/Avatar';
+import { MdEdit, MdAdd, MdMessage } from 'react-icons/md';
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -190,98 +191,98 @@ function ProfilePage() {
 
   return (
     <>
-      <div className="profile-page">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:px-6 md:py-10">
         {/* Profile Header */}
-        <div className="profile-header">
+        <div className="bg-gradient-to-br from-bg-secondary to-bg-primary rounded-2xl p-6 md:p-8 mb-8 text-center border  shadow-theme animate-fade-in">
+          {/* Avatar */}
           <div
-            className={`profile-avatar-wrapper ${isOwnProfile
-              ? 'profile-avatar-wrapper--editable'
-              : ''}`}
+            className={`relative w-28 h-28 md:w-32 md:h-32 mx-auto mb-4 ${
+              isOwnProfile ? 'cursor-pointer' : 'cursor-default'
+            }`}
               onClick={handleAvatarClick}
           >
-            <div className="profile-avatar">
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-accent to-accent-secondary flex items-center justify-center text-white text-4xl md:text-5xl font-semibold overflow-hidden border-4 border-bg-secondary shadow-theme transition-all duration-300 relative z-10">
               {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.username} />
+                <img src={profile.avatar} alt={profile.username} className="w-full h-full object-cover" />
               ) : (
                 <span>{profile.username.charAt(0).toUpperCase()}</span>
               )}
             </div>
+
+            {/* Overlay for edit */}
             {isOwnProfile && (
-              <div className="profile-avatar-overlay">
-                <svg
-                  className="profile-avatar-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M12 4v16m-8-8h16" stroke="currentColor" />
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                </svg>
+              <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 z-20 cursor-pointer">
+                <MdEdit className="w-8 h-8 text-white" />
               </div>
             )}
+
+            {/* Loading spinner */}
             {isUploadingAvatar && (
-              <div className="profile-avatar-loading">
-                <div className="profile-avatar-spinner"></div>
+              <div className="absolute inset-0 rounded-full bg-black/70 flex items-center justify-center z-30">
+                <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
               </div>
             )}
           </div>
-          <h1 className="profile-username">{profile.username}</h1>
-          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+
+          {/* Username & Bio */}
+          <h1 className="text-2xl md:text-3xl font-headline-md text-primary mb-1">{profile.username}</h1>
+          {profile.bio && (
+            <p className="text-secondary text-base leading-relaxed max-w-xl mx-auto mb-4 px-4">{profile.bio}</p>
+          )}
           
-          <div className="profile-stats">
-            <div className="profile-stat">
-              <span className="profile-stat-value">{userRecipes.length}</span>
-              <span className="profile-stat-label">Recipes</span>
+          {/* Stats */}
+          <div className="flex justify-center gap-8 md:gap-12 my-4 py-3 border-y">
+            <div className="text-center">
+              <span className="block text-xl md:text-2xl font-semibold text-primary">{userRecipes.length}</span>
+              <span className="text-xs md:text-sm text-secondary uppercase tracking-wider">Recipes</span>
             </div>
             <div
-              className="profile-stat"
+              className="text-center cursor-pointer hover:opacity-70 transition-opacity"
               onClick={() => setShowFollowersModal(true)}
-              style={{ cursor: 'pointer' }}
             >
-              <span className="profile-stat-value">{profile.followersCount || 0}</span>
-              <span className="profile-stat-label">Followers</span>
+              <span className="block text-xl md:text-2xl font-semibold text-primary">{profile.followersCount || 0}</span>
+              <span className="text-xs md:text-sm text-secondary uppercase tracking-wider">Followers</span>
             </div>
             <div
-              className="profile-stat"
+              className="text-center cursor-pointer hover:opacity-70 transition-opacity"
               onClick={() => setShowFollowingModal(true)}
-              style={{ cursor: 'pointer' }}
             >
-              <span className="profile-stat-value">{profile.followingCount || 0}</span>
-              <span className="profile-stat-label">Following</span>
+              <span className="block text-xl md:text-2xl font-semibold text-primary">{profile.followingCount || 0}</span>
+              <span className="text-xs md:text-sm text-secondary uppercase tracking-wider">Following</span>
             </div>
           </div>
 
-          <div className="profile-actions">
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
             {isOwnProfile ? (
               <>
                 <button
-                  className="profile-edit-button"
+                  className="btn-primary"
                   onClick={() => setIsEditModalOpen(true)}
                 >
-                  Edit Profile
+                  <MdEdit className="inline mr-1" /> Edit Profile
                 </button>
                 <button
-                  className="profile-create-button"
+                  className="btn-secondary"
                   onClick={() => setIsCreateModalOpen(true)}
                 >
-                  + Add Recipe
+                  <MdAdd className="inline mr-1" /> Add Recipe
                 </button>
               </>
             ) : (
               <>
                 <button
-                  className={`profile-follow-button ${isFollowing ? 'following' : ''}`}
+                  className={`${isFollowing ? 'btn-secondary' : 'btn-primary'}`}
                   onClick={toggleFollow}
                   disabled={isFollowLoading}
                 >
                   {isFollowLoading ? 'Loading...' : (isFollowing ? 'Following' : 'Follow')}
                 </button>
                 <button
-                  className="profile-message-button"
+                  className="btn-secondary"
                   onClick={() => setIsMessageModalOpen(true)}
                 >
-                  💬 Message
+                  <MdMessage className="inline mr-1" /> Message
                 </button>
               </>
             )}
@@ -293,60 +294,63 @@ function ProfilePage() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          style={{ display: 'none' }}
+          className="hidden"
           onChange={handleAvatarUpload}
         />
 
         {/* Tabs */}
-        <div className="profile-tabs">
-          <button
-            className={`profile-tab ${activeTab === 'favorites' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('favorites')}
-          >
-            Favorites
-            <span className="profile-tab-count">{favorites.length}</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'myRecipes' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('myRecipes')}
-          >
-            {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
-            <span className="profile-tab-count">{userRecipes.length}</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'about' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('about')}
-          >
-            About
-          </button>
+        <div className="flex justify-center gap-4 mb-6 border-b  pb-4">
+          {['favorites', 'myRecipes', 'about'].map((tab) => (
+            <button
+              key={tab}
+              className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                activeTab === tab
+                  ? 'text-accent after:absolute after:bottom-[-1rem] after:left-0 after:right-0 after:h-0.5 after:bg-accent'
+                  : 'text-secondary hover:text-primary'
+              }`}
+              onClick={() => setActiveTab(tab as typeof activeTab)}
+            >
+              {tab === 'favorites' && 'Favorites'}
+              {tab === 'myRecipes' && (isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`)}
+              {tab === 'about' && 'About'}
+              {tab !== 'about' && (
+                <span className={`inline-block ml-2 px-2 py-0.5 rounded-full text-xs ${
+                  activeTab === tab
+                    ? 'bg-accent text-white'
+                    : 'bg-border text-secondary'
+                }`}>{tab === 'favorites' ? favorites.length : tab === 'myRecipes' ? userRecipes.length : ''}</span>
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Tab Content */}
-        <div className="profile-content">
+        <div className="min-h-[400px] animate-fade-in">
+          {/* Favorites */}
           {activeTab === 'favorites' && (
             <>
-              <div className="profile-content-title">
-                Favorite Recipes
-                <span>Public</span>
+              <div className="flex items-center gap-2 text-lg text-primary mb-4">
+                Saved Recipes
+                <span className="text-sm text-secondary font-normal">Public</span>
               </div>
 
               {loadingFavorites ? (
-                <div className="profile-loading">Loading favorites...</div>
+                <div className="text-center py-8 text-secondary">Loading favorites...</div>
               ) : favorites.length > 0 ? (
-                <div className="profile-recipes-grid">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {favorites.map((recipe) => (
                     <RecipeCard key={recipe._id} recipe={recipe} />
                   ))}
                 </div>
               ) : (
-                <div className="profile-no-recipes">
-                  <p>
+                <div className="text-center py-12 px-6 bg-secondary rounded-xl border-2 border-dashed">
+                  <p className="text-lg text-secondary mb-4">
                     {isOwnProfile 
                       ? "You haven't added any favorites yet."
                       : `${profile.username} hasn't added any favorites yet.`}
                   </p>
                   {isOwnProfile && (
-                    <Link to="/recipes" className="profile-explore-link">
+                    <Link to="/recipes" className="inline-block px-6 py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover hover:-translate-y-0.5 transition-all duration-300">
                       Explore Recipes
                     </Link>
                   )}
@@ -355,17 +359,18 @@ function ProfilePage() {
             </>
           )}
 
+          {/* My Recipes */}
           {activeTab === 'myRecipes' && (
             <>
-              <div className="profile-content-title">
+              <div className="flex items-center gap-2 text-lg text-primary mb-4">
                 {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
-                <span>{isOwnProfile ? 'Your creations' : 'Public recipes'}</span>
+                <span className="text-sm text-text-secondary font-normal">{isOwnProfile ? 'Your creations' : 'Public recipes'}</span>
               </div>
 
               {loadingUserRecipes ? (
-                <div className="profile-loading">Loading recipes...</div>
+                <div className="text-center py-8 text-secondary">Loading recipes...</div>
               ) : userRecipes.length > 0 ? (
-                <div className="profile-recipes-grid">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userRecipes.map((recipe) => (
                     <RecipeCard
                       key={recipe._id}
@@ -377,15 +382,15 @@ function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="profile-no-recipes">
-                  <p>
+                <div className="text-center py-12 px-6 bg-secondary rounded-xl border-2 dashed">
+                  <p className="text-lg text-secondary mb-4">
                     {isOwnProfile 
                       ? "You haven't created any recipes yet."
                       : `${profile.username} hasn't created any recipes yet.`}
                   </p>
                   {isOwnProfile && (
                     <button
-                      className="profile-create-button"
+                      className="px-6 py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover hover:-translate-y-0.5 transition-all duration-300"
                       onClick={() => setIsCreateModalOpen(true)}
                     >
                       Create Your First Recipe
@@ -396,18 +401,19 @@ function ProfilePage() {
             </>
           )}
 
+          {/* About */}
           {activeTab === 'about' && (
-            <div className="profile-about">
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">About</h3>
-                <p className="profile-about-text">
+            <div className="bg-secondary rounded-xl p-6 md:p-8 border ">
+              <div className="mb-6">
+                <h3 className="text-sm text-secondary uppercase tracking-wider mb-2">About</h3>
+                <p className="text-primary leading-relaxed whitespace-pre-wrap">
                   {profile.bio || `${profile.username} hasn't added a bio yet.`}
                 </p>
               </div>
 
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">Member Since</h3>
-                <p className="profile-about-text">
+              <div className="mb-6">
+                <h3 className="text-sm text-secondary uppercase tracking-wider mb-2">Member Since</h3>
+                <p className="text-primary">
                   {profile.createdAt 
                     ? new Date(profile.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -418,16 +424,14 @@ function ProfilePage() {
                 </p>
               </div>
 
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">Stats</h3>
-                <div className="profile-about-item">
-                  <span>{userRecipes.length || 0} recipe{userRecipes.length !== 1 ? 's' : ''} shared</span>
-                </div>
-                <div className="profile-about-item">
-                  <span>{favorites.length} favorite {favorites.length === 1 ? 'recipe' : 'recipes'}</span>
-                </div>
-                <div className="profile-about-item">
-                  <span>{profile.followersCount || 0} followers · {profile.followingCount || 0} following</span>
+              <div>
+                <h3 className="text-sm text-secondary uppercase tracking-wider mb-2">Stats</h3>
+                <div className="space-y-2 text-secondary">
+                  <p>{userRecipes.length || 0} recipe{userRecipes.length !== 1 ? 's' : ''} shared</p>
+                  <p>{favorites.length} favorite {favorites.length === 1 ? 'recipe' : 'recipes'}
+                  </p>
+                  <p>{profile.followersCount || 0} followers · {profile.followingCount || 0} following
+                  </p>
                 </div>
               </div>
             </div>

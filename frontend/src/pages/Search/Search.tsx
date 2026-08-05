@@ -6,7 +6,7 @@ import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
 import { RecipeFilters as FiltersComponent } from '../../components/RecipeFilters/RecipeFilters';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import './Search.css';
+import { MdClose, MdFilterList, MdKeyboardArrowUp, MdSearch } from 'react-icons/md';
 
 function Search() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -155,52 +155,60 @@ function Search() {
   }, [searchTimeout]);
 
   return (
-    <div className="search-page">
-      <div className="search-page__header">
-        <h1 className="search-page__title">Search Recipes</h1>
-        <p className="search-page__subtitle">
+    <div className="max-w-7xl mx-auto px-8 py-8 md:py-10 min-h-screen">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-headline-md text-primary mb-2">Search Recipes</h1>
+        <p className="text-secondary mb-6">
           Find recipes from our collection
         </p>
 
-        <div className="search-page__search-section">
-          <div className="search-page__search-bar">
+        {/* Search Section */}
+        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-4">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search by name (e.g., 'chicken', 'pasta')..."
               value={searchQuery}
               onChange={handleSearchInput}
-              className="search-page__search-input"
+              className="input px-10"
             />
+            <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xl" />
             {searchQuery && (
               <button
-                className="search-page__search-clear"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-muted w-8 h-8 flex items-center justify-center rounded-full hover:bg-border transition-colors cursor-pointer"
                 onClick={clearSearch}
               >
-                ✕
+                <MdClose className="text-xl" />
               </button>
             )}
           </div>
 
           <button
-            className={`search-page__filter-toggle ${activeFiltersCount > 0 ? 'search-page__filter-toggle--active' : ''}`}
+            className={`
+              flex items-center gap-2 px-4 py-3 rounded-xl border font-medium text-sm whitespace-nowrap transition-all duration-200
+              ${activeFiltersCount > 0 
+                ? 'bg-accent border-accent text-white hover:bg-accent-hover' 
+                : 'bg-secondary text-primary hover:bg-border'
+              }
+            `}
             onClick={toggleFilters}
             disabled={loading}
           >
-            <svg className="search-page__filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 4h16v2l-6 6v6l-4 2v-8L4 6V4z" />
-            </svg>
+            <MdFilterList className="w-5 h-5" />
             Filters
             {activeFiltersCount > 0 && (
-              <span className="search-page__filter-count">{activeFiltersCount}</span>
+              <span className={`
+                rounded-full px-2 py-0.5 text-xs font-bold
+                ${activeFiltersCount > 0 ? 'bg-white/20 text-white' : 'bg-accent text-white'}
+              `}>{activeFiltersCount}</span>
             )}
-            <svg className="search-page__filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d={showFilters ? "M6 9l6 6 6-6" : "M6 15l6-6 6 6"} />
-            </svg>
+            <MdKeyboardArrowUp className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Filters Panel */}
         {showFilters && (
-          <div className="search-page__filters-panel">
+          <div className="max-w-2xl mx-auto mt-4 p-6 bg-secondary rounded-2xl border animate-slide-down">
             <FiltersComponent 
               onFilterChange={handleFilterChange} 
               isLoading={loading} 
@@ -208,8 +216,9 @@ function Search() {
           </div>
         )}
 
+        {/* Results count */}
         {!loading && !error && recipes.length > 0 && (
-          <div className="search-page__results-count">
+          <div className="text-sm text-muted mt-4">
             Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}
             {searchQuery && ` for "${searchQuery}"`}
             {activeFiltersCount > 0 && ` with ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied`}
@@ -217,17 +226,21 @@ function Search() {
         )}
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="search-page__error">
-          <p>{error}</p>
-          <button onClick={() => loadRecipes(true)}>
+        <div className="text-center py-12 px-4 bg-error rounded-xl max-w-md mx-auto my-8">
+          <p className="text-error mb-4">{error}</p>
+          <button
+            className="px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors"
+            onClick={() => loadRecipes(true)}
+          >
             Try Again
           </button>
         </div>
       )}
 
       {/* Recipe grid */}
-      <div className="search-page__grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
         {recipes.map((recipe, index) => (
           <div
             key={`${recipe._id}-${index}`}
@@ -248,28 +261,28 @@ function Search() {
 
       {/* No results */}
       {!loading && !error && recipes.length === 0 && (
-        <div className="search-page__no-results">
+        <div className="text-center py-12 px-6 bg-secondary rounded-xl max-w-md mx-auto my-8">
           {searchQuery ? (
             <>
-              <p>No recipes found for "{searchQuery}"</p>
-              <p className="search-page__no-results-hint">
+              <p className="text-lg font-medium text-primary mb-2">No recipes found for "{searchQuery}"</p>
+              <p className="text-secondary text-sm">
                 Try different keywords or check your spelling
               </p>
             </>
           ) : activeFiltersCount > 0 ? (
             <>
-              <p>No recipes match your filters</p>
+              <p className="text-lg font-medium text-primary mb-2">No recipes match your filters</p>
               <button onClick={() => {
                 setFilters({});
                 loadRecipes(true);
-              }} className="search-page__reset-filters">
+              }} className="mt-4 px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors">
                 Reset Filters
               </button>
             </>
           ) : (
             <>
-              <p>Start searching for recipes!</p>
-              <p className="search-page__no-results-hint">
+              <p className="text-lg font-medium text-primary mb-2">Start searching for recipes!</p>
+              <p className="text-secondary text-sm">
                 Search by name or use filters to find your favorite dishes
               </p>
             </>
@@ -279,7 +292,7 @@ function Search() {
 
       {/* End message */}
       {!hasMore && !loading && recipes.length > 0 && (
-        <div className="search-page__end-message">
+        <div className="text-center py-6 text-muted text-sm">
           <p>You've reached the end! 🎉</p>
         </div>
       )}

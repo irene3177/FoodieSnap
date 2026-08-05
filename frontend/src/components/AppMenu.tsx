@@ -1,10 +1,8 @@
 
 import { useEffect, useState } from 'react';
 import { NavLinks } from '../constants';
-import { useAuth } from '../hooks/useAuth';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { MdClose, MdLogin, MdPersonAddAlt1, MdOutlineDarkMode } from 'react-icons/md';
-import MobileUserMenu from './Auth/MobileUserMenu';
 import { NavLink } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle/ThemeToggle';
 import LoginModal from './Auth/LoginModal';
@@ -17,7 +15,6 @@ interface AppMenuProps {
 
 
 function AppMenu({ isOpen, onClose }: AppMenuProps) {
-  const { user, isAuthenticated } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 

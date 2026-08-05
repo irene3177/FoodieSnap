@@ -13,7 +13,6 @@ import { MessageInput } from '../../components/Chat/MessageInput';
 import { ScrollToBottomButton } from '../../components/Chat/ScrollToBottomButton';
 import { ChatDetailSkeleton } from '../../components/Skeleton/ChatDetailSkeleton';
 import * as socket from '../../services/socket';
-import './ChatDetail.css';
 
 function ChatDetail() {
   const dispatch = useAppDispatch();
@@ -49,8 +48,9 @@ function ChatDetail() {
     handleScroll
   } = useChatScroll(messages);
   const {
-    showOptions,
-    setShowOptions,
+    isOpen,
+    setIsOpen,
+    onClose,
     deleting,
     optionsMenuRef,
     handleDeleteConversation,
@@ -123,19 +123,21 @@ function ChatDetail() {
   }
 
   return (
-    <div className="chat-detail">
+    <div className="flex flex-col h-screen w-full bg-primary relative overflow-hidden">
       <ChatHeader
         recipientId={recipientId}
         recipientName={recipientName}
         recipientAvatar={recipientAvatar}
         onBack={handleBack}
         onViewProfile={handleViewProfile}
-        showOptions={showOptions}
-        setShowOptions={setShowOptions}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onClose={onClose}
         optionsMenuRef={optionsMenuRef}
         onClearChat={handleClearChat}
         onDeleteChat={handleDeleteConversation}
         deleting={deleting}
+        currentUser={user}
         currentUserId={user?._id}
         currentUserAvatar={user?.avatar}
       />
