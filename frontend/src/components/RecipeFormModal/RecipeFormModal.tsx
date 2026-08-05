@@ -242,9 +242,7 @@ function RecipeFormModal({ isOpen, onClose, onSuccess, recipe }: RecipeFormModal
                 )}
                 <h2 className="text-3xl font-semibold text-secondary m-0 cursor-default">{title}</h2>
               </div>
-              <button className="
-                  btn-close
-                  "
+              <button className="btn-close"
                   onClick={onClose}>
                 <MdClose className="w-6 h-6" />
               </button>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { RecipesFilters as RecipeFiltersType } from '../../types';
-import './RecipeFilters.css';
 
 interface RecipeFiltersProps {
   onFilterChange: (filters: Partial<RecipeFiltersType>) => void;
@@ -70,16 +69,16 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
   };
 
   return (
-    <div className="recipe-filters">
-      {/* Первая строка: основные фильтры */}
-      <div className="recipe-filters__row">
-        <div className="recipe-filters__field">
-          <label className="recipe-filters__label">Difficulty</label>
+    <div className="bg-secondary rounded-xl p-5">
+      {/* Row 1: Main filters */}
+      <div className="flex flex-wrap gap-3 mb-3">
+        <div className="flex-1 min-w-[140px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Difficulty</label>
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as RecipeFiltersType['difficulty'])}
             disabled={isLoading}
-            className="recipe-filters__select"
+            className="w-full px-3 py-2 border rounded-lg bg-primary text-text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="">All</option>
             <option value="easy">Easy</option>
@@ -88,13 +87,13 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
           </select>
         </div>
 
-        <div className="recipe-filters__field">
-          <label className="recipe-filters__label">Sort by</label>
+        <div className="flex-1 min-w-[140px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Sort by</label>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as RecipeFiltersType['sort'])}
             disabled={isLoading}
-            className="recipe-filters__select"
+            className="w-full px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="newest">Newest</option>
             <option value="popular">Popular</option>
@@ -102,13 +101,13 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
           </select>
         </div>
 
-        <div className="recipe-filters__field">
-          <label className="recipe-filters__label">Min Rating</label>
+        <div className="flex-1 min-w-[140px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Min Rating</label>
           <select
             value={minRating}
             onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : undefined)}
             disabled={isLoading}
-            className="recipe-filters__select"
+            className="w-full px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="">Any</option>
             <option value="4">4★+</option>
@@ -118,13 +117,13 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
           </select>
         </div>
 
-        <div className="recipe-filters__field">
-          <label className="recipe-filters__label">Source</label>
+        <div className="flex-1 min-w-[140px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Source</label>
           <select
             value={source}
             onChange={(e) => setSource(e.target.value as RecipeFiltersType['source'])}
             disabled={isLoading}
-            className="recipe-filters__select"
+            className="w-full px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="">All</option>
             <option value="user">Users</option>
@@ -133,64 +132,66 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
         </div>
       </div>
 
-      {/* Вторая строка: время приготовления */}
-      <div className="recipe-filters__row">
-        <div className="recipe-filters__field recipe-filters__field--time">
-          <label className="recipe-filters__label">Cooking Time (min)</label>
-          <div className="recipe-filters__time-group">
+      {/* Row 2: Cooking time */}
+      <div className="flex flex-wrap gap-3 mb-3">
+        <div className="flex-[1.5] min-w-[180px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Cooking Time (min)</label>
+          <div className="flex gap-2 items-center">
             <input
               type="number"
               placeholder="Min"
               value={minCookingTime}
               onChange={(e) => setMinCookingTime(e.target.value ? Number(e.target.value) : undefined)}
               disabled={isLoading}
-              className="recipe-filters__input"
+              className="flex-1 px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               min="0"
             />
-            <span className="recipe-filters__separator">—</span>
+            <span className="text-secondary text-sm">—</span>
             <input
               type="number"
               placeholder="Max"
               value={maxCookingTime}
               onChange={(e) => setMaxCookingTime(e.target.value ? Number(e.target.value) : undefined)}
               disabled={isLoading}
-              className="recipe-filters__input"
+              className="flex-1 px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               min="0"
             />
           </div>
         </div>
 
-        <div className="recipe-filters__field">
-          <label className="recipe-filters__label">Min Rating Count</label>
+        <div className="flex-1 min-w-[140px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Min Rating Count</label>
           <input
             type="number"
             placeholder="e.g., 10"
             value={minRatingCount}
             onChange={(e) => setMinRatingCount(e.target.value ? Number(e.target.value) : undefined)}
             disabled={isLoading}
-            className="recipe-filters__input"
+            className="w-full px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             min="0"
           />
         </div>
 
-        <div className="recipe-filters__field recipe-filters__field--checkbox">
-          <label className="recipe-filters__label">Media</label>
-          <div className="recipe-filters__checkbox-group">
-            <label className="recipe-filters__checkbox">
+        <div className="flex-[0.8] min-w-[120px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Media</label>
+          <div className="flex gap-4 items-center h-9">
+            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-primary">
               <input
                 type="checkbox"
                 checked={hasVideo}
                 onChange={(e) => setHasVideo(e.target.checked)}
                 disabled={isLoading}
+                className="w-4 h-4 cursor-pointer"
               />
               <span>Video</span>
             </label>
-            <label className="recipe-filters__checkbox">
+            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-primary">
               <input
                 type="checkbox"
                 checked={hasImage}
                 onChange={(e) => setHasImage(e.target.checked)}
                 disabled={isLoading}
+                className="w-4 h-4 cursor-pointer"
               />
               <span>Image</span>
             </label>
@@ -198,51 +199,51 @@ export const RecipeFilters = ({ onFilterChange, isLoading }: RecipeFiltersProps)
         </div>
       </div>
 
-      {/* Третья строка: текстовые поля */}
-      <div className="recipe-filters__row">
-        <div className="recipe-filters__field recipe-filters__field--flex">
-          <label className="recipe-filters__label">Category</label>
+      {/* Row 3: Text fields */}
+      <div className="flex flex-wrap gap-3 mb-3">
+        <div className="flex-2 min-w-[160px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Category</label>
           <input
             type="text"
             placeholder="e.g., Dessert"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             disabled={isLoading}
-            className="recipe-filters__input"
+            className="input"
           />
         </div>
 
-        <div className="recipe-filters__field recipe-filters__field--flex">
-          <label className="recipe-filters__label">Cuisine</label>
+        <div className="flex-2 min-w-[160px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Cuisine</label>
           <input
             type="text"
             placeholder="e.g., Italian"
             value={area}
             onChange={(e) => setArea(e.target.value)}
             disabled={isLoading}
-            className="recipe-filters__input"
+            className="input"
           />
         </div>
 
-        <div className="recipe-filters__field recipe-filters__field--flex">
-          <label className="recipe-filters__label">Tags</label>
+        <div className="flex-2 min-w-[160px]">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">Tags</label>
           <input
             type="text"
             placeholder="vegetarian, spicy"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             disabled={isLoading}
-            className="recipe-filters__input"
+            className="input"
           />
         </div>
       </div>
 
-      {/* Кнопки действий */}
-      <div className="recipe-filters__actions">
-        <button onClick={handleApply} disabled={isLoading} className="recipe-filters__apply">
+      {/* Actions */}
+      <div className="flex gap-3 pt-3 border-t">
+        <button onClick={handleApply} disabled={isLoading} className="px-5 py-2 bg-accent text-white rounded-lg font-medium text-sm hover:bg-accent-hover hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
           Apply Filters
         </button>
-        <button onClick={handleReset} disabled={isLoading} className="recipe-filters__reset">
+        <button onClick={handleReset} disabled={isLoading} className="px-5 py-2 bg-transparent text-secondary border rounded-lg font-medium text-sm hover:bg-border hover:text-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
           Reset All
         </button>
       </div>
