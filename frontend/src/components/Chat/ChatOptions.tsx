@@ -22,8 +22,6 @@ interface ChatOptionsProps {
   onDeleteChat: () => void;
   deleting: boolean;
   currentUser?: User | null;
-  currentUserId?: string;
-  currentUserAvatar?: string;
 }
 
 export const ChatOptions: React.FC<ChatOptionsProps> = ({
@@ -35,7 +33,6 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
   onDeleteChat,
   // deleting,
   currentUser,
-  currentUserAvatar
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
@@ -87,7 +84,7 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
 
         {/* Header */}
         <div className="flex items-center gap-4 px-8 p-4 bg-transparent border-b">
-          <Avatar to="/me" src={currentUserAvatar} username={currentUser?.username} onClick={onClose} size="lg" border/>
+          <Avatar to="/me" src={currentUser?.avatar} username={currentUser?.username} onClick={onClose} size="lg" border/>
           <div className=" min-w-0">
             <Link to={`/me`} onClick={() => setIsOpen(false)}>
               <h4 className="hover:text-accent-hover text-lg transition-all duration-300 block font-semibold text-secondary mb-0.5 truncate">{currentUser?.username}</h4>

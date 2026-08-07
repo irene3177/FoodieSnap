@@ -11,7 +11,7 @@ import EmptyState from '../../components/EmptyState';
 import Avatar from '../../components/Avatar';
 import { TbMessagesOff } from 'react-icons/tb';
 import { FiEdit } from 'react-icons/fi';
-import { PiBowlFoodLight } from 'react-icons/pi';
+import { PiChats } from 'react-icons/pi';
 import { MdOutlinePersonSearch } from 'react-icons/md';
 
 
@@ -112,9 +112,7 @@ function Chats() {
   const handleConversationClick = (conversationId: string, otherUser: Participant) => {
     navigate(`/chat/${conversationId}`, { 
       state: {
-        recipientName: otherUser?.username,
-        recipientAvatar: otherUser?.avatar,
-        recipientId: otherUser?._id
+        recipient: otherUser
       }
     });
   };
@@ -154,7 +152,7 @@ function Chats() {
       {conversations.length === 0 && !error && (
         <div className="flex items-center justify-center min-h-[60vh]">
           <EmptyState
-            icon={<PiBowlFoodLight />}
+            icon={<PiChats />}
             title="No Conversations Yet"
             description="Start a conversation with fellow food lovers. Share recipes, ask questions, or just say hello!"
             action={{

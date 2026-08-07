@@ -30,9 +30,7 @@ function ChatDetail() {
 
   // Custom hooks
   const {
-    recipientName,
-    recipientAvatar,
-    recipientId
+    recipient
   } = useChatRecipient(conversationId, user?._id);
   const {
     messages,
@@ -109,8 +107,8 @@ function ChatDetail() {
 
 
   const handleViewProfile = () => {
-    if (recipientId) {
-      window.location.href = `/user/${recipientId}`;
+    if (recipient?._id) {
+      window.location.href = `/user/${recipient?._id}`;
     }
   };
 
@@ -125,9 +123,7 @@ function ChatDetail() {
   return (
     <div className="flex flex-col h-screen w-full bg-primary relative overflow-hidden">
       <ChatHeader
-        recipientId={recipientId}
-        recipientName={recipientName}
-        recipientAvatar={recipientAvatar}
+        recipient={recipient}
         onBack={handleBack}
         onViewProfile={handleViewProfile}
         isOpen={isOpen}
@@ -138,8 +134,6 @@ function ChatDetail() {
         onDeleteChat={handleDeleteConversation}
         deleting={deleting}
         currentUser={user}
-        currentUserId={user?._id}
-        currentUserAvatar={user?.avatar}
       />
 
       <MessageList
