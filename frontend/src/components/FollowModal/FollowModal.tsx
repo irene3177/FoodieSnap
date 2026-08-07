@@ -7,6 +7,7 @@ import { followApi } from '../../services/followApi';
 import { UserListItem } from '../../types';
 import Loader from '../Loader/Loader';
 import { MdClose, MdOutlinePeopleAlt } from 'react-icons/md';
+import Avatar from '../Avatar';
 
 interface FollowModalProps {
   isOpen: boolean;
@@ -141,13 +142,7 @@ function FollowModal({ isOpen, onClose, userId, type, onUpdate }: FollowModalPro
                         onClick={onClose} 
                         className="flex items-center gap-3 flex-1 min-w-0 no-underline"
                       >
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {user.avatar ? (
-                            <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-xl font-semibold text-white">{user.username.charAt(0).toUpperCase()}</span>
-                          )}
-                        </div>
+                        <Avatar src={user.avatar} username={user.username} size="lg" border />
                         <div className="flex-1 min-w-0">
                           <span className="block font-semibold text-primary text-sm mb-0.5">{user.username}</span>
                           {user.bio && (

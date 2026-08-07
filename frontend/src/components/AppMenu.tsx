@@ -18,7 +18,6 @@ function AppMenu({ isOpen, onClose }: AppMenuProps) {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  console.log('isOpen', isOpen);
   useScrollLock(isOpen);
 
   useEffect(() => {

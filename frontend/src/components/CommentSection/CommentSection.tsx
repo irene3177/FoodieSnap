@@ -164,15 +164,13 @@ function CommentSection({ recipeId }: CommentSectionProps) {
                 >
                   {showRating ? '- Remove rating' : '+ Add rating'}
                 </button>
-                <motion.button
+                <button
                   type="submit"
                   className="btn-primary text-sm"
                   disabled={!newComment.trim() || loading}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   Post Comment
-                </motion.button>
+                </button>
               </div>
             )}
           </div>

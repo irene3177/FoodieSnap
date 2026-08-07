@@ -15,16 +15,16 @@ import * as socket from '../../services/socket';
 import { MdClose } from 'react-icons/md';
 // import { LuSend } from 'react-icons/lu';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { Participant } from '../../types';
+import Avatar from '../Avatar';
 
 interface MessageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  recipientId: string;
-  recipientName: string;
-  recipientAvatar?: string;
+  recipient: Participant | null;
 }
 
-function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAvatar }: MessageModalProps) {
+function MessageModal({ isOpen, onClose, recipient }: MessageModalProps) {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -33,11 +33,11 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
   useScrollLock(isOpen);
 
   useEffect(() => {
-    if (!isOpen || !recipientId) return;
+    if (!isOpen || !recipient?._id) return;
 
     const loadConversation = async () => {
       setIsLoadingConversation(true);
-      const response = await messagesApi.getConversation(recipientId);
+      const response = await messagesApi.getConversation(recipient?._id);
       if (response.success && response.data) {
         setConversationId(response.data._id);
         dispatch(resetUnread(response.data._id));
@@ -47,7 +47,7 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
       setIsLoadingConversation(false);
     };
     loadConversation();
-  }, [isOpen, recipientId, dispatch]);
+  }, [isOpen, recipient?._id, dispatch]);
 
   const {
     messages,
@@ -95,15 +95,9 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b bg-primary flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-accent-secondary flex items-center justify-center text-white font-semibold text-base overflow-hidden">
-                  {recipientAvatar ? (
-                    <img src={recipientAvatar} alt={recipientName} className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
-                  )}
-                </div>
+                <Avatar src={recipient?.avatar} username={recipient?.username} border /> 
                 <span className="font-semibold text-primary text-base">
-                  {recipientName}
+                  {recipient?.username}
                 </span>
               </div>
               <button

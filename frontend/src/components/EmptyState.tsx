@@ -1,15 +1,16 @@
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MdOutlineRestaurantMenu, MdOutlineChat } from 'react-icons/md';
+import { MdOutlineRestaurantMenu } from 'react-icons/md';
+import { PiBowlFoodLight } from 'react-icons/pi';
 
 interface EmptyStateProps {
-  icon: string | ReactNode;
+  icon: string | ReactNode; 
   title: string;
   description: string;
   action?: {
     label: string;
     to: string;
-    icon: string | ReactNode;
+    icon?: string | ReactNode;
   };
   secondaryAction?: {
     label: string;
@@ -19,7 +20,7 @@ interface EmptyStateProps {
   iconSize?: 'sm' | 'md' | 'lg';
 }
 
-function EmptyState({ 
+function EmptyState({
   icon, 
   title, 
   description, 
@@ -108,7 +109,7 @@ function EmptyState({
               
               {/* Floating sub-icons */}
               <div className="absolute -top-2 -right-2 glass-card p-3 rounded-xl border animate-[bounce_3s_infinite]">
-                <MdOutlineChat className=" w-9 h-9 text-tertiary" />
+                <PiBowlFoodLight className="w-9 h-9 text-tertiary" />
               </div>
               <div className="absolute bottom-4 -left-4 glass-card p-2 rounded-lg border animate-[pulse_3s_infinite]">
                 <MdOutlineRestaurantMenu className="w-9 h-9 text-secondary" />
@@ -143,7 +144,7 @@ function EmptyState({
           {secondaryAction && (
             <button
               onClick={secondaryAction.onClick}
-              className="mt-4 font-label-md text-label-md text-text-secondary hover:text-accent transition-colors py-2 px-4 border-b border-transparent hover:border-accent/30"
+              className="btn-primary"
             >
               {secondaryAction.label}
             </button>
