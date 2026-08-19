@@ -30,7 +30,7 @@ const router = Router();
 
 // Public routes
 router.get('/random', validate(validateRandomRecipes), getRandomRecipesHandler);  // From TheMealDB
-router.get('/search', validate(validateSearchRecipes), searchRecipesHandler);  // From TheMealDB
+router.get('/search', validate(validateSearchRecipes), searchRecipesHandler);  // From mongoDB
 router.get('/filter', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB
 router.get('/top-rated', validate(validateTopRated), getTopRatedRecipes);  // From mongoDB
 router.get('/', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB

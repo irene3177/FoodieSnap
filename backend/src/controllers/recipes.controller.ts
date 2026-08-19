@@ -6,8 +6,7 @@ import { CommentModel } from '../models/Comment.model';
 import { AuthRequest } from '../types';
 import {
   getRecipeById,
-  getRandomRecipes,
-  searchRecipes
+  getRandomRecipes
  } from '../services/mealDB.service';
  import { validateNumber } from '../utils/validation';
 import { IRecipeInput, IRecipeFilters } from '../types';
@@ -41,7 +40,7 @@ export const getRandomRecipesHandler = async (req: Request, res: Response, next:
   }
 };
 
-// GET /api/recipes/search - search only from TheMealDB
+// GET /api/recipes/search - search in mongoDb
 export const searchRecipesHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { q } = req.query;
@@ -52,17 +51,43 @@ export const searchRecipesHandler = async (req: Request, res: Response, next: Ne
   
     const page = validateNumber(req.query.page, 1, 1, 50);
     const limit = validateNumber(req.query.limit, 10, 1, 20);
+    const skip = (page - 1) * limit;
   
-    // Always in TheMealDB
-    const result = await searchRecipes(
-      q,
-      page,
-      limit
-    );
+    const query: any = {};
+
+    if (q.trim()) {
+      query.$or = [
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } },
+        { area: { $regex: q, $options: 'i' } }
+      ];
+    }
+
+    const searchTerms = q.trim().split(/\s+/);
+    if (searchTerms.length > 1) {
+      query.tags = { $in: searchTerms.map(term => new RegExp(term, 'i')) };
+    }
+
+    const [recipes, total] = await Promise.all([
+      RecipeModel.find(query)
+        .populate('author', 'username avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      RecipeModel.countDocuments(query)
+    ]);
     
     res.json({
       success: true,
-      data: result
+      data: {
+        recipes,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit
+      }
     });
   } catch (error) {
     next(error);
@@ -324,7 +349,6 @@ export const filterRecipesHandler = async (
       // Main filters
       difficulty,
       maxCookingTime,
-      minCookingTime,
       search,
       sort,
       minRating,
@@ -332,9 +356,7 @@ export const filterRecipesHandler = async (
       area,
   
       //  filters
-      source,
       tags,
-      ingredients,
       hasVideo,
       hasImage,
       minRatingCount,
@@ -343,28 +365,36 @@ export const filterRecipesHandler = async (
     const page = validateNumber(req.query.page, 1, 1, 50);
     const limit = validateNumber(req.query.limit, 12, 1, 50);
     const skip = (page - 1) * limit;
-
-    console.log('🔵 Бэкенд: получен запрос filterRecipes');
-    console.log('🔵 Бэкенд: req.query:', req.query);
-    console.log('🔵 Бэкенд: categories:', req.query.categories);
-    console.log('🔵 Бэкенд: tags:', req.query.tags);
-    console.log('🔵 Бэкенд: maxCookingTime:', req.query.maxCookingTime);
-    console.log('🔵 Бэкенд: sort:', req.query.sort);
-    
   
     // Build query object based on filters
     let query: any = {};
+
+    // ======  Search by text ======
+
+    if (search && typeof search === 'string' && search.trim()) {
+      if (exactMatch) {
+        query.title = { $regex: `^${search}$`, $options: 'i' };
+      } else {
+        const searchTerms = search.trim().split(/\s+/);
+        const searchConditions = [];
+        
+        searchConditions.push({ title: { $regex: search, $options: 'i' } });
+        searchConditions.push({ description: { $regex: search, $options: 'i' } });
+        searchConditions.push({ category: { $regex: search, $options: 'i' } });
+        searchConditions.push({ area: { $regex: search, $options: 'i' } });
+        
+        if (searchTerms.length > 1) {
+          searchConditions.push({ tags: { $in: searchTerms.map(term => new RegExp(term, 'i')) } });
+          searchConditions.push({ ingredients: { $in: searchTerms.map(term => new RegExp(term, 'i')) } });
+        }
+        
+        query.$or = searchConditions;
+      }
+    }
   
     // ====== Basic filters ======
     if (difficulty) query.difficulty = difficulty;
     if (area) query.area = area;
-    if (source) query.source = source;
-  
-    // ======  Ingredients ======
-    if (ingredients) {
-      const ingredientsArray = Array.isArray(ingredients) ? ingredients : [ingredients];
-      query.ingredients = { $all: ingredientsArray };
-    }
   
     // ====== Tags filter (array) ======
     if (tags) {
@@ -382,9 +412,6 @@ export const filterRecipesHandler = async (
     // ====== Number filters ======
     if (maxCookingTime) {
       query.cookingTime = { ...query.cookingTime, $lte: Number(maxCookingTime) };
-    }
-    if (minCookingTime) {
-      query.cookingTime = { ...query.cookingTime, $gte: Number(minCookingTime) };
     }
     if (minRating) {
       query.rating = { ...query.rating, $gte: Number(minRating) };
@@ -408,14 +435,7 @@ export const filterRecipesHandler = async (
         query.imageUrl = { $in: ['', null] };
       }
     }
-    // ====== Search by text ======
-    if (search) {
-      if (exactMatch) {
-        query.title = { $regex: search, $options: 'i' };
-      } else {
-        query.$text = { $search: search };
-      }
-    }
+
     // ====== Sorting ======
     let sortOption: any = { createdAt: -1 }; // Default to newest first
     
@@ -439,7 +459,8 @@ export const filterRecipesHandler = async (
         .populate('author', 'username avatar')  
         .sort(sortOption)
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
         RecipeModel.countDocuments(query)
     ]);
     
