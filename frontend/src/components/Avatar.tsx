@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 interface AvatarProps {
   src?: string | null; // Avatar URL
   username?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'profile';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'profile';
   to?: string; // Link
   onClick?: () => void;
   className?: string;
@@ -18,6 +18,7 @@ const sizeClasses = {
   md: 'w-10 h-10 text-base',
   lg: 'w-12 h-12 text-xl',
   xl: 'w-16 h-16 text-2xl',
+  '2xl': 'w-24 h-24 text-3xl',
   profile: 'w-[clamp(6rem,15vw,8rem)] h-[clamp(6rem,15vw,8rem)] text-[clamp(1.5rem,4vw,2.25rem)]',
 };
 

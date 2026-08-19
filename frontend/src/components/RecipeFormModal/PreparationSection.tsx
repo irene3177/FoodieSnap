@@ -1,13 +1,8 @@
 import { MdSchedule } from 'react-icons/md';
 import clsx from 'clsx';
+import { DIFFICULTY_OPTIONS } from '../../constants';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-
-const DIFFICULTY_OPTIONS = [
-  { value: 'easy', label: 'Easy' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'hard', label: 'Hard' },
-] as const;
 
 interface PreparationSectionProps {
   cookingTime: number;
@@ -28,6 +23,8 @@ export function PreparationSection({
         <MdSchedule className="text-accent text-xl" />
         <h2 className="text-2xl text-secondary cursor-default">Preparation</h2>
       </div>
+
+      {/* Cooking time */}
       <div className="space-y-8">
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -47,6 +44,8 @@ export function PreparationSection({
             />
           </div>
         </div>
+
+        {/* Difficulty */}
         <div className="space-y-3">
           <label className="block mb-2 font-medium text-md text-muted">Difficulty Level</label>
           <div className="flex gap-2">
@@ -56,8 +55,8 @@ export function PreparationSection({
               <button
                 className={clsx(
                   "flex-1 py-2 px-3 rounded-lg border border-outline/20 text-secondary",
-                  "hover:border-accent transition-all duration-1000 italic",
-                  {"border-accent bg-accent-bg": isActive}
+                  "hover:border-accent transition-all duration-500 italic",
+                  {"border-accent bg-accent-secondary-bg": isActive}
                 )}
                 key={item.value}
                 type="button"

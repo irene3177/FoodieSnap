@@ -74,6 +74,7 @@ function MessageModal({ isOpen, onClose, recipient }: MessageModalProps) {
   }, [conversationId, isOpen]);
 
   const isLoading = isLoadingConversation || loading;
+  console.log(showScrollButton);
 
   return (
     <AnimatePresence>
@@ -93,7 +94,7 @@ function MessageModal({ isOpen, onClose, recipient }: MessageModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 border-b bg-primary flex-shrink-0">
+            <div className="flex justify-between items-center px-8 py-4 border-b bg-primary flex-shrink-0">
               <div className="flex items-center gap-3">
                 <Avatar src={recipient?.avatar} username={recipient?.username} border /> 
                 <span className="font-semibold text-primary text-base">
@@ -120,18 +121,26 @@ function MessageModal({ isOpen, onClose, recipient }: MessageModalProps) {
                   messagesEndRef={messagesEndRef}
                   onScroll={handleScroll}
                   currentUserId={user?._id}
+                  className="px-8"
                 />
 
-                {showScrollButton && (
-                  <ScrollToBottomButton onClick={scrollToBottom} />
-                )}
+                <div className="flex-shrink-0 px-8">
+                  <div className="relative flex-1 max-w-[776px] mx-auto">
+                    {showScrollButton && (
+                      <div className="absolute bottom-[calc(100%+16px)] right-4 z-10">
+                        <ScrollToBottomButton onClick={scrollToBottom} />
+                      </div>
+                    )}
 
-                <MessageInput
-                  conversationId={conversationId!}
-                  userId={user?._id || ''}
-                  onSendMessage={sendMessage}
-                  disabled={false}
-                />
+                    <MessageInput
+                      conversationId={conversationId!}
+                      userId={user?._id || ''}
+                      onSendMessage={sendMessage}
+                      disabled={false}
+                    />
+
+                  </div>
+                </div>
               </>
             )}
           </motion.div>

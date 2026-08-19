@@ -1,12 +1,10 @@
 import { useState } from 'react';
+import Masonry from 'react-masonry-css';
 import { Recipe, UserProfile } from '../../types';
 import RecipeCard from '../RecipeCard/RecipeCard';
 import EmptyState from '../EmptyState';
 import { LuNotebookPen } from 'react-icons/lu';
 import { MdOutlineBookmarks, MdOutlineExplore } from 'react-icons/md';
-
-
-
 
 interface ProfileTabsProps {
   profile: UserProfile | null;
@@ -37,8 +35,8 @@ function ProfileTabs({
   return (
     <>
       <div className="flex-1 flex-col col-span-2">
-        <div className="flex items-end justify-between gap-4 mb-6 border-b pb-4">
-          <div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b pb-4">
+          <div className="flex">
             <h2 className="font-display-lg text-display-lg text-accent-secondary">Culinary Journal</h2>
           </div>
           <div>
@@ -75,25 +73,33 @@ function ProfileTabs({
               {loadingFavorites ? (
                 <div className="text-center py-8 text-secondary">Loading favorites...</div>
               ) : favorites.length > 0 ? (
-                <div className="columns-1 sm:columns-2 gap-6 space-y-6">
+                <Masonry
+                  breakpointCols={{
+                    default: 2,
+                    1024: 2,
+                    768: 2,
+                    640: 1
+                  }}
+                  className="flex w-auto -ml-6"
+                  columnClassName="pl-6 bg-clip-padding"
+                >
                   {favorites.map((recipe, index) => (
                     <div
-                      className="break-inside-avoid flex justify-center"
                       key={`${recipe._id}-${index}`}
+                      // ref={index === favorites.length - 1 ? lastElementRef : null}
+                      className="mb-6 w-full max-w-[450px] justify-self-center"
                     >
-                      <div className="w-full max-w-[450px]">
-                        <RecipeCard
-                          recipe={recipe}
-                          aspectRatio={
-                            index % 3 === 0 ? 'portrait' : 
-                            index % 3 === 1 ? 'square' : 
-                            'landscape'
-                          }
-                        />
-                      </div>
+                      <RecipeCard
+                        recipe={recipe}
+                        aspectRatio={
+                          index % 3 === 0 ? 'portrait' : 
+                          index % 3 === 1 ? 'square' : 
+                          'landscape'
+                        }
+                      />
                     </div>
                   ))}
-                </div>
+                </Masonry>
               ) : (
                 <div className="flex items-center justify-center text-center py-12 px-8">
                   {isOwnProfile 
@@ -133,28 +139,36 @@ function ProfileTabs({
               {loadingUserRecipes ? (
                 <div className="text-center py-8 text-secondary">Loading recipes...</div>
               ) : userRecipes.length > 0 ? (
-                <div className="columns-1 sm:columns-2 gap-6 space-y-6">
+                <Masonry
+                  breakpointCols={{
+                    default: 2,
+                    1024: 2,
+                    768: 2,
+                    640: 1
+                  }}
+                  className="flex w-auto -ml-6"
+                  columnClassName="pl-6 bg-clip-padding"
+                >
                   {userRecipes.map((recipe, index) => (
                     <div
-                      className="break-inside-avoid flex justify-center"
                       key={`${recipe._id}-${index}`}
+                      // ref={index === favorites.length - 1 ? lastElementRef : null}
+                      className="mb-6 w-full max-w-[450px] justify-self-center"
                     >
-                      <div className="w-full max-w-[450px]">
-                        <RecipeCard
-                          recipe={recipe}
-                          onEdit={isOwnProfile ? onEditRecipe : undefined}
-                          onDelete={isOwnProfile ? onDeleteRecipe : undefined}
-                          isOwner={isOwnProfile}
-                          aspectRatio={
-                            index % 3 === 0 ? 'portrait' : 
-                            index % 3 === 1 ? 'square' : 
-                            'landscape'
-                          }
-                        />
-                      </div>
+                      <RecipeCard
+                        recipe={recipe}
+                        onEdit={isOwnProfile ? onEditRecipe : undefined}
+                        onDelete={isOwnProfile ? onDeleteRecipe : undefined}
+                        isOwner={isOwnProfile}
+                        aspectRatio={
+                          index % 3 === 0 ? 'portrait' : 
+                          index % 3 === 1 ? 'square' : 
+                          'landscape'
+                        }
+                      />
                     </div>
                   ))}
-                </div>
+                </Masonry>
               ) : (
                 <div className="flex items-center justify-center text-center py-12 px-8">
                   {isOwnProfile 

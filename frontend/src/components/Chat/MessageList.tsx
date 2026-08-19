@@ -8,6 +8,7 @@ interface MessageListProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   onScroll: () => void;
   currentUserId?: string;
+  className?: string;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -15,7 +16,8 @@ export const MessageList: React.FC<MessageListProps> = ({
   messagesContainerRef,
   messagesEndRef,
   onScroll,
-  currentUserId
+  currentUserId,
+  className='',
 }) => {
   const groupMessagesByDate = () => {
     const groups: { [key: string]: Message[] } = {};
@@ -48,7 +50,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <div
-      className="flex-1 overflow-y-auto px-8 pt-4 pb-2 scrollbar-thin"
+      className={`flex-1 overflow-y-auto pt-4 pb-2 scrollbar-thin ${className}`}
       ref={messagesContainerRef}
       onScroll={onScroll}
     >

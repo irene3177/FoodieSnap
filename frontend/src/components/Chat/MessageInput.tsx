@@ -15,7 +15,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   conversationId,
   userId,
   onSendMessage,
-  disabled
+  disabled,
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -106,8 +106,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [conversationId, userId]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center justify-center px-8 pb-4 flex-shrink-0 min-h-[70px] sticky bottom-0 z-5 mt-auto">
-      <div className="flex-1 max-w-[776px] relative p-4 border rounded-3xl shadow-theme bg-secondary z-30">
+    <form onSubmit={handleSubmit} className="flex items-center justify-center pb-4 flex-shrink-0 min-h-[70px] sticky bottom-0 z-5 mt-auto">
+      <div className="flex-1 relative p-4 border rounded-3xl shadow-theme bg-secondary max-w-[776px] z-30 focus:border-accent">
         <TextareaAutosize
           ref={textareaRef}
           value={newMessage}

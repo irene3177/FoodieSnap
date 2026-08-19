@@ -59,7 +59,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   return (
     <header className="flex-shrink-0 bg-header shadow-theme z-[1000]">
-      <div className="flex justify-between items-center px-8 py-[clamp(0.5rem,2vw,1rem)] 
+      <div className="flex justify-between items-center py-[clamp(0.5rem,2vw,1rem)] 
         max-w-[792px] mx-auto gap-[clamp(0.5rem,2vw,1.5rem)]">
         {/* Back button */}
         <button

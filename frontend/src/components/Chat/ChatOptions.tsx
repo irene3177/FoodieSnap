@@ -28,10 +28,8 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
   isOpen,
   setIsOpen,
   onClose,
-  // optionsMenuRef,
   onClearChat,
   onDeleteChat,
-  // deleting,
   currentUser,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -136,9 +134,9 @@ export const ChatOptions: React.FC<ChatOptionsProps> = ({
               ))}
             </div>
 
-            {/* Account Settings */}
+            {/* Chat Settings */}
             <div className="pb-2 border-b space-y-2">
-              <p className="py-2 uppercase text-muted text-xs cursor-default text-outline tracking-widest">Account Settings</p>
+              <p className="py-2 uppercase text-muted text-xs cursor-default text-outline tracking-widest">Chat Settings</p>
 
               {/* Theme Toggle */}
               <div className="flex items-center justify-between text-base px-2 py-2 rounded-lg hover:bg-border transition-all hover:-translate-y-[1px] cursor-pointer group">

@@ -22,7 +22,7 @@ const sizeConfig = {
     sparkle: 'text-xs',
   },
   medium: {
-    button: 'p-2 text-base',
+    button: 'text-base',
     icon: 'w-6 h-6',
     sparkle: 'text-sm',
   },
@@ -93,8 +93,7 @@ function BookmarkButton({
         relative inline-flex items-center justify-center
         bg-transparent border-none cursor-pointer rounded-full
         text-secondary
-        transition-all duration-200
-        focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2
+        transition-all duration-500
         ${sizeClasses.button}
         ${className}
       `}
@@ -109,14 +108,14 @@ function BookmarkButton({
       {isFav ? (
         <motion.div
           variants={heartVariants}
-          className="relative z-[2] text-accent"
+          className="relative z-[2] text-accent hover:text-accent-hover"
         >
           <MdBookmark className={sizeClasses.icon} />
         </motion.div>
       ) : (
         <motion.div
           variants={heartVariants}
-          className="relative z-[2] text-accent-secondary hover:text-accent"
+          className="relative z-[2] text-accent-secondary hover:text-accent-hover"
         >
           <MdBookmarkBorder className={sizeClasses.icon} />
         </motion.div>

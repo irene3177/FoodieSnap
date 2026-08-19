@@ -110,7 +110,6 @@ function CommentSection({ recipeId }: CommentSectionProps) {
   };
 
   const isLiked = (comment: Comment) => {
-    console.log(comment.userId);
     return comment.likedBy?.includes(user?._id || '');
   };
 

@@ -8,6 +8,7 @@ import { showToast } from '../../store/toastSlice';
 import { authApi } from '../../services/authApi';
 import { MdClose } from 'react-icons/md';
 import { RiEdit2Fill } from 'react-icons/ri';
+import Avatar from '../Avatar';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -119,15 +120,7 @@ function EditProfileModal({ isOpen, onClose, onSuccess }: EditProfileModalProps)
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar Preview */}
                 <div className="flex justify-center mb-4">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-accent-secondary
-                    flex items-center justify-center text-white text-4xl font-semibold overflow-hidden
-                    shadow-md hover:scale-105 transition-transform duration-200">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <span>{username.charAt(0).toUpperCase() || 'U'}</span>
-                    )}
-                  </div>
+                  <Avatar src={avatarPreview} username={username} size="2xl" border />
                 </div>
 
                 {/* Username Input */}
