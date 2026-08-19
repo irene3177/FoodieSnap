@@ -39,7 +39,7 @@ export interface IRecipeFilters {
   search?: string;
   sort?: 'newest' | 'popular' | 'rating';
   minRating?: number;
-  category?: string;
+  categories?: string[];
   area?: string;
   source?: 'user' | 'theMealDB';
   tags?: string[];

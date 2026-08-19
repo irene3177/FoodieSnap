@@ -248,6 +248,71 @@ export const deleteRecipe = async (
   }
 };
 
+// GET /api/recipes/categories
+export const getCategories = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const categories = await RecipeModel.distinct('category');
+
+    const filtered = categories.filter(c => c && c.trim() !== '');
+    res.json({
+      success: true,
+      data: filtered.sort()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/recipes/categories
+export const getTags = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const tags = await RecipeModel.aggregate([
+      { $unwind: '$tags' },
+      { $group: { _id: null, tags: { '$addToSet': '$tags' } } }
+    ]);
+
+    const result = tags.length > 0
+      ? tags[0].tags
+        .filter((tag: string) => tag && tag.trim() !== '')
+        .sort()
+      : [];
+    res.json({
+      success: true,
+      data: result
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/recipes/areas
+export const getAreas = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const areas = await RecipeModel.distinct('area');
+    const filtered = areas.filter(a => a && a.trim() !== '');
+
+    res.json({
+      success: true,
+      data: filtered.sort()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // GET /api/recipes/filter - Get recipes with optional filters and sorting
 export const filterRecipesHandler = async (
   req: Request<{}, {}, {}, IRecipeFilters>,
@@ -263,7 +328,7 @@ export const filterRecipesHandler = async (
       search,
       sort,
       minRating,
-      category,
+      categories,
       area,
   
       //  filters
@@ -278,6 +343,13 @@ export const filterRecipesHandler = async (
     const page = validateNumber(req.query.page, 1, 1, 50);
     const limit = validateNumber(req.query.limit, 12, 1, 50);
     const skip = (page - 1) * limit;
+
+    console.log('🔵 Бэкенд: получен запрос filterRecipes');
+    console.log('🔵 Бэкенд: req.query:', req.query);
+    console.log('🔵 Бэкенд: categories:', req.query.categories);
+    console.log('🔵 Бэкенд: tags:', req.query.tags);
+    console.log('🔵 Бэкенд: maxCookingTime:', req.query.maxCookingTime);
+    console.log('🔵 Бэкенд: sort:', req.query.sort);
     
   
     // Build query object based on filters
@@ -285,7 +357,6 @@ export const filterRecipesHandler = async (
   
     // ====== Basic filters ======
     if (difficulty) query.difficulty = difficulty;
-    if (category) query.category = category;
     if (area) query.area = area;
     if (source) query.source = source;
   
@@ -300,7 +371,14 @@ export const filterRecipesHandler = async (
       const tagsArray = Array.isArray(tags) ? tags : [tags];
       query.tags = { $in: tagsArray };
     }
-  
+
+    // ====== Categories filter (array) ======
+    if (categories) {
+      if (categories.length > 0) {
+        query.category = { $in: categories };
+      }
+    }
+
     // ====== Number filters ======
     if (maxCookingTime) {
       query.cookingTime = { ...query.cookingTime, $lte: Number(maxCookingTime) };
