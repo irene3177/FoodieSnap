@@ -159,6 +159,8 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
   }
 
   /* Smooth transitions for theme switching */
@@ -217,6 +219,14 @@
     @apply placeholder:text-muted placeholder:opacity-60 outline-none;
     @apply focus:outline-none focus:border-accent-secondary focus:placeholder-transparent transition-all duration-1000;      
   }
+
+  .checkbox-custom {
+    @apply w-4 h-4 appearance-none rounded border bg-secondary;
+    @apply transition-all duration-200 cursor-pointer;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply checked:bg-tertiary checked:border-accent;
+    @apply hover:border-accent-secondary;
+  }
 }
 
 /* ===== Custom utility classes ===== */
@@ -243,14 +253,25 @@
     }
   }
 
-  @keyframes slideUp {
+  @keyframes slideDown {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(-10px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(0px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-10px);
     }
   }
 
@@ -261,6 +282,14 @@
     100% {
       transform: translateX(200%) skewX(-15deg);
     }
+  }
+
+  details[open] > div {
+    animation: slideDown 0.6s ease-out forwards;
+  }
+
+  details:not([open]) > div {
+    animation: slideUp 0.6s ease-in forwards;
   }
 
   .glow-ring {
@@ -322,18 +351,44 @@
     text-wrap: balance;
   }
 
-  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+  }
+
+  .scrollbar-thin:hover,
+  .scrollbar-thin:active,
+  .scrollbar-thin:focus-within {
+    scrollbar-color: var(--accent-primary) var(--bg-secondary);
+  }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--accent-primary);
+    background: transparent;
     border-radius: 3px;
+    transition: background 0.3s ease;
+  }
+
+  .scrollbar-thin:hover::-webkit-scrollbar-track,
+  .scrollbar-thin:active::-webkit-scrollbar-track,
+  .scrollbar-thin:focus-within::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+
+  .scrollbar-thin:hover::-webkit-scrollbar-thumb,
+  .scrollbar-thin:active::-webkit-scrollbar-thumb,
+  .scrollbar-thin:focus-within::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
