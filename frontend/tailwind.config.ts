@@ -54,7 +54,8 @@ export default {
         border: 'var(--border-color)',
         'accent-hover': 'var(--accent-hover)',
         'accent-secondary-bg': 'var(--accent-secondary-bg)',
-        'surface-container-high': 'var(--skeleton-base)',
+        'skeleton-base': 'var(--skeleton-base)',
+        'skeleton-highlight': 'var(--skeleton-highlight)',
       },
       textColor: {
         primary: 'var(--text-primary)',
