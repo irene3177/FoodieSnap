@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Masonry from 'react-masonry-css';
 import { recipesApi } from '../../services/recipesApi';
 import { Recipe } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
@@ -49,7 +50,7 @@ function Recipes() {
     if (loadingMore || !hasMore) return;
 
     setLoadingMore(true);
-    const response = await recipesApi.getRandomRecipes(4, page);
+    const response = await recipesApi.getRandomRecipes(6, page);
     
     if (response.success) {
       const newRecipes = response.data?.recipes || [];
@@ -62,6 +63,9 @@ function Recipes() {
 
       // For random recipes hasMore is always true
       setHasMore(true);
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 300);
     } else {
       console.error('Failed to load more recipes:', response.error);
     }
@@ -72,6 +76,11 @@ function Recipes() {
     hasMore: hasMore,
     loadMore: loadMoreRecipes
   });
+
+  const skeletonItems = Array(4).fill(null).map((_, index) => ({
+    id: `skeleton-${index}`,
+    aspectRatio: (index % 3 === 0 ? 'portrait' : index % 3 === 1 ? 'square' : 'landscape') as 'portrait' | 'square' | 'landscape'
+  }));
 
   return (
     <div className="max-w-[1400px] overflow-y-auto mx-auto px-8 py-12 scrollbar-thin">
@@ -99,7 +108,55 @@ function Recipes() {
       )}
 
       {/* Masonry grid*/}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+      <Masonry
+        breakpointCols={{
+          default: 3,
+          1024: 2,
+          768: 2,
+          640: 1
+        }}
+        className="flex w-auto -ml-6"
+        columnClassName="pl-6 bg-clip-padding"
+      >
+        {recipes.map((recipe, index) => (
+          <div
+            key={`${recipe._id}-${index}`}
+            ref={index === recipes.length - 1 ? lastElementRef : null}
+            className="mb-6 w-full max-w-[450px] justify-self-center"
+          >
+            <RecipeCard
+              recipe={recipe}
+              aspectRatio={
+                index % 3 === 0 ? 'portrait' : 
+                index % 3 === 1 ? 'square' : 
+                'landscape'
+              }
+            />
+          </div>
+        ))}
+        {/* Скелетоны для initial loading */}
+        {loading && !error && (
+          <>
+            {skeletonItems.map((item) => (
+              <div key={item.id} className="mb-6 w-full max-w-[450px]">
+                <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Скелетоны для loading more - всегда показываем 4 штуки */}
+        {loadingMore && !error && (
+          <>
+            {skeletonItems.map((item) => (
+              <div key={`${item.id}-more`} className="mb-6 w-full max-w-[450px]">
+                <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+              </div>
+            ))}
+          </>
+        )}
+      </Masonry>
+      {/* <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
         {recipes.map((recipe, index) => (
           <div
             className="break-inside-avoid flex justify-center"
@@ -118,23 +175,9 @@ function Recipes() {
             </div>
           </div>
         ))}
+      </div> */}
 
-        {(loading || loadingMore) && !error && (
-          <>
-            {[...Array(6)].map((_, index) => (
-              <div key={`skeleton-${index}`} className="break-inside-avoid">
-                <RecipeCardSkeleton 
-                  aspectRatio={
-                    index+2 % 3 === 0 ? 'portrait' : 
-                    index % 3 === 1 ? 'square' : 
-                    'landscape'
-                  }
-                />
-              </div>
-            ))}
-          </>
-        )}
-      </div>
+      
 
       {/* End message */}
       {!hasMore && recipes.length === 0 && (

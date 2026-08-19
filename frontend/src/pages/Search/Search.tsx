@@ -3,13 +3,18 @@ import { recipesApi } from '../../services/recipesApi';
 import { Recipe, RecipesFilters } from '../../types';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
+import Masonry from 'react-masonry-css';
 import { RecipeFilters as FiltersComponent } from '../../components/RecipeFilters/RecipeFilters';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { MdClose, MdFilterList, MdKeyboardArrowUp, MdSearch } from 'react-icons/md';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { fetchFiltersData } from '../../store/filtersSlice';
 
 function Search() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const dispatch = useAppDispatch();
+  const { categories, tags, areas, loading: filtersLoading, initialized } = useAppSelector(state => state.filters);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,12 +30,18 @@ function Search() {
   const initialLoaded = useRef(false);
 
   useEffect(() => {
+    if (!initialized) {
+      dispatch(fetchFiltersData());
+    }
+  }, [dispatch, initialized]);
+
+  useEffect(() => {
     let count = 0;
     if (filters.difficulty) count++;
     if (filters.maxCookingTime) count++;
     if (filters.minCookingTime) count++;
     if (filters.minRating) count++;
-    if (filters.category) count++;
+    if (filters.categories) count++;
     if (filters.area) count++;
     if (filters.source) count++;
     if (filters.hasVideo) count++;
@@ -124,6 +135,7 @@ function Search() {
   };
 
   const handleFilterChange = (newFilters: RecipesFilters) => {
+    console.log('🔵 Search: получены фильтры:', newFilters);
     setFilters(newFilters);
     loadRecipes(true);
     setShowFilters(false);
@@ -145,6 +157,12 @@ function Search() {
       initialLoaded.current = true;
     }
   }, [loadRecipes]);
+
+  useEffect(() => {
+    if (initialLoaded.current) {
+      loadRecipes(true);
+    }
+  }, [filters]);
 
   useEffect(() => {
     return () => {
@@ -206,16 +224,6 @@ function Search() {
           </button>
         </div>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="max-w-2xl mx-auto mt-4 p-6 bg-secondary rounded-2xl border animate-slide-down">
-            <FiltersComponent 
-              onFilterChange={handleFilterChange} 
-              isLoading={loading} 
-            />
-          </div>
-        )}
-
         {/* Results count */}
         {!loading && !error && recipes.length > 0 && (
           <div className="text-sm text-muted mt-4">
@@ -240,24 +248,40 @@ function Search() {
       )}
 
       {/* Recipe grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+      <Masonry
+        breakpointCols={{
+          default: 3,
+          1024: 2,
+          768: 2,
+          640: 1
+        }}
+        className="flex w-auto -ml-6"
+        columnClassName="pl-6 bg-clip-padding"
+      >
         {recipes.map((recipe, index) => (
           <div
             key={`${recipe._id}-${index}`}
             ref={index === recipes.length - 1 ? lastElementRef : null}
+            className="mb-6 w-full max-w-[450px] justify-self-center"
           >
-            <RecipeCard recipe={recipe} />
+            <RecipeCard
+              recipe={recipe}
+              aspectRatio={
+                index % 3 === 0 ? 'portrait' : 
+                index % 3 === 1 ? 'square' : 
+                'landscape'
+              }
+            />
           </div>
         ))}
-
-        {(loading || loadingMore) && !error && (
-          <>
-            {[...Array(4)].map((_, index) => (
-              <RecipeCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </>
-        )}
-      </div>
+      </Masonry>
+      {(loading || loadingMore) && !error && (
+        <>
+          {[...Array(4)].map((_, index) => (
+            <RecipeCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </>
+      )}
 
       {/* No results */}
       {!loading && !error && recipes.length === 0 && (
@@ -298,6 +322,16 @@ function Search() {
       )}
       {/* Scroll to Top Button */}
       <ScrollToTop threshold={300} behavior="smooth" />
+      <FiltersComponent
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        onFilterChange={handleFilterChange} 
+        isLoading={loading}
+        categories={categories}
+        tags={tags}
+        areas={areas}
+        filtersLoading={filtersLoading}
+      />
     </div>
   );
 }
