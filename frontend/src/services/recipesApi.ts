@@ -24,12 +24,13 @@ export const recipesApi = {
   // Search recipe by name (TheMealDB)
   searchRecipesByName: async (
     query: string,
-    page: number = 1
+    page: number = 1,
+    limit: number = 12
   ): Promise<ApiResponse<SearchRecipesResponse>> => {
-    return get<SearchRecipesResponse>('/recipes/search', {
+    return get<SearchRecipesResponse>('/recipes/filter', {
       q: query,
       page,
-      limit: 10
+      limit
     });
   },
 
