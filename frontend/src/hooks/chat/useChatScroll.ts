@@ -6,7 +6,6 @@ export const useChatScroll = (messages: Message[]) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wasAtBottomRef = useRef(true);
-  // const isInitialLoadRef = useRef(true);
   const prevMessagesLengthRef = useRef(0);
 
   const scrollToBottom = () => {
@@ -42,17 +41,6 @@ export const useChatScroll = (messages: Message[]) => {
         scrollToBottom();
       }, 100);
     }
-    // if (messages.length > 0 && messagesContainerRef.current) {
-    //   if (isInitialLoadRef.current) {
-    //     isInitialLoadRef.current = false;
-    //     return;
-    //   }
-    //   if (wasAtBottomRef.current) {
-    //     setTimeout(() => {
-    //       scrollToBottom();
-    //     }, 100);
-    //   }
-    // }
   }, [messages]);
 
   // Set initial scroll position to bottom without animation
@@ -62,11 +50,6 @@ export const useChatScroll = (messages: Message[]) => {
         scrollToBottom();
       }, 150);
     }
-    // if (messages.length > 0 && messagesContainerRef.current) {
-    //   // Immediately scroll to bottom without animation on initial load
-    //   messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    //   wasAtBottomRef.current = true;
-    // }
   }, [messages.length]);
 
   return {
