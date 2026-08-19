@@ -13,17 +13,13 @@ export function RecipeCardSkeleton({ aspectRatio = 'square' }: RecipeCardSkeleto
   };
 
   return (
-    <div className="animate-pulse bg-card rounded-xl overflow-hidden border shadow-theme">
+    <div className=" bg-card rounded-xl overflow-hidden border shadow-theme">
       <div className={`${getImageHeight()} bg-skeleton-base`} />
       <div className="p-4 space-y-3">
         <div className="h-5 bg-skeleton-base rounded w-3/4" />
         <div className="h-4 bg-skeleton-base rounded w-1/2" />
         <div className="h-4 bg-skeleton-base rounded w-full" />
         <div className="h-4 bg-skeleton-base rounded w-2/3" />
-        <div className="flex justify-between items-center pt-3 border-t ">
-          <div className="h-4 bg-skeleton-base rounded w-16" />
-          <div className="h-4 bg-skeleton-base rounded w-12" />
-        </div>
       </div>
     </div>
   );

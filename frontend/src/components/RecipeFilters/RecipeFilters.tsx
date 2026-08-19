@@ -178,7 +178,7 @@ export const RecipeFilters = ({
                 value={sort}
                 onChange={(e) => setSort(e.target.value as RecipeFiltersType['sort'])}
                 disabled={isLoading}
-                className="w-full px-3 py-2 border rounded-lg bg-primary text-primary text-sm focus:outline-none focus:border-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 rounded-lg bg-primary text-secondary text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="newest">Newest</option>
                 <option value="popular">Popular</option>
