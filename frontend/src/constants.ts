@@ -14,3 +14,9 @@ export const PersonalLinks = [
   { path: '/chats', label: 'Messages', icon: MdMailOutline },
   { path: '/favorites', label: 'Saved Recipes', icon: MdBookmarkBorder },
 ] as const;
+
+export const DIFFICULTY_OPTIONS = [
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' },
+] as const;

@@ -6,6 +6,7 @@ import commentsReducer from './commentsSlice';
 import ratingReducer from './ratingSlice';
 import unreadReducer from './unreadSlice';
 import toastReducer from './toastSlice';
+import filtersReducer from './filtersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ export const store = configureStore({
     comments: commentsReducer,
     ratings: ratingReducer,
     unread: unreadReducer,
-    toast: toastReducer
+    toast: toastReducer,
+    filters: filtersReducer
   }
 });
 
