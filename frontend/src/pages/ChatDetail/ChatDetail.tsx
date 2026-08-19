@@ -120,8 +120,10 @@ function ChatDetail() {
     return <ChatDetailSkeleton />;
   }
 
+  console.log(showScrollButton);
+
   return (
-    <div className="flex flex-col h-screen w-full bg-primary relative overflow-hidden">
+    <div className="flex flex-col h-screen w-full bg-primary relative overflow-hidden px-8">
       <ChatHeader
         recipient={recipient}
         onBack={handleBack}
@@ -144,14 +146,25 @@ function ChatDetail() {
         currentUserId={user?._id}
       />
 
-      {showScrollButton && <ScrollToBottomButton onClick={scrollToBottom} />}
+      <div className="relative flex-shrink-0 justify-center w-full">
+        <div className="relative max-w-[792px] mx-auto">
 
-      <MessageInput
-        conversationId={conversationId || ''}
-        userId={user?._id || ''}
-        onSendMessage={sendMessage}
-        disabled={deleting}
-      />
+        {showScrollButton && (
+          <div className="absolute bottom-[calc(100%+16px)] right-4 z-10">
+            <ScrollToBottomButton onClick={scrollToBottom} />
+          </div>
+        )}
+
+        <MessageInput
+          conversationId={conversationId || ''}
+          userId={user?._id || ''}
+          onSendMessage={sendMessage}
+          disabled={deleting}
+        />
+        </div>
+      </div>
+      
+
     </div>
   );
 }
