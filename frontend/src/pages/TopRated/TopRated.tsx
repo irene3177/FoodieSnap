@@ -58,7 +58,7 @@ function TopRated() {
         </div>
       )}
       {/* Header */}
-      <div className="text-center mb-10 cursor-default">
+      <div className="mb-10 cursor-default">
         <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">
           Top 10 Rated Recipes
         </h1>

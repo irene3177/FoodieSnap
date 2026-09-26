@@ -169,11 +169,11 @@ function Explore() {
 
 function HeaderContent() {
   return (
-    <div className="mb-8">
-      <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] text-secondary text-center cursor-default font-display-lg text-display-lg tracking-tight">
+    <div className="mb-10 cursor-default">
+      <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">
         Find Your Next Favorite Meal
       </h1>
-      <p className="text-muted text-[clamp(1rem,1.5vw,1.25rem)] max-w-2xl mt-2 mx-auto text-center">
+      <p className="text-muted font-body-lg text-body-lg mt-2">
         Explore new flavors and get inspired by recipes from around the world
       </p>
     </div>

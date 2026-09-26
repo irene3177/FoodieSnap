@@ -126,14 +126,15 @@ function Search() {
 
   return (
     <div className="max-w-7xl mx-auto px-8 py-8 md:py-10 min-h-screen">
-      <div className="text-center mb-8 cursor-default">
-        <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">Search Recipes</h1>
-        <p className=" text-muted font-body-lg text-body-lg mt-2 mb-6">
-          Find recipes from our collection
-        </p>
-
+      <div className="flex flex-col md:flex-row justify-between items-start cursor-default">
+        <div>
+          <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">Search Recipes</h1>
+          <p className=" text-muted font-body-lg text-body-lg mt-2 mb-6">
+            Find recipes from our collection
+          </p>
+        </div>
         {/* Search Section */}
-        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl md:mt-2 mb-4">
           <div className="relative flex-1">
             <input
               type="text"
@@ -175,15 +176,15 @@ function Search() {
           </button>
         </div>
 
-        {/* Results count */}
-        {!isLoading && !isError && recipes.length > 0 && (
-          <div className="text-sm text-muted mt-4">
-            Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}
-            {debouncedSearch && ` for "${debouncedSearch}"`}
-            {activeFiltersCount > 0 && ` with ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied`}
-          </div>
-        )}
       </div>
+      {/* Results count */}
+      {!isLoading && !isError && recipes.length > 0 && (
+        <div className="text-center text-sm text-muted mb-2">
+          Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}
+          {debouncedSearch && ` for "${debouncedSearch}"`}
+          {activeFiltersCount > 0 && ` with ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied`}
+        </div>
+      )}
 
       {/* No Results */}
       {!isLoading && !isError && recipes.length === 0 && (
