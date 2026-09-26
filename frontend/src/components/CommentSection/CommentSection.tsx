@@ -115,11 +115,7 @@ function CommentSection({ recipeId }: CommentSectionProps) {
 
 
   return (
-    <div className="mt-12 pt-8 border-t-2">
-      <h3 className="text-2xl text-secondary mb-6">
-        Comments <span className="text-lg text-muted">({comments.length})</span>
-      </h3>
-
+    <div>
       {/* Add comment form */}
       <form className="mb-8 bg-secondary rounded-xl p-6 border" onSubmit={handleSubmit}>
         <div className="flex gap-4 flex-col sm:flex-row">

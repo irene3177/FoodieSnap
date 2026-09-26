@@ -123,12 +123,12 @@ function BookmarkButton({
 
       {showText && (
         <motion.span 
-          className="ml-2 text-sm text-primary"
+          className="ml-2 text-sm text-secondary"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {isFav ? 'Saved to Favorites' : 'Add to Favorites'}
+          {isFav ? 'Added to Favorites' : 'Add to Favorites'}
         </motion.span>
       )}
     </motion.button>

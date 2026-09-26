@@ -5,11 +5,12 @@ import { PiBowlFoodLight } from 'react-icons/pi';
 
 interface EmptyStateProps {
   icon: string | ReactNode; 
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   action?: {
     label: string;
     to: string;
+    state?: Record<string, unknown>;
     icon?: string | ReactNode;
   };
   secondaryAction?: {
@@ -128,6 +129,7 @@ function EmptyState({
           {action && (
             <Link
               to={action.to}
+              state={action.state}
               className="terracotta-gradient btn-shimmer text-button px-[clamp(1rem,2.5vw,2rem)] py-4 rounded-xl w-full
                 hover:text-button hover:-translate-y-[1px] hover:shadow-primary-btn active:scale-95 transition-all duration-500
                 md:w-auto tracking-widest flex items-center justify-center gap-2
