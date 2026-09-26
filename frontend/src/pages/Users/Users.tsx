@@ -7,7 +7,6 @@ import {
   selectUsers,
   selectUsersLoading,
   selectUsersError,
-  selectUsersTotal,
   selectUsersPages,
   selectSearchQuery,
   setPage
@@ -15,8 +14,9 @@ import {
 import { UsersSkeleton } from '../../components/Skeleton/UsersSkeleton';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
 import { useDebounce } from '../../hooks/useDebounce';
-import { MdSearch, MdClose } from 'react-icons/md';
+import { MdSearch, MdClose, MdGroups, MdPersonAddAlt1 } from 'react-icons/md';
 import Avatar from '../../components/Avatar';
+import EmptyState from '../../components/EmptyState';
 
 function Users() {
   const dispatch = useAppDispatch();
@@ -25,7 +25,6 @@ function Users() {
   const users = useAppSelector(selectUsers);
   const loading = useAppSelector(selectUsersLoading);
   const error = useAppSelector(selectUsersError);
-  const total = useAppSelector(selectUsersTotal);
   const totalPages = useAppSelector(selectUsersPages);
   const currentPage = useAppSelector(state => state.users.page);
   const searchQuery = useAppSelector(selectSearchQuery);
@@ -76,16 +75,20 @@ function Users() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 md:py-10">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-3xl md:text-4xl font-headline-md text-primary mb-2">Foodie Community</h1>
-        <p className="text-secondary mb-4">
-          Discover and connect with fellow food enthusiasts
-        </p>
+    <div className="max-w-3xl mx-auto p-8 md:py-10">
 
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start mb-8 cursor-default">
+        <div>
+          <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">
+            Foodie Community
+          </h1>
+          <p className="text-muted font-body-lg text-body-lg mt-2">
+            Discover and connect with fellow food enthusiasts
+          </p>
+        </div>
         {/* Search Bar */}
-        <div className="relative max-w-md mx-auto">
+        <div className="relative max-w-md md:mx-0 mt-4 md:mt-2">
           <input
             type="text"
             placeholder="Search by username..."
@@ -104,17 +107,6 @@ function Users() {
             </button>
           )}
         </div>
-
-        {/* Results count */}
-        {!loading && total > 0 && (
-          <div className="text-sm text-muted mt-3">
-            {isSearching ? (
-              <>Found {total} {total === 1 ? 'user' : 'users'} matching "{searchTerm}"</>
-            ) : (
-              <>Total {total} members</>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Error state */}
@@ -221,13 +213,25 @@ function Users() {
 
       {/* Empty state */}
       {!loading && users.length === 0 && !error && (
-        <div className="text-center py-12 px-6 text-secondary">
-          <div className="text-6xl mb-4">👥</div>
-          <h2 className="text-2xl font-semibold text-primary mb-2">No users found</h2>
+        <div className="flex justify-center">
           {searchTerm ? (
-            <p>No users matching "{searchTerm}". Try a different search term.</p>
+            <EmptyState
+              icon={<MdGroups />}
+              title="No users found"
+              description={`No users matching "${searchTerm}". Try a different search term.`}
+            />
           ) : (
-            <p>Be the first to join our community!</p>
+            <EmptyState
+              icon={<MdGroups />}
+              title="No users found"
+              description="Be the first to join our community!"
+              action={{
+                label: "Join FoodieSnap",
+                to: "/",
+                state: { openSignUp: true },
+                icon: <MdPersonAddAlt1 />
+              }}
+            />
           )}
         </div>
       )}
