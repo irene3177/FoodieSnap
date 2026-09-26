@@ -3,7 +3,8 @@ import {
   getUserById,
   getCreatedRecipes,
   getFavorites,
-  getUsers
+  getUsers,
+  searchUsers,
 } from '../controllers/user.controller';
 import { optionalAuth } from '../middleware/optionalAuth';
 import { validate } from '../middleware/validationHandler';
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', validate(validateGetUsers), getUsers);
+router.get('/search', validate(validateGetUsers), optionalAuth, searchUsers);
 router.get('/:userId', validate(validateUserId), optionalAuth, getUserById);
 router.get('/:userId/favorites', validate(validateUserId), getFavorites);
 router.get('/:userId/recipes', validate(validateUserId), getCreatedRecipes);

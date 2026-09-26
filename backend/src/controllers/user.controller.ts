@@ -152,3 +152,54 @@ export const getUsers = async (req: AuthRequest, res: Response, next: NextFuncti
     next(error);
   }
 };
+
+// GET /api/users/search?q=...&page=1&limit=20
+export const searchUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const q = (req.query.q as string)?.trim();
+    if (!q) {
+      return next(BadRequestError('Search query is required'));
+    }
+
+    const page = validateNumber(req.query.page, 1, 1, 100);
+    const limit = validateNumber(req.query.limit, 20, 1, 50);
+    const skip = (page - 1) * limit;
+    const currentUserId = req.user?._id;
+
+    const query = {
+      username: { $regex: q, $options: 'i' }, // case-insensitive
+    };
+
+    const [users, total] = await Promise.all([
+      UserModel.find(query)
+        .select('username avatar bio followers createdRecipes')
+        .sort({ username: 1 })
+        .skip(skip)
+        .limit(limit),
+      UserModel.countDocuments(query),
+    ]);
+
+    const formattedUsers: IUserListItem[] = users.map((user) => ({
+      _id: user._id.toString(),
+      username: user.username,
+      avatar: user.avatar,
+      bio: user.bio,
+      recipeCount: user.createdRecipes?.length || 0,
+      isFollowing: user.followers?.some(
+        (id) => id.toString() === currentUserId?.toString()
+      ) || false,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        users: formattedUsers,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
