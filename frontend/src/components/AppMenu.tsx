@@ -131,8 +131,10 @@ function AppMenu({ isOpen, onClose }: AppMenuProps) {
                         }, 300);
                       }}
                     >
-                      <MdPersonAddAlt1 />
-                      Sign Up
+                      <span className="flex gap-2 items-center">
+                        <MdPersonAddAlt1 />
+                        Sign Up
+                      </span>
                     </button>
                   </div>
                 </div>

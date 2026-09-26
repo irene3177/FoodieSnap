@@ -28,8 +28,7 @@ function Header() {
         {/* Logo */}
         <Link
           to="/"
-          className="text-[clamp(1.6rem,3vw,3rem)] select-none  text-accent whitespace-nowrap
-            hover:text-accent transition-all duration-1000 hover:scale-[1.02] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)]"
+          className="text-[clamp(1.8rem,3vw,3rem)] select-none text-accent whitespace-nowrap hover:text-accent transition-all duration-700 hover:scale-[1.02]"
           onClick={closeMenu}
         >
           <span className="flex items-center gap-1">
@@ -39,7 +38,7 @@ function Header() {
         </Link>
 
         <nav className="hidden md:flex flex-1 min-w-0 md:justify-center md:items-center">
-          <ul className="flex gap-[clamp(0.5rem,2vw,2rem)] w-full  md:w-auto">
+          <ul className="flex gap-[clamp(1rem,2.5vw,2rem)] font-headline w-full  md:w-auto">
             {NavLinks.map(({ path, label }) => (
               <li key={label} className="w-full md:w-auto whitespace-nowrap">
                 <NavLink
@@ -47,8 +46,8 @@ function Header() {
                   onClick={closeMenu}>
                   {({ isActive }) => (
                     <span className={`
-                      relative block px-3 py-2 text-left md:text-left md:px-0 md:py-2 md:text-[clamp(0.8rem,1.3vw,2rem)]
-                      ${isActive ? 'text-accent' : 'text-primary hover:text-accent transition-colors duration-700'}
+                      relative block px-3 py-2 text-left md:text-left md:px-0 md:py-2 md:text-[clamp(1rem,1.8vw,2.5rem)]
+                      ${isActive ? 'text-accent' : 'text-secondary hover:text-accent transition-colors duration-700'}
                     `}>
                       {label}
                       <span className={`
@@ -95,10 +94,10 @@ function Header() {
 
         {/* Mobile Menu Button */}
         <button
-          className={`flex items-center text-text-secondary justify-center w-10 h-10 p-2 hover:text-accent bg-transparent border-none cursor-pointer relative z-[1001] flex-shrink-0 transition-colors duration-700 md:hidden
-          ${(isAppMenuOpen) ? 'hidden' : ''}
+          className={`flex items-center text-secondary justify-center w-10 h-10 p-2 hover:text-accent bg-transparent border-none cursor-pointer relative z-[1001] flex-shrink-0 transition-colors duration-700 md:hidden
+          ${(isAppMenuOpen || isUserMenuOpen) ? 'hidden' : ''}
           `}
-          onClick={() => setIsAppMenuOpen(!isAppMenuOpen)}
+          onClick={() => isAuthenticated ? setIsUserMenuOpen(!isUserMenuOpen) : setIsAppMenuOpen(!isAppMenuOpen)}
           aria-label="Menu"
         >
           <RiMenu3Fill className="w-8 h-8" />
