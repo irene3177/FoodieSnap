@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ProfileSkeleton } from '../../components/Skeleton/ProfileSkeleton';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
@@ -20,6 +20,7 @@ import ProfileTabs from '../../components/Profile/ProfileTabs';
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser, refreshUser } = useAuth();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userRecipes, setUserRecipes] = useState<Recipe[]>([]);
@@ -69,6 +70,13 @@ function ProfilePage() {
       loadUserRecipes();
     }
   }, [profile?._id, dispatch]);
+
+  useEffect(() => {
+    if (location.state?.openCreateRecipe) {
+      setIsCreateModalOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleEditSuccess = async () => {
     await refreshUser();
