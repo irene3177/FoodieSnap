@@ -10,7 +10,10 @@ import {
   getRandomRecipesHandler,
   getUserRecipes,
   getRecipeByIdHandler,
-  getTopRatedRecipes
+  getTopRatedRecipes,
+  getCategories,
+  getTags,
+  getAreas
 } from '../controllers/recipes.controller';
 import {
   validateCreateRecipe,
@@ -27,10 +30,13 @@ const router = Router();
 
 // Public routes
 router.get('/random', validate(validateRandomRecipes), getRandomRecipesHandler);  // From TheMealDB
-router.get('/search', validate(validateSearchRecipes), searchRecipesHandler);  // From TheMealDB
+router.get('/search', validate(validateSearchRecipes), searchRecipesHandler);  // From mongoDB
 router.get('/filter', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB
 router.get('/top-rated', validate(validateTopRated), getTopRatedRecipes);  // From mongoDB
 router.get('/', validate(validateFilterRecipes), filterRecipesHandler);  // From mongoDB
+router.get('/categories', getCategories);  // From mongoDB
+router.get('/tags', getTags);  // From mongoDB
+router.get('/areas', getAreas);  // From mongoDB
 
 router.get('/user/:userId', validate(validateUserId), getUserRecipes);
 router.get('/:id', validate(validateRecipeId), getRecipeByIdHandler);

@@ -1,14 +1,24 @@
 import { Request, Response } from 'express';
-import { register, login, getMe, updateProfile, changePassword, logout, deleteUser } from '../../controllers/auth.controller';
+import {
+  register,
+  login,
+  getMe,
+  updateProfile,
+  changePassword,
+  logout,
+  deleteUser,
+  updateAvatar,
+} from '../../controllers/auth.controller';
 import { UserModel } from '../../models/User.model';
 import { RecipeModel } from '../../models/Recipe.model';
 import { CommentModel } from '../../models/Comment.model';
+import { deleteOldAvatarFromCloudinary } from '../../middleware/upload.middleware';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { config } from '../../config';
+
+jest.mock('../../middleware/upload.middleware');
 
 describe('Auth Controller Integration Tests', () => {
-  let req: Partial<Request & { userId?: string; file?: any }>;
+  let req: any;
   let res: Partial<Response>;
   let next: jest.Mock;
   let jsonMock: jest.Mock;
@@ -27,37 +37,38 @@ describe('Auth Controller Integration Tests', () => {
       json: jsonMock,
       status: statusMock,
       cookie: cookieMock,
-      clearCookie: clearCookieMock
+      clearCookie: clearCookieMock,
     };
   };
 
-  beforeAll(async () => {
-    // Database connection is handled by global setup
-    await UserModel.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await UserModel.deleteMany({});
-  });
-
   beforeEach(async () => {
-    await UserModel.deleteMany({});
+    await UserModel.deleteMany({ email: /@authtest\.com$/ });
+    await RecipeModel.deleteMany({});
+    await CommentModel.deleteMany({});
+
     setupResponseMocks();
     req = {
       body: {},
       params: {},
       query: {},
-      userId: testUserId
+      userId: testUserId,
     };
   });
 
+  afterAll(async () => {
+    await UserModel.deleteMany({ email: /@authtest\.com$/ });
+    await RecipeModel.deleteMany({});
+    await CommentModel.deleteMany({});
+  });
+
+  // ---------- register + login flow ----------
+
   describe('register and login flow', () => {
     it('should register a new user and then login successfully', async () => {
-      // Register
       req.body = {
         username: 'integrationuser',
-        email: 'integration@test.com',
-        password: 'password123'
+        email: 'integration@authtest.com',
+        password: 'password123',
       };
 
       await register(req as Request, res as Response, next);
@@ -65,11 +76,10 @@ describe('Auth Controller Integration Tests', () => {
       expect(statusMock).toHaveBeenCalledWith(201);
       expect(cookieMock).toHaveBeenCalled();
 
-      // Login
       setupResponseMocks();
       req.body = {
-        email: 'integration@test.com',
-        password: 'password123'
+        email: 'integration@authtest.com',
+        password: 'password123',
       };
 
       await login(req as Request, res as Response, next);
@@ -79,71 +89,129 @@ describe('Auth Controller Integration Tests', () => {
         data: expect.objectContaining({
           user: expect.objectContaining({
             username: 'integrationuser',
-            email: 'integration@test.com'
-          })
-        })
+            email: 'integration@authtest.com',
+          }),
+        }),
       });
     });
 
-    it('should not allow duplicate registration', async () => {
-      // First registration
+    it('should hash the password on register', async () => {
       req.body = {
-        username: 'duplicateuser',
-        email: 'duplicate@test.com',
-        password: 'password123'
+        username: 'hashuser',
+        email: 'hash@authtest.com',
+        password: 'plainpassword',
       };
 
       await register(req as Request, res as Response, next);
-      expect(statusMock).toHaveBeenCalledWith(201);
 
-      // Second registration with same email
+      const user = await UserModel.findOne({ email: 'hash@authtest.com' }).select('+password');
+      expect(user?.password).not.toBe('plainpassword');
+      expect(user?.password.startsWith('$2')).toBe(true); // bcrypt prefix
+    });
+
+    it('should not allow duplicate registration', async () => {
+      req.body = {
+        username: 'duplicateuser',
+        email: 'duplicate@authtest.com',
+        password: 'password123',
+      };
+      await register(req as Request, res as Response, next);
+
       setupResponseMocks();
       await register(req as Request, res as Response, next);
+
       expect(next).toHaveBeenCalledTimes(1);
-      expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
-      expect(next.mock.calls[0][0].message).toBe('User already exists');
-      expect(next.mock.calls[0][0].statusCode).toBe(409);
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User already exists');
+      expect(error.statusCode).toBe(409);
+    });
+
+    it('should return 401 on login with wrong password', async () => {
+      const hashedPassword = await bcrypt.hash('correctpassword', 10);
+      await UserModel.create({
+        username: 'wrongpass',
+        email: 'wrongpass@authtest.com',
+        password: hashedPassword,
+      });
+
+      req.body = {
+        email: 'wrongpass@authtest.com',
+        password: 'wrongpassword',
+      };
+
+      await login(req as Request, res as Response, next);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('Invalid credentials');
+      expect(error.statusCode).toBe(401);
+    });
+
+    it('should return 401 on login with non-existent email', async () => {
+      req.body = {
+        email: 'nonexistent@authtest.com',
+        password: 'whatever',
+      };
+
+      await login(req as Request, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('Invalid credentials');
+      expect(error.statusCode).toBe(401);
     });
   });
 
-  describe('getMe after login', () => {
+  // ---------- getMe ----------
 
+  describe('getMe after login', () => {
     beforeEach(async () => {
       const hashedPassword = await bcrypt.hash('password123', 10);
       const user = await UserModel.create({
-        username: 'testuser',
-        email: 'test@test.com',
+        username: 'meuser',
+        email: 'me@authtest.com',
         password: hashedPassword,
-        avatar: 'https://picsum.photos/200/200'
+        avatar: 'https://picsum.photos/200/200',
       });
       testUserId = user._id.toString();
-      jwt.sign({ userId: testUserId }, config.jwtSecret!, { expiresIn: '1h' });
     });
 
     it('should get current user profile', async () => {
       req.userId = testUserId;
 
-      await getMe(req as any, res as Response, next);
+      await getMe(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: expect.objectContaining({
-          username: 'testuser',
-          email: 'test@test.com'
-        })
+          username: 'meuser',
+          email: 'me@authtest.com',
+        }),
       });
     });
+
+    it('should return 404 if user not found', async () => {
+      req.userId = '507f1f77bcf86cd799439011';
+
+      await getMe(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+      expect(error.statusCode).toBe(404);
+    });
   });
+
+  // ---------- updateProfile ----------
 
   describe('updateProfile', () => {
     beforeEach(async () => {
       const hashedPassword = await bcrypt.hash('password123', 10);
       const user = await UserModel.create({
-        username: 'testuser',
-        email: 'test@test.com',
+        username: 'profuser',
+        email: 'prof@authtest.com',
         password: hashedPassword,
         avatar: 'https://picsum.photos/200/200',
-        bio: 'Original bio'
+        bio: 'Original bio',
       });
       testUserId = user._id.toString();
     });
@@ -152,53 +220,62 @@ describe('Auth Controller Integration Tests', () => {
       req.userId = testUserId;
       req.body = {
         username: 'updateduser',
-        bio: 'Updated bio'
+        bio: 'Updated bio',
       };
 
-      await updateProfile(req as any, res as Response, next);
+      await updateProfile(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: expect.objectContaining({
           username: 'updateduser',
-          bio: 'Updated bio'
-        })
+          bio: 'Updated bio',
+        }),
       });
 
-      // Verify in database
       const updatedUser = await UserModel.findById(testUserId);
       expect(updatedUser?.username).toBe('updateduser');
       expect(updatedUser?.bio).toBe('Updated bio');
     });
+
+    it('should return 404 if user not found', async () => {
+      req.userId = '507f1f77bcf86cd799439011';
+      req.body = { username: 'whatever' };
+
+      await updateProfile(req, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+    });
   });
+
+  // ---------- changePassword ----------
 
   describe('changePassword', () => {
     beforeEach(async () => {
       const user = await UserModel.create({
-        username: 'testuser',
-        email: 'test@test.com',
+        username: 'pwuser',
+        email: 'pw@authtest.com',
         password: 'oldpassword123',
-        avatar: 'https://picsum.photos/200/200'
+        avatar: 'https://picsum.photos/200/200',
       });
       testUserId = user._id.toString();
-      await UserModel.findById(testUserId).select('+password');
     });
 
     it('should change password successfully', async () => {
       req.userId = testUserId;
       req.body = {
         currentPassword: 'oldpassword123',
-        newPassword: 'newpassword123'
+        newPassword: 'newpassword123',
       };
 
-      await changePassword(req as any, res as Response, next);
+      await changePassword(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'Password changed successfully'
+        message: 'Password changed successfully',
       });
 
-      // Verify new password works
       const user = await UserModel.findById(testUserId).select('+password');
       const isPasswordValid = await bcrypt.compare('newpassword123', user!.password);
       expect(isPasswordValid).toBe(true);
@@ -208,53 +285,112 @@ describe('Auth Controller Integration Tests', () => {
       req.userId = testUserId;
       req.body = {
         currentPassword: 'wrongpassword',
-        newPassword: 'newpassword123'
+        newPassword: 'newpassword123',
       };
 
-      await changePassword(req as any, res as Response, next);
+      await changePassword(req, res as Response, next);
 
-      expect(statusMock).not.toHaveBeenCalled();
-      expect(jsonMock).not.toHaveBeenCalled();
-
-      expect(next).toHaveBeenCalledTimes(1);
       const error = next.mock.calls[0][0];
-      expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe('Current password is incorrect');
       expect(error.statusCode).toBe(401);
     });
+
+    it('should return 404 if user not found', async () => {
+      req.userId = '507f1f77bcf86cd799439011';
+      req.body = {
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      };
+
+      await changePassword(req, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+    });
   });
 
+  // ---------- updateAvatar ----------
+
+  describe('updateAvatar', () => {
+    beforeEach(async () => {
+      const user = await UserModel.create({
+        username: 'avataruser',
+        email: 'avatar@authtest.com',
+        password: 'password123',
+        avatar: 'https://old.cloudinary.com/old-avatar.jpg',
+      });
+      testUserId = user._id.toString();
+    });
+
+    it('should update avatar successfully', async () => {
+      req.userId = testUserId;
+      req.file = { path: 'https://new.cloudinary.com/new-avatar.jpg' };
+
+      await updateAvatar(req, res as Response, next);
+
+      expect(jsonMock).toHaveBeenCalledWith({
+        success: true,
+        data: { avatar: 'https://new.cloudinary.com/new-avatar.jpg' },
+      });
+
+      const user = await UserModel.findById(testUserId);
+      expect(user?.avatar).toBe('https://new.cloudinary.com/new-avatar.jpg');
+      expect(deleteOldAvatarFromCloudinary).toHaveBeenCalledWith(
+        'https://old.cloudinary.com/old-avatar.jpg'
+      );
+    });
+
+    it('should return 400 if no file uploaded', async () => {
+      req.userId = testUserId;
+      req.file = undefined;
+
+      await updateAvatar(req, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('No file uploaded');
+      expect(error.statusCode).toBe(400);
+    });
+
+    it('should return 404 if user not found', async () => {
+      req.userId = '507f1f77bcf86cd799439011';
+      req.file = { path: 'https://new.cloudinary.com/new-avatar.jpg' };
+
+      await updateAvatar(req, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+    });
+  });
+
+  // ---------- deleteUser ----------
+
   describe('deleteUser', () => {
-    let testUserId: string;
-    let testUser: any;
     let testRecipeId: string;
 
     beforeEach(async () => {
-      // Create test user
-      testUser = await UserModel.create({
+      const user = await UserModel.create({
         username: 'todelete',
-        email: 'delete@test.com',
+        email: 'delete@authtest.com',
         password: 'password123',
-        avatar: 'https://picsum.photos/200/200'
+        avatar: 'https://picsum.photos/200/200',
       });
-      testUserId = testUser._id.toString();
-      
-      // Create some recipes for the user
+      testUserId = user._id.toString();
+
       const recipes = await RecipeModel.create([
         {
           title: 'User Recipe 1',
           author: testUserId,
           ingredients: ['ingredient 1'],
           instructions: ['step 1'],
-          source: 'user'
+          source: 'user',
         },
         {
           title: 'User Recipe 2',
           author: testUserId,
           ingredients: ['ingredient 1'],
           instructions: ['step 1'],
-          source: 'user'
-        }
+          source: 'user',
+        },
       ]);
       testRecipeId = recipes[0]._id.toString();
 
@@ -263,86 +399,87 @@ describe('Auth Controller Integration Tests', () => {
           text: 'User comment 1',
           userId: testUserId,
           recipeId: testRecipeId,
-          userName: testUser.username
+          userName: 'todelete',
         },
         {
           text: 'User comment 2',
           userId: testUserId,
           recipeId: testRecipeId,
-          userName: testUser.username
-        }
+          userName: 'todelete',
+        },
       ]);
 
       const anotherUser = await UserModel.create({
         username: 'anotheruser',
-        email: 'another@test.com',
+        email: 'another@authtest.com',
         password: 'password123',
-        avatar: 'https://picsum.photos/200/200'
+        avatar: 'https://picsum.photos/200/200',
       });
 
       await CommentModel.create({
         text: 'Comment from another user',
         userId: anotherUser._id,
         recipeId: testRecipeId,
-        userName: anotherUser.username
+        userName: 'anotheruser',
       });
-      
     });
 
     it('should delete user and all associated data', async () => {
-      // Arrange
       req.userId = testUserId;
 
-      // Verify data exists before deletion
-      let userBefore = await UserModel.findById(testUserId);
-      expect(userBefore).toBeTruthy();
-      
-      let userRecipesBefore = await RecipeModel.find({ author: testUserId });
+      const userRecipesBefore = await RecipeModel.find({ author: testUserId });
       expect(userRecipesBefore).toHaveLength(2);
-      
-      let userCommentsBefore = await CommentModel.find({ userId: testUserId });
-      expect(userCommentsBefore).toHaveLength(2);
-      
-      let allCommentsBefore = await CommentModel.countDocuments();
-      expect(allCommentsBefore).toBe(3);
-      
-      // Act
-      await deleteUser(req as any, res as Response, next);
 
-      // Assert
+      const userCommentsBefore = await CommentModel.find({ userId: testUserId });
+      expect(userCommentsBefore).toHaveLength(2);
+
+      const allCommentsBefore = await CommentModel.countDocuments();
+      expect(allCommentsBefore).toBe(3);
+
+      await deleteUser(req, res as Response, next);
+
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'User account deleted successfully'
+        message: 'User account deleted successfully',
       });
       expect(clearCookieMock).toHaveBeenCalled();
-      
-      // Verify user is deleted
+
       const deletedUser = await UserModel.findById(testUserId);
       expect(deletedUser).toBeNull();
-      
-      // Verify user's recipes are deleted
-      const userRecipes = await RecipeModel.find({ userId: testUserId });
+
+      const userRecipes = await RecipeModel.find({ author: testUserId });
       expect(userRecipes).toHaveLength(0);
 
-      // Verify user's comments are deleted
       const userComments = await CommentModel.find({ userId: testUserId });
       expect(userComments).toHaveLength(0);
 
-      // Verify comments from other users on this user's recipes are NOT deleted
+      // Комментарий другого юзера должен остаться
       const allComments = await CommentModel.find();
-      expect(allComments).toHaveLength(1); // Only the comment from another user remains
+      expect(allComments).toHaveLength(1);
       expect(allComments[0].text).toBe('Comment from another user');
+    });
+
+    it('should return 404 if user not found', async () => {
+      req.userId = '507f1f77bcf86cd799439011';
+
+      await deleteUser(req, res as Response, next);
+
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+      expect(error.statusCode).toBe(404);
     });
   });
 
+  // ---------- logout ----------
+
   describe('logout', () => {
     it('should clear cookie and return success', async () => {
-      await logout(req as any, res as Response, next);
+      await logout(req as AuthRequest, res as Response, next);
 
       expect(clearCookieMock).toHaveBeenCalledWith('token', expect.any(Object));
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
     });
   });

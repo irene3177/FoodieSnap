@@ -8,7 +8,10 @@ import { ApiBody, ApiParams, ApiResponse } from '../types';
 const apiClient = axios.create({
   baseURL: config.apiUrl,
   timeout: config.timeout,
-  withCredentials: true
+  withCredentials: true,
+  paramsSerializer: {
+    indexes: null,
+  },
 });
 // let isRedirecting = false;
 let isHandling401 = false;

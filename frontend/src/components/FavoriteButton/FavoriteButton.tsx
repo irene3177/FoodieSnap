@@ -5,21 +5,47 @@ import { addToFavorites, removeFromFavorites, fetchFavorites } from '../../store
 import { Recipe } from '../../types';
 import { showToast } from '../../store/toastSlice';
 import { useAuth } from '../../hooks/useAuth';
-import './FavoriteButton.css';
+import { GoHeart, GoHeartFill } from 'react-icons/go';
+import { HiMiniSparkles } from 'react-icons/hi2';
 
 interface FavoriteButtonProps {
   recipe: Recipe;
   size?: 'small' | 'medium' | 'large';
   showText?: boolean;
+  className?: string;
 }
 
-function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteButtonProps) {
+const sizeConfig = {
+  small: {
+    button: 'p-1 text-sm',
+    icon: 'w-[18px] h-[18px]',
+    sparkle: 'text-xs',
+  },
+  medium: {
+    button: 'p-2 text-base',
+    icon: 'w-6 h-6',
+    sparkle: 'text-sm',
+  },
+  large: {
+    button: 'p-3 text-lg',
+    icon: 'w-8 h-8',
+    sparkle: 'text-base',
+  },
+};
+
+function FavoriteButton({
+  recipe,
+  size = 'medium',
+  showText= false,
+  className='',
+}: FavoriteButtonProps) {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const { items: favorites, loading } = useAppSelector(state => state.favorites);
   const [showSparkles, setShowSparkles] = useState(false);
 
   const isFav = favorites.some(r => r._id === recipe._id);
+  const sizeClasses = sizeConfig[size];
   
   useEffect(() => {
     if (user) {
@@ -58,15 +84,9 @@ function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteBu
     }
   };
 
-  const sizeClass = `favorite-button--${size}`;
-
   const heartVariants = {
     initial: { scale: 1 },
-    animate: {
-      scale: [1, 1.3, 1],
-      transition: { duration: 0.3 }
-    },
-    hover: { scale: 1.1 },
+    hover: { scale: 1.05 },
     tap: { scale: 0.9 }
   };
 
@@ -81,7 +101,15 @@ function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteBu
 
   return (
     <motion.button
-      className={`favorite-button ${sizeClass} ${isFav ? 'favorite-button--active' : ''}`}
+      className={`
+        relative inline-flex items-center justify-center
+        bg-transparent border-none cursor-pointer rounded-full
+        text-secondary
+        transition-all duration-200
+        focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2
+        ${sizeClasses.button}
+        ${className}
+      `}
       onClick={handleToggleFavorite}
       disabled={loading}
       whileHover="hover"
@@ -90,39 +118,42 @@ function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteBu
       animate="animate"
       aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
     >
-      <motion.svg
-        className="favorite-button__icon"
-        viewBox="0 0 24 24"
-        fill={isFav ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth="2"
-        variants={heartVariants}
-      >
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-      </motion.svg>
+      {isFav ? (
+        <motion.div
+          variants={heartVariants}
+          className="relative z-[2] text-heart"
+        >
+          <GoHeartFill className={sizeClasses.icon} />
+        </motion.div>
+      ) : (
+        <motion.div
+          variants={heartVariants}
+          className="relative z-[2] text-secondary hover:text-heart"
+        >
+          <GoHeart className={sizeClasses.icon} />
+        </motion.div>
+      )}
 
     <AnimatePresence>
       {showSparkles && (
         <>
           <motion.span
-            className="favorite-button__sparkle"
+            className={`absolute pointer-events-none z-[1] top-[20%] left-[20%] ${sizeClasses.sparkle}`}
             variants={sparkleVariants}
             initial="initial"
             animate="animate"
             exit="initial"
-            style={{ top: '20%', left: '20%' }}
           >
-            ✨
+            <HiMiniSparkles />
           </motion.span>
           <motion.span
-            className="favorite-button__sparkle"
+            className={`absolute pointer-events-none z-[1] top-[60%] left-[60%] ${sizeClasses.sparkle}`}
             variants={sparkleVariants}
             initial="initial"
             animate="animate"
             exit="initial"
-            style={{ top: '60%', left: '20%' }}
           >
-            ✨
+            <HiMiniSparkles />
           </motion.span>
         </>
       )}
@@ -130,7 +161,7 @@ function FavoriteButton({ recipe, size = 'medium', showText= false }: FavoriteBu
 
       {showText && (
         <motion.span 
-          className="favorite-button__text"
+          className="ml-2 text-sm text-primary"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}

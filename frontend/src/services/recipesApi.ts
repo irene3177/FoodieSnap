@@ -24,12 +24,13 @@ export const recipesApi = {
   // Search recipe by name (TheMealDB)
   searchRecipesByName: async (
     query: string,
-    page: number = 1
+    page: number = 1,
+    limit: number = 12
   ): Promise<ApiResponse<SearchRecipesResponse>> => {
-    return get<SearchRecipesResponse>('/recipes/search', {
+    return get<SearchRecipesResponse>('/recipes/filter', {
       q: query,
       page,
-      limit: 10
+      limit
     });
   },
 
@@ -39,6 +40,7 @@ export const recipesApi = {
     page: number = 1,
     limit: number = 12
   ): Promise<ApiResponse<FilterRecipesResponse>> => {
+    console.log('recipesApi: filterRecipes: filters = ', filters);
     return get<FilterRecipesResponse>('/recipes/filter', {
       ...filters,
       page,
@@ -74,5 +76,20 @@ export const recipesApi = {
   // Delete recipe
   deleteRecipe: async (id: string): Promise<ApiResponse<{ message: string }>> => {
     return del<{ message: string }>(`/recipes/${id}`);
-  }
+  },
+
+  // Get Categories
+  getCategories: async (): Promise<ApiResponse<string[]>> => {
+    return get<string[]>('/recipes/categories');
+  },
+
+  // Get Tags
+  getTags: async (): Promise<ApiResponse<string[]>> => {
+    return get<string[]>('/recipes/tags');
+  },
+
+  // Get Areas
+  getAreas: async (): Promise<ApiResponse<string[]>> => {
+    return get<string[]>('/recipes/areas');
+  },
 };

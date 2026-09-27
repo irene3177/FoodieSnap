@@ -5,13 +5,13 @@ import {
   unfollowUser,
   getFollowers,
   getFollowing,
-  checkFollowStatus
+  checkFollowStatus,
 } from '../../controllers/follow.controller';
 import { UserModel } from '../../models/User.model';
 import bcrypt from 'bcryptjs';
 
 describe('Follow Controller Integration Tests', () => {
-  let req: Partial<Request & { userId?: string }>;
+  let req: any;
   let res: Partial<Response>;
   let next: jest.Mock;
   let jsonMock: jest.Mock;
@@ -23,79 +23,71 @@ describe('Follow Controller Integration Tests', () => {
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
     next = jest.fn();
-    res = {
-      json: jsonMock,
-      status: statusMock
-    };
+    res = { json: jsonMock, status: statusMock };
   };
 
-  beforeAll(async () => {
-    // Clean up
-    await UserModel.deleteMany({});
-  });
-  
-  afterAll(async () => {
-    await UserModel.deleteMany({});
-  });
-  
-  beforeEach(async () => {
+  const createTestUser = async (prefix: string) => {
     const hashedPassword = await bcrypt.hash('password123', 10);
-    const user1 = await UserModel.create({
-      username: 'user1',
-      email: 'user1@test.com',
+    return UserModel.create({
+      username: `${prefix}_${Math.random().toString(36).slice(2, 8)}`,
+      email: `${prefix}_${Date.now()}@followtest.com`,
       password: hashedPassword,
       avatar: 'https://picsum.photos/200/200',
       favorites: [],
       createdRecipes: [],
       followers: [],
-      following: []
+      following: [],
     });
+  };
+
+  beforeEach(async () => {
+    await UserModel.deleteMany({ email: /@followtest\.com$/ });
+
+    const user1 = await createTestUser('f1');
     testUserId1 = user1._id.toString();
-  
-    const user2 = await UserModel.create({
-      username: 'user2',
-      email: 'user2@test.com',
-      password: hashedPassword,
-      avatar: 'https://picsum.photos/200/200',
-      favorites: [],
-      createdRecipes: [],
-      followers: [],
-      following: []
-    });
+
+    const user2 = await createTestUser('f2');
     testUserId2 = user2._id.toString();
+
     setupResponseMocks();
     req = {
       body: {},
       params: {},
       query: {},
-      userId: testUserId1
+      userId: testUserId1,
     };
   });
+
+  afterAll(async () => {
+    await UserModel.deleteMany({ email: /@followtest\.com$/ });
+  });
+
+  // ---------- followUser ----------
 
   describe('followUser', () => {
     it('should follow a user successfully', async () => {
       req.params = { userId: testUserId2 };
 
-      await followUser(req as any, res as Response, next);
+      await followUser(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data.isFollowing).toBe(true);
       expect(responseData.data.followersCount).toBe(1);
+      expect(responseData.data.followingCount).toBe(1);
 
-      // Verify in database
       const user1 = await UserModel.findById(testUserId1);
       const user2 = await UserModel.findById(testUserId2);
-      
-      expect(user1?.following?.map(id => id.toString())).toContain(testUserId2);
-      expect(user2?.followers?.map(id => id.toString())).toContain(testUserId1);
+
+      expect(user1?.following?.map((id) => id.toString())).toContain(testUserId2);
+      expect(user2?.followers?.map((id) => id.toString())).toContain(testUserId1);
     });
 
     it('should return 400 when trying to follow yourself', async () => {
       req.params = { userId: testUserId1 };
 
-      await followUser(req as any, res as Response, next);
+      await followUser(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
@@ -107,7 +99,7 @@ describe('Follow Controller Integration Tests', () => {
       const nonExistentId = new mongoose.Types.ObjectId().toString();
       req.params = { userId: nonExistentId };
 
-      await followUser(req as any, res as Response, next);
+      await followUser(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
@@ -116,51 +108,17 @@ describe('Follow Controller Integration Tests', () => {
     });
 
     it('should return 409 when already following', async () => {
-      // Create fresh test users for this test only
-      const hashedPassword = await bcrypt.hash('password123', 10);
-      
-      const freshUser1 = await UserModel.create({
-        username: `fresh1_${Date.now()}`,
-        email: `fresh1_${Date.now()}@test.com`,
-        password: hashedPassword,
-        avatar: 'https://picsum.photos/200/200',
-        favorites: [],
-        createdRecipes: [],
-        followers: [],
-        following: []
+      await UserModel.findByIdAndUpdate(testUserId1, {
+        $addToSet: { following: testUserId2 },
       });
-      const freshUserId1 = freshUser1._id.toString();
-      
-      const freshUser2 = await UserModel.create({
-        username: `fresh2_${Date.now()}`,
-        email: `fresh2_${Date.now()}@test.com`,
-        password: hashedPassword,
-        avatar: 'https://picsum.photos/200/200',
-        favorites: [],
-        createdRecipes: [],
-        followers: [],
-        following: []
-      });
-      const freshUserId2 = freshUser2._id.toString();
-
-      // Set up follow relationship
-      await UserModel.findByIdAndUpdate(freshUserId1, {
-        $addToSet: { following: freshUserId2 }
-      });
-      await UserModel.findByIdAndUpdate(freshUserId2, {
-        $addToSet: { followers: freshUserId1 }
+      await UserModel.findByIdAndUpdate(testUserId2, {
+        $addToSet: { followers: testUserId1 },
       });
 
-      // Try to follow again via API
-      const freshReq = {
-        ...req,
-        userId: freshUserId1,
-        params: { userId: freshUserId2 }
-      };
-      
-      await followUser(freshReq as any, res as Response, next);
+      req.params = { userId: testUserId2 };
 
-      // Should return conflict error
+      await followUser(req, res as Response, next);
+
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
       expect(error.message).toBe('Already following this user');
@@ -168,86 +126,134 @@ describe('Follow Controller Integration Tests', () => {
     });
   });
 
+  // ---------- unfollowUser ----------
+
   describe('unfollowUser', () => {
     beforeEach(async () => {
-      // First follow
       await UserModel.findByIdAndUpdate(testUserId1, {
-        $addToSet: { following: testUserId2 }
-      }, { returnDocument: 'after' });
+        $addToSet: { following: testUserId2 },
+      });
       await UserModel.findByIdAndUpdate(testUserId2, {
-        $addToSet: { followers: testUserId1 }
-      }, { returnDocument: 'after' });
-
-      // Verify relationship was established
-      const user1 = await UserModel.findById(testUserId1);
-      const user2 = await UserModel.findById(testUserId2);
-
-      expect(user1?.following?.map(id => id.toString())).toContain(testUserId2);
-      expect(user2?.followers?.map(id => id.toString())).toContain(testUserId1);
+        $addToSet: { followers: testUserId1 },
+      });
     });
 
     it('should unfollow a user successfully', async () => {
       req.params = { userId: testUserId2 };
 
-      await unfollowUser(req as any, res as Response, next);
+      await unfollowUser(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data.isFollowing).toBe(false);
+      expect(responseData.data.followersCount).toBe(0);
+      expect(responseData.data.followingCount).toBe(0);
 
-      // Verify in database
       const user1 = await UserModel.findById(testUserId1);
       const user2 = await UserModel.findById(testUserId2);
-      
-      expect(user1?.following?.map(id => id.toString())).not.toContain(testUserId2);
-      expect(user2?.followers?.map(id => id.toString())).not.toContain(testUserId1);
+
+      expect(user1?.following?.map((id) => id.toString())).not.toContain(testUserId2);
+      expect(user2?.followers?.map((id) => id.toString())).not.toContain(testUserId1);
     });
 
     it('should return 400 when trying to unfollow yourself', async () => {
       req.params = { userId: testUserId1 };
 
-      await unfollowUser(req as any, res as Response, next);
+      await unfollowUser(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
       expect(error.message).toBe('You cannot unfollow yourself');
       expect(error.statusCode).toBe(400);
     });
+
+    it('should return 404 when user to unfollow does not exist', async () => {
+      const nonExistentId = new mongoose.Types.ObjectId().toString();
+      req.params = { userId: nonExistentId };
+
+      await unfollowUser(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+      expect(error.statusCode).toBe(404);
+    });
   });
+
+  // ---------- getFollowers ----------
 
   describe('getFollowers', () => {
     beforeEach(async () => {
-      // User2 follows User1
+      // user2 follows user1
       await UserModel.findByIdAndUpdate(testUserId2, {
-        $addToSet: { following: testUserId1 }
+        $addToSet: { following: testUserId1 },
       });
       await UserModel.findByIdAndUpdate(testUserId1, {
-        $addToSet: { followers: testUserId2 }
+        $addToSet: { followers: testUserId2 },
       });
     });
 
     it('should get followers list', async () => {
       req.params = { userId: testUserId1 };
 
-      await getFollowers(req as any, res as Response, next);
+      await getFollowers(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data).toHaveLength(1);
-      expect(responseData.data[0].username).toBe('user2');
+      expect(responseData.data[0].username).toContain('f2_');
+    });
+
+    it('should mark isFollowing=true when current user follows a follower', async () => {
+      // currentUser = user1, follower = user2
+      await UserModel.findByIdAndUpdate(testUserId1, {
+        $addToSet: { following: testUserId2 },
+      });
+
+      req.params = { userId: testUserId1 };
+      req.userId = testUserId1;
+
+      await getFollowers(req, res as Response, next);
+
+      const responseData = jsonMock.mock.calls[0][0];
+      expect(responseData.data[0].isFollowing).toBe(true);
+    });
+
+    it('should mark isFollowing=false when current user does not follow a follower', async () => {
+      req.params = { userId: testUserId1 };
+      req.userId = testUserId1;
+
+      await getFollowers(req, res as Response, next);
+
+      const responseData = jsonMock.mock.calls[0][0];
+      expect(responseData.data[0].isFollowing).toBe(false);
+    });
+
+    it('should return 404 when user does not exist', async () => {
+      const nonExistentId = new mongoose.Types.ObjectId().toString();
+      req.params = { userId: nonExistentId };
+
+      await getFollowers(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+      expect(error.statusCode).toBe(404);
     });
   });
 
+  // ---------- getFollowing ----------
+
   describe('getFollowing', () => {
     beforeEach(async () => {
-      // User1 follows User2
+      // user1 follows user2
       await UserModel.findByIdAndUpdate(testUserId1, {
-        $addToSet: { following: testUserId2 }
+        $addToSet: { following: testUserId2 },
       });
       await UserModel.findByIdAndUpdate(testUserId2, {
-        $addToSet: { followers: testUserId1 }
+        $addToSet: { followers: testUserId1 },
       });
     });
 
@@ -255,54 +261,62 @@ describe('Follow Controller Integration Tests', () => {
       req.params = { userId: testUserId1 };
       req.userId = testUserId1;
 
-      await getFollowing(req as any, res as Response, next);
+      await getFollowing(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data).toHaveLength(1);
-      expect(responseData.data[0].username).toBe('user2');
+      expect(responseData.data[0].username).toContain('f2_');
       expect(responseData.data[0].isFollowing).toBe(true);
     });
 
-    it('should get following list for another user', async () => {
+    it('should get following list for another user with isFollowing=false', async () => {
       req.params = { userId: testUserId1 };
-      req.userId = testUserId2; // Different user
+      req.userId = testUserId2;
 
-      await getFollowing(req as any, res as Response, next);
+      await getFollowing(req, res as Response, next);
 
-      expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data).toHaveLength(1);
       expect(responseData.data[0].isFollowing).toBe(false);
     });
+
+    it('should return 404 when user does not exist', async () => {
+      const nonExistentId = new mongoose.Types.ObjectId().toString();
+      req.params = { userId: nonExistentId };
+
+      await getFollowing(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('User not found');
+      expect(error.statusCode).toBe(404);
+    });
   });
 
-  describe('checkFollowStatus', () => {
-    beforeEach(async () => {
-      // User1 follows User2
-      await UserModel.findByIdAndUpdate(testUserId1, {
-        $addToSet: { following: testUserId2 }
-      });
-    });
+  // ---------- checkFollowStatus ----------
 
+  describe('checkFollowStatus', () => {
     it('should return true if following', async () => {
+      await UserModel.findByIdAndUpdate(testUserId1, {
+        $addToSet: { following: testUserId2 },
+      });
+
       req.params = { userId: testUserId2 };
 
-      await checkFollowStatus(req as any, res as Response, next);
+      await checkFollowStatus(req, res as Response, next);
 
-      expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.data.isFollowing).toBe(true);
     });
 
     it('should return false if not following', async () => {
-      req.params = { userId: testUserId1 }; // User1 is checking themselves
+      req.params = { userId: testUserId2 };
 
-      await checkFollowStatus(req as any, res as Response, next);
+      await checkFollowStatus(req, res as Response, next);
 
-      expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.data.isFollowing).toBe(false);
     });

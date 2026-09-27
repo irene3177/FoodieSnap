@@ -12,7 +12,7 @@ function GlobalToast() {
     if (isVisible) {
       const timer = setTimeout(() => {
         dispatch(hideToast());
-        setTimeout(() => dispatch(clearToast()), 300); // ждем анимацию
+        setTimeout(() => dispatch(clearToast()), 300);
       }, 3000);
 
       return () => clearTimeout(timer);

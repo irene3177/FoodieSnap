@@ -1,222 +1,183 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { recipesApi } from '../../services/recipesApi';
-import { Recipe } from '../../types';
+import { useMemo, useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
+import Masonry from 'react-masonry-css';
+import { useRecipes } from '../../hooks/useRecipes';
+// import { recipesApi } from '../../services/recipesApi';
 import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
-import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import './Recipes.css';
+import { RecipeCardSkeleton } from '../../components/Skeleton/RecipeCardSkeleton';
+// import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { Recipe } from '../../types';
 
-function Recipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [totalResults, setTotalResults] = useState<number>(0);
+const BREAKPOINT_COLS = {
+  default: 3,
+  1024: 2,
+  768: 2,
+  640: 1,
+};
 
-  const initialLoaded = useRef(false);
+function Explore() {
 
-  // Load initial random recipes
-  useEffect(() => {
-    if (!initialLoaded.current) {
-      loadInitialRecipes();
-      initialLoaded.current = true;
-    }
-  }, []);
-
-  const loadInitialRecipes = async () => {
-    setLoading(true);
-    setError(null);
-
-    const response = await recipesApi.getRandomRecipes(8, 1);
-
-    if (response.success) {
-      setRecipes(response.data?.recipes || []);
-      setTotalResults(response.data?.totalRecipes || 0);
-      setPage(2);
-      setHasMore(true);
-    } else {
-      setError(response.error || 'Failed to load recipes. Please try again later.');
-    }
-    setLoading(false);
-  };
-
-  // Load more recipes for infinite scroll
-  const loadMoreRecipes = useCallback(async () => {
-    if (loadingMore || isSearching || !hasMore) return;
-
-    setLoadingMore(true);
-    const response = await recipesApi.getRandomRecipes(4, page);
-    
-    if (response.success) {
-      const newRecipes = response.data?.recipes || [];
-      setRecipes(prev => {
-        const existingIds = new Set(prev.map(r => r._id));
-        const uniqueNewRecipes = newRecipes.filter(r => !existingIds.has(r._id));
-        return [...prev, ...uniqueNewRecipes];
-      });
-      setPage(prev => prev + 1);
-
-      // For random recipes hasMore is always true
-      setHasMore(true);
-    } else {
-      console.error('Failed to load more recipes:', response.error);
-    }
-    setLoadingMore(false);
-  }, [page, loadingMore, isSearching, hasMore]);
-
-  const { lastElementRef } = useInfiniteScroll({
-    hasMore: hasMore && !isSearching,
-    loadMore: loadMoreRecipes
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: '200px 0px',
   });
 
-  // Handle search with debounce
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      // If search is empty, load random recipes again
-      setIsSearching(false);
-      loadInitialRecipes();
-      return;
-    }
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useRecipes({
+    initialCount: 8,
+    loadMoreCount: 6,
+  });
 
-    setIsSearching(true);
-    setLoading(true);
-    setError(null);
-    
-    const result = await recipesApi.searchRecipesByName(query, 1);
-
-    if (result.success) {
-      setRecipes(result.data?.recipes || []);
-      setTotalResults(result.data?.total || 0);
-      setHasMore(false);
-    } else {
-      setError(result.error || 'Failed to search recipes. Please try again.');
-    }
-    setLoading(false);
-  };
-
-  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-
-    if (searchTimeout) {
-      window.clearTimeout(searchTimeout);
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      handleSearch(query);
-    }, 500);
-
-    setSearchTimeout(timeoutId);
-  };
-
-  const clearSearch = () => {
-    setSearchQuery('');
-    setIsSearching(false);
-    loadInitialRecipes();
-  };
-
-  // Clear timeout on component unmount
   useEffect(() => {
-    return () => {
-      if (searchTimeout) {
-        window.clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchTimeout]);
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  return (
-    <div className="recipes-page">
-      <div className="recipes-page__header">
-        <h1 className="recipes-page__title">Discover Recipes</h1>
+  const recipes = useMemo(() => {
+    return data?.pages.flatMap((page) => page.recipes) ?? [];
+  }, [data]);
 
-        {/* Search Bar */}
-        <div className="recipes-page__search">
-          <input
-            type="text"
-            placeholder="Search for recipes (e.g., 'chicken', 'pasta')..."
-            value={searchQuery}
-            onChange={handleSearchInput}
-            className="recipes-page__search-input" 
-          />
-          {searchQuery && (
-            <button
-              className="recipes-page__search-clear"
-              onClick={clearSearch}
-            >
-              ✕
-            </button>
-          )}
-        </div>
+  const getAspectRatio = (index: number): 'portrait' | 'square' | 'landscape' => {
+    if (index % 3 === 0) return 'portrait';
+    if (index % 3 === 1) return 'square';
+    return 'landscape';
+  };
 
-        {/* Results count */}
-        {!loading && !error && recipes.length > 0 && (
-          <div className="recipes-page__results-count">
-            {isSearching ? (
-              <>Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}</>
-            ) : (
-              <>Showing {recipes.length} recipes</>
-            )}
-          </div>
-        )}
+  const skeletonItems = useMemo(() => {
+    return Array(4)
+      .fill(null)
+      .map((_, index) => ({
+        id: `skeleton-${index}`,
+        aspectRatio: getAspectRatio(index),
+      }));
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-8 py-12">
+        <HeaderContent />
+        <Masonry
+          breakpointCols={BREAKPOINT_COLS}
+          className="flex w-auto -ml-6"
+          columnClassName="pl-6 bg-clip-padding"
+        >
+          {skeletonItems.map((item) => (
+            <div key={item.id} className="mb-6 w-full max-w-[450px]">
+              <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+            </div>
+          ))}
+        </Masonry>
       </div>
+    );
+  }
 
-      {/* Error message */}
-      {error && (
-        <div className="recipes-page__error">
-          <p className="recipes-page__error-message">{error}</p>
+  if (isError) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-8 py-12">
+        <HeaderContent />
+        <div className="text-center py-12 px-4 bg-error rounded-lg max-w-md mx-auto">
+          <p className="text-error text-lg mb-4">
+            {error instanceof Error ? error.message : 'Failed to load recipes'}
+          </p>
           <button
-            className="recipes-page__retry-button"
-            onClick={loadInitialRecipes}
+            className="px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors"
+            onClick={() => refetch()}
           >
             Try Again
           </button>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Recipe grid*/}
-      <div className="recipes-page__grid">
-        {recipes.map((recipe, index) => (
-          <div
-            key={`${recipe._id}-${index}`}
-            ref={index === recipes.length - 1 ? lastElementRef : null}
-          >
-            <RecipeCard recipe={recipe} />
-          </div>
-        ))}
+  if (!recipes.length) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-8 py-12">
+        <HeaderContent />
+        <div className="text-center py-12">
+          <p className="text-lg text-secondary">No recipes found. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
 
-        {(loading || loadingMore) && !error && (
+  return (
+    <div className="max-w-[1400px] mx-auto px-8 py-12">
+      <HeaderContent />
+
+      <Masonry
+        breakpointCols={BREAKPOINT_COLS}
+        className="flex w-auto -ml-6"
+        columnClassName="pl-6 bg-clip-padding"
+      >
+        {recipes.map((recipe: Recipe, index: number) => {
+          const isLastItem = index === recipes.length - 1;
+          return (
+            <div
+              key={`${recipe._id}-${index}`}
+              ref={isLastItem ? ref : undefined}
+              className="mb-6 w-full max-w-[450px] justify-self-center"
+            >
+              <RecipeCard
+                recipe={recipe}
+                aspectRatio={getAspectRatio(index)}
+              />
+            </div>
+          );
+        })}
+
+        {/* Skeletons for next page loading */}
+        {isFetchingNextPage && (
           <>
-            {[...Array(4)].map((_, index) => (
-              <RecipeCardSkeleton key={`skeleton-${index}`} />
+            {skeletonItems.map((item) => (
+              <div key={`${item.id}-more`} className="mb-6 w-full max-w-[450px]">
+                <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+              </div>
             ))}
           </>
         )}
-      </div>
+      </Masonry>
 
-      {/* Results */}
-      {!loading && !error && recipes?.length === 0 && (
-        <div className="recipes-page__no-results">
-          <p>No recipes found for "{searchQuery}"</p>
-          <p className="recipes-page__no-results-hint">
-            Try different keywords or check your spelling
-          </p>
+      {/* Load Indicator */}
+      {isFetchingNextPage && (
+        <div className="text-center py-4 text-muted text-sm">
+          <span className="inline-block animate-pulse">Loading more recipes...</span>
         </div>
       )}
 
-      {!hasMore && !isSearching && recipes.length === 0 && (
-        <div className="recipes-page__end-message">
-          <p>You've reached the end! 🎉</p>
+      {/* End of the List */}
+      {!hasNextPage && recipes.length > 0 && (
+        <div className="text-center py-8 text-secondary text-base">
+          <p className="relative inline-block">You've reached the end!</p>
         </div>
       )}
+
       <ScrollToTop threshold={400} behavior="smooth" />
     </div>
   );
 }
 
-export default Recipes;
+function HeaderContent() {
+  return (
+    <div className="mb-10 cursor-default">
+      <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">
+        Find Your Next Favorite Meal
+      </h1>
+      <p className="text-muted font-body-lg text-body-lg mt-2">
+        Explore new flavors and get inspired by recipes from around the world
+      </p>
+    </div>
+  );
+}
+
+export default Explore;

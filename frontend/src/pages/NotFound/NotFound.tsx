@@ -1,27 +1,34 @@
 import { Link, useNavigate } from 'react-router-dom';
-import './NotFound.css';
+import { MdArrowBack, MdHome } from 'react-icons/md';
 
 function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="not-found">
-      <div className="not-found__content">
-        <div className="not-found__code">404</div>
-        <h1 className="not-found__title">Page Not Found</h1>
-        <p className="not-found__message">
+    <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 py-8 bg-primary">
+      <div className="text-center max-w-lg w-full p-8 md:p-12 bg-secondary rounded-2xl shadow-theme border ">
+        {/* 404 */}
+        <div className="text-7xl md:text-8xl font-extrabold bg-gradient-to-br from-accent to-accent-secondary bg-clip-text text-transparent leading-none mb-4">404</div>
+        <h1 className="text-2xl md:text-3xl font-headline-md text-secondary mb-3">Page Not Found</h1>
+        <p className="text-secondary leading-relaxed mb-6">
           Oops! The page you're looking for doesn't exist or has been moved.
         </p>
-        <div className="not-found__actions">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button 
             onClick={() => navigate(-1)} 
-            className="not-found__button not-found__button--secondary"
+            className="btn-secondary"
           >
-            ← Go Back
+            <span className="flex gap-2 items-center">
+              <MdArrowBack /> Go Back 
+            </span>
           </button>
-          <Link to="/" className="not-found__button not-found__button--primary">
-            Go Home
-          </Link>
+          <button className="btn-primary">
+            <Link to="/">
+              <span className="flex text- gap-2 items-center">
+                <MdHome /> Go Home
+              </span>
+            </Link>
+          </button>
         </div>
       </div>
     </div>

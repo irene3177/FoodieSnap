@@ -12,6 +12,7 @@ interface UseProfileDataReturn {
   refresh: () => void;
   updateFollowStats: (isFollowing: boolean, followersCount?: number) => void;
   updateCounters: (newFollowersCount?: number, newFollowingCount?: number) => void;
+  isOwnProfile: boolean;
 }
 
 export const useProfileData = (
@@ -24,6 +25,9 @@ export const useProfileData = (
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const isOwnProfile = !userId || userId === currentUserId;
+
 
   const loadProfile = useCallback(async () => {
     const targetUserId = userId || currentUserId;
@@ -104,6 +108,7 @@ export const useProfileData = (
     error,
     refresh,
     updateFollowStats,
-    updateCounters
+    updateCounters,
+    isOwnProfile,
   };
 };

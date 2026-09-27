@@ -1,9 +1,9 @@
-import { UserListItem } from '../../types';
+import { UserProfile } from '../../types';
 import './UserCard.css';
 
 interface UserCardProps {
-  user: UserListItem;
-  onClick: () => void;
+  user: UserProfile;
+  onClick?: () => void;
 }
 
 function UserCard({ user, onClick}: UserCardProps) {

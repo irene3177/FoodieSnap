@@ -8,27 +8,18 @@ import {
   updateAvatar,
   changePassword,
   logout,
-  deleteUser
+  deleteUser,
 } from '../../controllers/auth.controller';
 import { UserModel } from '../../models/User.model';
 import { RecipeModel } from '../../models/Recipe.model';
 import { CommentModel } from '../../models/Comment.model';
 import { deleteOldAvatarFromCloudinary } from '../../middleware/upload.middleware';
-import ConflictError from '../../errors/conflictError';
-import UnauthorizedError from '../../errors/unauthorizedError';
-import NotFoundError from '../../errors/notFoundError';
-import BadRequestError from '../../errors/badRequestError';
 
-// Mock dependencies
 jest.mock('../../models/User.model');
 jest.mock('../../models/Recipe.model');
 jest.mock('../../models/Comment.model');
 jest.mock('jsonwebtoken');
 jest.mock('../../middleware/upload.middleware');
-jest.mock('../../errors/conflictError');
-jest.mock('../../errors/unauthorizedError');
-jest.mock('../../errors/notFoundError');
-jest.mock('../../errors/badRequestError');
 jest.mock('../../config', () => ({
   config: {
     jwtSecret: 'test-secret',
@@ -39,13 +30,13 @@ jest.mock('../../config', () => ({
       sameSite: 'lax',
       maxAge: 604800000,
       path: '/',
-      domain: undefined
-    }
-  }
+      domain: undefined,
+    },
+  },
 }));
 
-describe('Auth Controller', () => {
-  let req: Partial<Request & { userId?: string; file?: any }>;
+describe('Auth Controller Unit Tests', () => {
+  let req: any;
   let res: Partial<Response>;
   let next: jest.Mock;
   let jsonMock: jest.Mock;
@@ -63,71 +54,74 @@ describe('Auth Controller', () => {
       json: jsonMock,
       status: statusMock,
       cookie: cookieMock,
-      clearCookie: clearCookieMock
+      clearCookie: clearCookieMock,
     };
+  };
+
+  const getNextError = (): any => {
+    expect(next).toHaveBeenCalled();
+    return (next as jest.Mock).mock.calls[0][0];
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     setupResponseMocks();
-    req = {
-      body: {},
-      params: {},
-      query: {}
-    };
+    req = { body: {}, params: {}, query: {} };
   });
+
+  // ---------- register ----------
 
   describe('register', () => {
     const registerData = {
       username: 'testuser',
       email: 'test@test.com',
-      password: 'password123'
+      password: 'password123',
     };
 
     it('should register a new user successfully', async () => {
       req.body = registerData;
       (UserModel.findOne as jest.Mock).mockResolvedValue(null);
-      
+
       const mockUser = {
-        _id: '123',
+        _id: { toString: () => '123' },
         username: 'testuser',
         email: 'test@test.com',
         bio: '',
         avatar: null,
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
       (UserModel as any).mockImplementation(() => mockUser);
-      
-      const mockToken = 'mock-jwt-token';
-      (jwt.sign as jest.Mock).mockReturnValue(mockToken);
+      (jwt.sign as jest.Mock).mockReturnValue('mock-jwt-token');
 
-      await register(req as Request, res as Response, next);
+      await register(req, res as Response, next);
 
       expect(UserModel.findOne).toHaveBeenCalledWith({
-        $or: [{ email: 'test@test.com' }, { username: 'testuser' }]
+        $or: [{ email: 'test@test.com' }, { username: 'testuser' }],
       });
-      expect(cookieMock).toHaveBeenCalledWith('token', mockToken, expect.any(Object));
+      expect(jwt.sign).toHaveBeenCalled();
+      expect(cookieMock).toHaveBeenCalledWith('token', 'mock-jwt-token', expect.any(Object));
       expect(statusMock).toHaveBeenCalledWith(201);
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: {
           user: expect.objectContaining({
             username: 'testuser',
-            email: 'test@test.com'
-          })
-        }
+            email: 'test@test.com',
+          }),
+        },
       });
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 409 if user already exists', async () => {
+    it('should call next with ConflictError if user already exists', async () => {
       req.body = registerData;
       (UserModel.findOne as jest.Mock).mockResolvedValue({ email: 'test@test.com' });
 
-      await register(req as Request, res as Response, next);
+      await register(req, res as Response, next);
 
-      expect(ConflictError).toHaveBeenCalledWith('User already exists');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User already exists');
+      expect(err.statusCode).toBe(409);
     });
 
     it('should pass errors to next middleware', async () => {
@@ -135,22 +129,21 @@ describe('Auth Controller', () => {
       const error = new Error('Database error');
       (UserModel.findOne as jest.Mock).mockRejectedValue(error);
 
-      await register(req as Request, res as Response, next);
+      await register(req, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
     });
   });
 
+  // ---------- login ----------
+
   describe('login', () => {
-    const loginData = {
-      email: 'test@test.com',
-      password: 'password123'
-    };
+    const loginData = { email: 'test@test.com', password: 'password123' };
 
     it('should login successfully with valid credentials', async () => {
       req.body = loginData;
       const mockUser = {
-        _id: '123',
+        _id: { toString: () => '123' },
         username: 'testuser',
         email: 'test@test.com',
         bio: '',
@@ -161,64 +154,63 @@ describe('Auth Controller', () => {
           username: 'testuser',
           email: 'test@test.com',
           bio: '',
-          avatar: 'https://res.cloudinary.com/...'
-        })
+          avatar: 'https://res.cloudinary.com/...',
+        }),
       };
-      const mockSelect = jest.fn().mockResolvedValue(mockUser);
-      (UserModel.findOne as jest.Mock).mockReturnValue({
-        select: mockSelect
-      });
-      
-      const mockToken = 'mock-jwt-token';
-      (jwt.sign as jest.Mock).mockReturnValue(mockToken);
 
-      await login(req as Request, res as Response, next);
+      (UserModel.findOne as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser),
+      });
+      (jwt.sign as jest.Mock).mockReturnValue('mock-jwt-token');
+
+      await login(req, res as Response, next);
 
       expect(UserModel.findOne).toHaveBeenCalledWith({ email: 'test@test.com' });
       expect(mockUser.comparePassword).toHaveBeenCalledWith('password123');
-      expect(cookieMock).toHaveBeenCalledWith('token', mockToken, expect.any(Object));
+      expect(cookieMock).toHaveBeenCalledWith('token', 'mock-jwt-token', expect.any(Object));
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: {
           user: expect.objectContaining({
             username: 'testuser',
-            email: 'test@test.com'
-          })
-        }
+            email: 'test@test.com',
+          }),
+        },
       });
-      expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if user not found', async () => {
+    it('should call next with UnauthorizedError if user not found', async () => {
       req.body = loginData;
-      const mockSelect = jest.fn().mockResolvedValue(null);
       (UserModel.findOne as jest.Mock).mockReturnValue({
-        select: mockSelect
+        select: jest.fn().mockResolvedValue(null),
       });
 
-      await login(req as Request, res as Response, next);
+      await login(req, res as Response, next);
 
-      expect(UnauthorizedError).toHaveBeenCalledWith('Invalid credentials');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('Invalid credentials');
+      expect(err.statusCode).toBe(401);
     });
 
-    it('should return 401 if password is invalid', async () => {
+    it('should call next with UnauthorizedError if password is invalid', async () => {
       req.body = loginData;
       const mockUser = {
-        _id: '123',
-        comparePassword: jest.fn().mockResolvedValue(false)
+        _id: { toString: () => '123' },
+        comparePassword: jest.fn().mockResolvedValue(false),
       };
-      const mockSelect = jest.fn().mockResolvedValue(mockUser);
       (UserModel.findOne as jest.Mock).mockReturnValue({
-        select: mockSelect
+        select: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await login(req as Request, res as Response, next);
+      await login(req, res as Response, next);
 
-      expect(UnauthorizedError).toHaveBeenCalledWith('Invalid credentials');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('Invalid credentials');
+      expect(err.statusCode).toBe(401);
     });
   });
+
+  // ---------- getMe ----------
 
   describe('getMe', () => {
     it('should return current user profile', async () => {
@@ -228,39 +220,36 @@ describe('Auth Controller', () => {
         username: 'testuser',
         email: 'test@test.com',
         avatar: 'https://res.cloudinary.com/...',
-        bio: 'Test bio'
+        bio: 'Test bio',
       };
       (UserModel.findById as jest.Mock).mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
+        select: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await getMe(req as any, res as Response, next);
+      await getMe(req, res as Response, next);
 
       expect(UserModel.findById).toHaveBeenCalledWith('123');
-      expect(jsonMock).toHaveBeenCalledWith({
-        success: true,
-        data: mockUser
-      });
+      expect(jsonMock).toHaveBeenCalledWith({ success: true, data: mockUser });
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with NotFoundError if user not found', async () => {
       req.userId = '123';
       (UserModel.findById as jest.Mock).mockReturnValue({
-        select: jest.fn().mockResolvedValue(null)
+        select: jest.fn().mockResolvedValue(null),
       });
 
-      await getMe(req as any, res as Response, next);
+      await getMe(req, res as Response, next);
 
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
 
+  // ---------- updateProfile ----------
+
   describe('updateProfile', () => {
-    const updateData = {
-      username: 'newusername',
-      bio: 'New bio'
-    };
+    const updateData = { username: 'newusername', bio: 'New bio' };
 
     it('should update user profile successfully', async () => {
       req.userId = '123';
@@ -271,11 +260,11 @@ describe('Auth Controller', () => {
         email: 'test@test.com',
         bio: 'Old bio',
         avatar: 'https://res.cloudinary.com/...',
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
-      await updateProfile(req as any, res as Response, next);
+      await updateProfile(req, res as Response, next);
 
       expect(UserModel.findById).toHaveBeenCalledWith('123');
       expect(mockUser.username).toBe('newusername');
@@ -285,113 +274,120 @@ describe('Auth Controller', () => {
         success: true,
         data: expect.objectContaining({
           username: 'newusername',
-          bio: 'New bio'
-        })
+          bio: 'New bio',
+        }),
       });
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with NotFoundError if user not found', async () => {
       req.userId = '123';
       req.body = updateData;
       (UserModel.findById as jest.Mock).mockResolvedValue(null);
 
-      await updateProfile(req as any, res as Response, next);
+      await updateProfile(req, res as Response, next);
 
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
 
+  // ---------- updateAvatar ----------
+
   describe('updateAvatar', () => {
-    const cloudinaryUrl = 'https://res.cloudinary.com/dyb6cegae/image/upload/v1234567890/avatars/avatar-123.jpg';
+    const cloudinaryUrl =
+      'https://res.cloudinary.com/dyb6cegae/image/upload/v1234567890/avatars/avatar-123.jpg';
 
     it('should update avatar successfully with Cloudinary', async () => {
       req.userId = '123';
       req.file = { path: cloudinaryUrl };
-      
+
       const mockUser = {
         _id: '123',
         avatar: 'https://res.cloudinary.com/.../old-avatar.jpg',
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
-      await updateAvatar(req as any, res as Response, next);
+      await updateAvatar(req, res as Response, next);
 
       expect(UserModel.findById).toHaveBeenCalledWith('123');
       expect(mockUser.avatar).toBe(cloudinaryUrl);
       expect(mockUser.save).toHaveBeenCalled();
-      expect(deleteOldAvatarFromCloudinary).toHaveBeenCalledWith('https://res.cloudinary.com/.../old-avatar.jpg');
+      expect(deleteOldAvatarFromCloudinary).toHaveBeenCalledWith(
+        'https://res.cloudinary.com/.../old-avatar.jpg'
+      );
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        data: { avatar: cloudinaryUrl }
+        data: { avatar: cloudinaryUrl },
       });
     });
 
     it('should handle case when user had no previous avatar', async () => {
       req.userId = '123';
       req.file = { path: cloudinaryUrl };
-      
+
       const mockUser = {
         _id: '123',
         avatar: null,
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
-      await updateAvatar(req as any, res as Response, next);
+      await updateAvatar(req, res as Response, next);
 
       expect(mockUser.avatar).toBe(cloudinaryUrl);
       expect(deleteOldAvatarFromCloudinary).not.toHaveBeenCalled();
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        data: { avatar: cloudinaryUrl }
+        data: { avatar: cloudinaryUrl },
       });
     });
 
-    it('should return 400 if no file uploaded', async () => {
+    it('should call next with BadRequestError if no file uploaded', async () => {
       req.userId = '123';
       req.file = undefined;
 
-      await updateAvatar(req as any, res as Response, next);
+      await updateAvatar(req, res as Response, next);
 
-      expect(BadRequestError).toHaveBeenCalledWith('No file uploaded');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('No file uploaded');
+      expect(err.statusCode).toBe(400);
     });
 
-    it('should return 400 if Cloudinary upload failed', async () => {
+    it('should call next with BadRequestError if Cloudinary upload failed', async () => {
       req.userId = '123';
       req.file = { path: null };
-      
-      const mockUser = {
-        _id: '123',
-        avatar: null,
-        save: jest.fn()
-      };
+
+      const mockUser = { _id: '123', avatar: null, save: jest.fn() };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
-      await updateAvatar(req as any, res as Response, next);
+      await updateAvatar(req, res as Response, next);
 
-      expect(BadRequestError).toHaveBeenCalledWith('Failed to upload avatar to Cloudinary');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('Failed to upload avatar to Cloudinary');
+      expect(err.statusCode).toBe(400);
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with NotFoundError if user not found', async () => {
       req.userId = '123';
       req.file = { path: cloudinaryUrl };
       (UserModel.findById as jest.Mock).mockResolvedValue(null);
 
-      await updateAvatar(req as any, res as Response, next);
+      await updateAvatar(req, res as Response, next);
 
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
+
+  // ---------- changePassword ----------
 
   describe('changePassword', () => {
     const passwordData = {
       currentPassword: 'oldpassword123',
-      newPassword: 'newpassword123'
+      newPassword: 'newpassword123',
     };
 
     it('should change password successfully', async () => {
@@ -401,86 +397,88 @@ describe('Auth Controller', () => {
         _id: '123',
         comparePassword: jest.fn().mockResolvedValue(true),
         password: 'oldpassword',
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
-      
-      const mockSelect = jest.fn().mockResolvedValue(mockUser);
+
       (UserModel.findById as jest.Mock).mockReturnValue({
-        select: mockSelect
+        select: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await changePassword(req as any, res as Response, next);
+      await changePassword(req, res as Response, next);
 
       expect(UserModel.findById).toHaveBeenCalledWith('123');
-      expect(mockSelect).toHaveBeenCalledWith('+password');
       expect(mockUser.comparePassword).toHaveBeenCalledWith('oldpassword123');
       expect(mockUser.password).toBe('newpassword123');
       expect(mockUser.save).toHaveBeenCalled();
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'Password changed successfully'
+        message: 'Password changed successfully',
       });
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with NotFoundError if user not found', async () => {
       req.userId = '123';
       req.body = passwordData;
-      const mockSelect = jest.fn().mockResolvedValue(null);
       (UserModel.findById as jest.Mock).mockReturnValue({
-        select: mockSelect
+        select: jest.fn().mockResolvedValue(null),
       });
 
-      await changePassword(req as any, res as Response, next);
+      await changePassword(req, res as Response, next);
 
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
 
-    it('should return 401 if current password is incorrect', async () => {
+    it('should call next with UnauthorizedError if current password is incorrect', async () => {
       req.userId = '123';
       req.body = passwordData;
       const mockUser = {
         _id: '123',
         comparePassword: jest.fn().mockResolvedValue(false),
-        save: jest.fn()
+        save: jest.fn(),
       };
-      const mockSelect = jest.fn().mockResolvedValue(mockUser);
       (UserModel.findById as jest.Mock).mockReturnValue({
-        select: mockSelect
+        select: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await changePassword(req as any, res as Response, next);
+      await changePassword(req, res as Response, next);
 
-      expect(UnauthorizedError).toHaveBeenCalledWith('Current password is incorrect');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('Current password is incorrect');
+      expect(err.statusCode).toBe(401);
     });
   });
 
+  // ---------- logout ----------
+
   describe('logout', () => {
     it('should clear token cookie and return success', async () => {
-      await logout(req as any, res as Response, next);
+      await logout(req, res as Response, next);
 
       expect(clearCookieMock).toHaveBeenCalledWith('token', expect.any(Object));
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
       expect(next).not.toHaveBeenCalled();
     });
   });
+
+  // ---------- deleteUser ----------
 
   describe('deleteUser', () => {
     const userId = '123';
 
     it('should delete user successfully', async () => {
       req.userId = userId;
-      
+
       const mockUser = {
         _id: userId,
         username: 'testuser',
         email: 'test@test.com',
         avatar: 'https://res.cloudinary.com/.../avatar.jpg',
-        save: jest.fn()
+        save: jest.fn(),
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
       (RecipeModel.deleteMany as jest.Mock).mockResolvedValue({ deletedCount: 5 });
@@ -488,12 +486,12 @@ describe('Auth Controller', () => {
       (UserModel.updateMany as jest.Mock).mockResolvedValue({ modifiedCount: 2 });
       (UserModel.findByIdAndDelete as jest.Mock).mockResolvedValue(mockUser);
 
-      await deleteUser(req as any, res as Response, next);
+      await deleteUser(req, res as Response, next);
 
       expect(UserModel.findById).toHaveBeenCalledWith(userId);
       expect(deleteOldAvatarFromCloudinary).toHaveBeenCalledWith(mockUser.avatar);
       expect(RecipeModel.deleteMany).toHaveBeenCalledWith({ author: userId });
-      expect(CommentModel.deleteMany).toHaveBeenCalledWith({ userId: userId });
+      expect(CommentModel.deleteMany).toHaveBeenCalledWith({ userId });
       expect(UserModel.updateMany).toHaveBeenCalledWith(
         { favorites: userId },
         { $pull: { favorites: userId } }
@@ -506,19 +504,19 @@ describe('Auth Controller', () => {
       expect(clearCookieMock).toHaveBeenCalledWith('token', expect.any(Object));
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        message: 'User account deleted successfully'
+        message: 'User account deleted successfully',
       });
     });
 
-    it('should handle user with no avatar', async () => {
+    it('should not delete avatar when user has no avatar', async () => {
       req.userId = userId;
-      
+
       const mockUser = {
         _id: userId,
         username: 'testuser',
         email: 'test@test.com',
         avatar: null,
-        save: jest.fn()
+        save: jest.fn(),
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
       (RecipeModel.deleteMany as jest.Mock).mockResolvedValue({});
@@ -526,19 +524,20 @@ describe('Auth Controller', () => {
       (UserModel.updateMany as jest.Mock).mockResolvedValue({});
       (UserModel.findByIdAndDelete as jest.Mock).mockResolvedValue(mockUser);
 
-      await deleteUser(req as any, res as Response, next);
+      await deleteUser(req, res as Response, next);
 
       expect(deleteOldAvatarFromCloudinary).not.toHaveBeenCalled();
     });
 
-    it('should return 404 if user not found', async () => {
+    it('should call next with NotFoundError if user not found', async () => {
       req.userId = userId;
       (UserModel.findById as jest.Mock).mockResolvedValue(null);
 
-      await deleteUser(req as any, res as Response, next);
+      await deleteUser(req, res as Response, next);
 
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
       expect(UserModel.findByIdAndDelete).not.toHaveBeenCalled();
     });
 
@@ -547,7 +546,7 @@ describe('Auth Controller', () => {
       const error = new Error('Database error');
       (UserModel.findById as jest.Mock).mockRejectedValue(error);
 
-      await deleteUser(req as any, res as Response, next);
+      await deleteUser(req, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
     });

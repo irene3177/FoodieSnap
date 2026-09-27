@@ -1,3 +1,4 @@
+// src/components/MessageModal/MessageModal.tsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch } from '../../store/store';
@@ -11,28 +12,32 @@ import { MessageInput } from '../Chat/MessageInput';
 import { ScrollToBottomButton } from '../Chat/ScrollToBottomButton';
 import { MessageModalSkeleton } from '../Skeleton/MessageModalSkeleton';
 import * as socket from '../../services/socket';
-import './MessageModal.css';
+import { MdClose } from 'react-icons/md';
+// import { LuSend } from 'react-icons/lu';
+import { useScrollLock } from '../../hooks/useScrollLock';
+import { Participant } from '../../types';
+import Avatar from '../Avatar';
 
 interface MessageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  recipientId: string;
-  recipientName: string;
-  recipientAvatar?: string;
+  recipient: Participant | null;
 }
 
-function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAvatar }: MessageModalProps) {
+function MessageModal({ isOpen, onClose, recipient }: MessageModalProps) {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
+  useScrollLock(isOpen);
+
   useEffect(() => {
-    if (!isOpen || !recipientId) return;
+    if (!isOpen || !recipient?._id) return;
 
     const loadConversation = async () => {
       setIsLoadingConversation(true);
-      const response = await messagesApi.getConversation(recipientId);
+      const response = await messagesApi.getConversation(recipient?._id);
       if (response.success && response.data) {
         setConversationId(response.data._id);
         dispatch(resetUnread(response.data._id));
@@ -42,7 +47,7 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
       setIsLoadingConversation(false);
     };
     loadConversation();
-  }, [isOpen, recipientId, dispatch]);
+  }, [isOpen, recipient?._id, dispatch]);
 
   const {
     messages,
@@ -58,7 +63,6 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
     handleScroll
   } = useChatScroll(messages);
 
-  // Join conversation room
   useEffect(() => {
     if (!conversationId || !isOpen) return;
 
@@ -69,98 +73,76 @@ function MessageModal({ isOpen, onClose, recipientId, recipientName, recipientAv
     };
   }, [conversationId, isOpen]);
 
-  if (isLoadingConversation || loading) {
-    return (
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className="message-modal__overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          >
-            <motion.div
-              className="message-modal"
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="message-modal__header">
-                <div className="message-modal__recipient">
-                  <div className="message-modal__avatar">
-                    {recipientAvatar ? (
-                      <img 
-                        src={recipientAvatar} 
-                        alt={recipientName}
-                      />
-                    ) : (
-                      <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
-                    )}
-                  </div>
-                  <span className="message-modal__name">{recipientName}</span>
-                </div>
-                <button className="message-modal__close" onClick={onClose}>✕</button>
-              </div>
-              <MessageModalSkeleton />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }
+  const isLoading = isLoadingConversation || loading;
+  console.log(showScrollButton);
 
   return (
     <AnimatePresence>
-      {isOpen && conversationId && (
+      {isOpen && (
         <motion.div
-          className="message-modal__overlay"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1100] p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="message-modal"
+            className="bg-primary rounded-2xl w-full max-w-md h-[600px] max-h-[80vh] flex flex-col shadow-2xl overflow-hidden relative"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="message-modal__header">
-              <div className="message-modal__recipient">
-                  <div className="message-modal__avatar">
-                    {recipientAvatar ? (
-                      <img 
-                        src={recipientAvatar} 
-                        alt={recipientName}
-                      />
-                    ) : (
-                      <span>{recipientName.charAt(0).toUpperCase() || 'U'}</span>
-                    )}
-                  </div>
-                <span className="message-modal__name">{recipientName}</span>
+            {/* Header */}
+            <div className="flex justify-between items-center px-8 py-4 border-b bg-primary flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <Avatar src={recipient?.avatar} username={recipient?.username} border /> 
+                <span className="font-semibold text-primary text-base">
+                  {recipient?.username}
+                </span>
               </div>
-              <button className="message-modal__close" onClick={onClose}>✕</button>
+              <button
+                className="bg-transparent border-none text-secondary text-xl cursor-pointer p-2 rounded-lg flex items-center justify-center w-8 h-8 hover:bg-border transition-colors"
+                onClick={onClose}
+                aria-label="Close"
+              >
+                <MdClose className="w-5 h-5" />
+              </button>
             </div>
 
-            <MessageList
-              messages={messages}
-              messagesContainerRef={messagesContainerRef}
-              messagesEndRef={messagesEndRef}
-              onScroll={handleScroll}
-              currentUserId={user?._id}
-            />
+            {/* Content */}
+            {isLoading ? (
+              <MessageModalSkeleton />
+            ) : (
+              <>
+                <MessageList
+                  messages={messages}
+                  messagesContainerRef={messagesContainerRef}
+                  messagesEndRef={messagesEndRef}
+                  onScroll={handleScroll}
+                  currentUserId={user?._id}
+                  className="px-8"
+                />
 
-            {showScrollButton && <ScrollToBottomButton onClick={scrollToBottom} />}
+                <div className="flex-shrink-0 px-8">
+                  <div className="relative flex-1 max-w-[776px] mx-auto">
+                    {showScrollButton && (
+                      <div className="absolute bottom-[calc(100%+16px)] right-4 z-10">
+                        <ScrollToBottomButton onClick={scrollToBottom} />
+                      </div>
+                    )}
 
-            <MessageInput
-              conversationId={conversationId}
-              userId={user?._id || ''}
-              onSendMessage={sendMessage}
-              disabled={false}
-            />
+                    <MessageInput
+                      conversationId={conversationId!}
+                      userId={user?._id || ''}
+                      onSendMessage={sendMessage}
+                      disabled={false}
+                    />
+
+                  </div>
+                </div>
+              </>
+            )}
           </motion.div>
         </motion.div>
       )}

@@ -1,8 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useFollow } from '../../hooks/useFollow';
-import RecipeCard from '../../components/RecipeCard/RecipeCard';
 import { ProfileSkeleton } from '../../components/Skeleton/ProfileSkeleton';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
 import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
@@ -14,15 +12,16 @@ import { useProfileData } from '../../hooks/useProfileData';
 import { useAppDispatch } from '../../store/store';
 import { recipesApi } from '../../services/recipesApi';
 import { showToast } from '../../store/toastSlice';
-import { authApi } from '../../services/authApi';
 import { Recipe } from '../../types';
-import './ProfilePage.css';
+import ProfileHeader from '../../components/Profile/ProfileHeader';
+import ProfileAbout from '../../components/Profile/ProfileAbout';
+import ProfileTabs from '../../components/Profile/ProfileTabs';
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser, refreshUser } = useAuth();
+  const location = useLocation();
   const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState<'favorites' | 'myRecipes' | 'about'>('favorites');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userRecipes, setUserRecipes] = useState<Recipe[]>([]);
   const [loadingUserRecipes, setLoadingUserRecipes] = useState(false);
@@ -35,9 +34,6 @@ function ProfilePage() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [isEditRecipeModalOpen, setIsEditRecipeModalOpen] = useState(false);
 
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const {
     profile,
     favorites,
@@ -46,20 +42,10 @@ function ProfilePage() {
     error,
     refresh,
     updateFollowStats,
-    updateCounters
+    updateCounters,
+    isOwnProfile,
   } = useProfileData(userId, currentUser?._id);
 
-  const { isFollowing, isLoading: isFollowLoading, toggleFollow } = useFollow(
-    profile?._id || '',
-    profile?.isFollowing || false,
-    {
-      onFollowChange: (newIsFollowing, newFollowersCount) => {
-        updateFollowStats(newIsFollowing, newFollowersCount);
-      }
-    }
-  );
-
-  const isOwnProfile = currentUser?._id === profile?._id;
 
   // Load user's own recipes
   useEffect(() => {
@@ -85,6 +71,13 @@ function ProfilePage() {
     }
   }, [profile?._id, dispatch]);
 
+  useEffect(() => {
+    if (location.state?.openCreateRecipe) {
+      setIsCreateModalOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const handleEditSuccess = async () => {
     await refreshUser();
     refresh();
@@ -105,54 +98,6 @@ function ProfilePage() {
       };
       loadUserRecipes();
     }
-  };
-
-  const handleAvatarClick = () => {
-    if (isOwnProfile && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      dispatch(showToast({
-        message: 'Please select an image file',
-        type: 'error'
-      }));
-      return;
-    }
-
-    // Validate file size
-    if (file.size > 5 * 1024 * 1024) {
-      dispatch(showToast({
-        message: 'Image must be less than 5MB',
-        type: 'error'
-      }));
-      return;
-    }
-
-    setIsUploadingAvatar(true);
-
-    const response = await authApi.updateAvatar(file);
-    
-    if (response.success) {
-      dispatch(showToast({
-        message: 'Avatar updated successfully!',
-        type: 'success'
-      }));
-      await refreshUser();
-      refresh();
-    } else {
-      dispatch(showToast({
-        message: response.error || 'Failed to update avatar',
-        type: 'error'
-      }));
-    }
-    setIsUploadingAvatar(false);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
@@ -190,249 +135,43 @@ function ProfilePage() {
 
   return (
     <>
-      <div className="profile-page">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div
-            className={`profile-avatar-wrapper ${isOwnProfile
-              ? 'profile-avatar-wrapper--editable'
-              : ''}`}
-              onClick={handleAvatarClick}
-          >
-            <div className="profile-avatar">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.username} />
-              ) : (
-                <span>{profile.username.charAt(0).toUpperCase()}</span>
-              )}
-            </div>
-            {isOwnProfile && (
-              <div className="profile-avatar-overlay">
-                <svg
-                  className="profile-avatar-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M12 4v16m-8-8h16" stroke="currentColor" />
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                </svg>
-              </div>
-            )}
-            {isUploadingAvatar && (
-              <div className="profile-avatar-loading">
-                <div className="profile-avatar-spinner"></div>
-              </div>
-            )}
-          </div>
-          <h1 className="profile-username">{profile.username}</h1>
-          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
-          
-          <div className="profile-stats">
-            <div className="profile-stat">
-              <span className="profile-stat-value">{userRecipes.length}</span>
-              <span className="profile-stat-label">Recipes</span>
-            </div>
-            <div
-              className="profile-stat"
-              onClick={() => setShowFollowersModal(true)}
-              style={{ cursor: 'pointer' }}
-            >
-              <span className="profile-stat-value">{profile.followersCount || 0}</span>
-              <span className="profile-stat-label">Followers</span>
-            </div>
-            <div
-              className="profile-stat"
-              onClick={() => setShowFollowingModal(true)}
-              style={{ cursor: 'pointer' }}
-            >
-              <span className="profile-stat-value">{profile.followingCount || 0}</span>
-              <span className="profile-stat-label">Following</span>
-            </div>
-          </div>
+      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-[1400px] mx-auto px-8 py-6">
+        <div className="flex flex-col items-center">
+          {/* Profile Header */}
+          <ProfileHeader
+            currentUser={currentUser}
+            profile={profile}
+            refresh={refresh}
+            updateFollowStats={updateFollowStats}
+            userRecipesCount={userRecipes.length}
+            onShowFollowers={() => setShowFollowersModal(true)}
+            onShowFollowing={() => setShowFollowingModal(true)}
+            onEditProfile={() => setIsEditModalOpen(true)}
+            onAddRecipe={() => setIsCreateModalOpen(true)}
+            onMessage={() => setIsMessageModalOpen(true)}
+          />
+          {/* About Section */}
+          <ProfileAbout
+            profile={profile}
+            userRecipesCount={userRecipes.length}
+            favoritesCount={favorites.length}
+          />
 
-          <div className="profile-actions">
-            {isOwnProfile ? (
-              <>
-                <button
-                  className="profile-edit-button"
-                  onClick={() => setIsEditModalOpen(true)}
-                >
-                  Edit Profile
-                </button>
-                <button
-                  className="profile-create-button"
-                  onClick={() => setIsCreateModalOpen(true)}
-                >
-                  + Add Recipe
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className={`profile-follow-button ${isFollowing ? 'following' : ''}`}
-                  onClick={toggleFollow}
-                  disabled={isFollowLoading}
-                >
-                  {isFollowLoading ? 'Loading...' : (isFollowing ? 'Following' : 'Follow')}
-                </button>
-                <button
-                  className="profile-message-button"
-                  onClick={() => setIsMessageModalOpen(true)}
-                >
-                  💬 Message
-                </button>
-              </>
-            )}
-          </div>
         </div>
-
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleAvatarUpload}
-        />
 
         {/* Tabs */}
-        <div className="profile-tabs">
-          <button
-            className={`profile-tab ${activeTab === 'favorites' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('favorites')}
-          >
-            Favorites
-            <span className="profile-tab-count">{favorites.length}</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'myRecipes' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('myRecipes')}
-          >
-            {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
-            <span className="profile-tab-count">{userRecipes.length}</span>
-          </button>
-          <button
-            className={`profile-tab ${activeTab === 'about' ? 'profile-tab--active' : ''}`}
-            onClick={() => setActiveTab('about')}
-          >
-            About
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className="profile-content">
-          {activeTab === 'favorites' && (
-            <>
-              <div className="profile-content-title">
-                Favorite Recipes
-                <span>Public</span>
-              </div>
-
-              {loadingFavorites ? (
-                <div className="profile-loading">Loading favorites...</div>
-              ) : favorites.length > 0 ? (
-                <div className="profile-recipes-grid">
-                  {favorites.map((recipe) => (
-                    <RecipeCard key={recipe._id} recipe={recipe} />
-                  ))}
-                </div>
-              ) : (
-                <div className="profile-no-recipes">
-                  <p>
-                    {isOwnProfile 
-                      ? "You haven't added any favorites yet."
-                      : `${profile.username} hasn't added any favorites yet.`}
-                  </p>
-                  {isOwnProfile && (
-                    <Link to="/recipes" className="profile-explore-link">
-                      Explore Recipes
-                    </Link>
-                  )}
-                </div>
-              )} 
-            </>
-          )}
-
-          {activeTab === 'myRecipes' && (
-            <>
-              <div className="profile-content-title">
-                {isOwnProfile ? 'My Recipes' : `${profile.username}'s Recipes`}
-                <span>{isOwnProfile ? 'Your creations' : 'Public recipes'}</span>
-              </div>
-
-              {loadingUserRecipes ? (
-                <div className="profile-loading">Loading recipes...</div>
-              ) : userRecipes.length > 0 ? (
-                <div className="profile-recipes-grid">
-                  {userRecipes.map((recipe) => (
-                    <RecipeCard
-                      key={recipe._id}
-                      recipe={recipe}
-                      onEdit={isOwnProfile ? handleEditRecipe : undefined}
-                      onDelete={isOwnProfile ? handleDeleteRecipe : undefined}
-                      isOwner={isOwnProfile}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="profile-no-recipes">
-                  <p>
-                    {isOwnProfile 
-                      ? "You haven't created any recipes yet."
-                      : `${profile.username} hasn't created any recipes yet.`}
-                  </p>
-                  {isOwnProfile && (
-                    <button
-                      className="profile-create-button"
-                      onClick={() => setIsCreateModalOpen(true)}
-                    >
-                      Create Your First Recipe
-                    </button>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {activeTab === 'about' && (
-            <div className="profile-about">
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">About</h3>
-                <p className="profile-about-text">
-                  {profile.bio || `${profile.username} hasn't added a bio yet.`}
-                </p>
-              </div>
-
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">Member Since</h3>
-                <p className="profile-about-text">
-                  {profile.createdAt 
-                    ? new Date(profile.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                    : 'Recently joined'}
-                </p>
-              </div>
-
-              <div className="profile-about-section">
-                <h3 className="profile-about-title">Stats</h3>
-                <div className="profile-about-item">
-                  <span>{userRecipes.length || 0} recipe{userRecipes.length !== 1 ? 's' : ''} shared</span>
-                </div>
-                <div className="profile-about-item">
-                  <span>{favorites.length} favorite {favorites.length === 1 ? 'recipe' : 'recipes'}</span>
-                </div>
-                <div className="profile-about-item">
-                  <span>{profile.followersCount || 0} followers · {profile.followingCount || 0} following</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        <ProfileTabs
+          profile={profile}
+          favorites={favorites}
+          userRecipes={userRecipes}
+          isOwnProfile={isOwnProfile}
+          loadingFavorites={loadingFavorites}
+          loadingUserRecipes={loadingUserRecipes}
+          onAddRecipe={() => setIsCreateModalOpen(true)}
+          onEditRecipe={handleEditRecipe}
+          onDeleteRecipe={handleDeleteRecipe}
+        />
+        
         <ScrollToTop threshold={300} />
       </div>
 
@@ -450,9 +189,7 @@ function ProfilePage() {
       <MessageModal
         isOpen={isMessageModalOpen}
         onClose={() => setIsMessageModalOpen(false)}
-        recipientId={profile._id}
-        recipientName={profile.username}
-        recipientAvatar={profile.avatar}
+        recipient={profile}
       />
       <FollowModal
         isOpen={showFollowersModal}

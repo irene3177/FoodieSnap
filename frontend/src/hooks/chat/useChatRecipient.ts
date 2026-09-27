@@ -5,23 +5,19 @@ import { Participant, ConversationResponse } from '../../types';
 
 export const useChatRecipient = (conversationId: string | undefined, userId: string | undefined) => {
   const location = useLocation();
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientAvatar, setRecipientAvatar] = useState('');
-  const [recipientId, setRecipientId] = useState('');
+  const [recipient, setRecipient] = useState<Participant | null>(null);
 
   // Get recipient info from location state
   useEffect(() => {
-    if (location.state) {
-      setRecipientName(location.state.recipientName || '');
-      setRecipientAvatar(location.state.recipientAvatar || '');
-      setRecipientId(location.state.recipientId || '');
+    if (location.state?.recipient) {
+      setRecipient(location.state.recipient);
     }
   }, [location]);
 
   // Load recipient info from conversation if not available
   useEffect(() => {
     const loadRecipient = async () => {
-      if (!conversationId || recipientId || !userId) return;
+      if (!conversationId || recipient?._id || !userId) return;
 
       try {
         const response = await messagesApi.getConversationById(conversationId);
@@ -31,9 +27,7 @@ export const useChatRecipient = (conversationId: string | undefined, userId: str
             (p: Participant) => p._id !== userId
           );
           if (otherUser) {
-            setRecipientName(otherUser.username);
-            setRecipientAvatar(otherUser.avatar || '');
-            setRecipientId(otherUser._id);
+            setRecipient(otherUser);
           }
         }
       } catch (error) {
@@ -42,7 +36,7 @@ export const useChatRecipient = (conversationId: string | undefined, userId: str
     };
 
     loadRecipient();
-  }, [conversationId, recipientId, userId]);
+  }, [conversationId, recipient?._id, userId]);
 
-  return { recipientName, recipientAvatar, recipientId };
+  return { recipient };
 };
