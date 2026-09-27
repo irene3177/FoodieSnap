@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { useLocation, Outlet, ScrollRestoration } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from './store/store';
 import {
@@ -74,6 +74,7 @@ function App() {
   const isChatPage = location.pathname.startsWith('/chat/');
   return (
     <div className="min-h-screen flex flex-col bg-primary text-primary">
+      <ScrollRestoration />
       {!isChatPage && <Header />}
       <main className={`flex-1 overflow-y-auto scrollbar-thin ${isChatPage ? 'h-screen overflow-hidden' : ''}`}>
         <AnimatedPage key={location.pathname}>
