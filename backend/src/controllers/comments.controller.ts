@@ -111,7 +111,7 @@ export const toggleLike = async (
       return next(NotFoundError('Comment not found'));
     }
   
-    const hasLiked = comment.likedBy.includes(userId as any) || false;
+    const hasLiked = comment.likedBy.some(id => id.toString() === userId) || false;
   
     if (hasLiked) {
       comment.likedBy = comment.likedBy.filter(

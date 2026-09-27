@@ -122,7 +122,7 @@ export const getUsers = async (req: AuthRequest, res: Response, next: NextFuncti
     }
 
     const users = await UserModel.find(query)
-      .select('username avatar bio createdRecipes')
+      .select('username avatar bio createdRecipes followers')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit);
@@ -136,7 +136,7 @@ export const getUsers = async (req: AuthRequest, res: Response, next: NextFuncti
         avatar: user.avatar,
         bio: user.bio,
         recipeCount: user.createdRecipes?.length || 0,
-        isFollowing: user.followers?.includes(currentUserId) || false
+        isFollowing: user.followers?.some((id) => id.toString() === currentUserId?.toString()) || false
       }));
 
       res.json({
