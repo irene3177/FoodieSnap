@@ -203,7 +203,7 @@
   }
 
   .btn-secondary {
-    @apply btn btn-shimmer bg-transparent border text-primary hover:bg-border hover:shadow-secondary-btn;
+    @apply btn btn-shimmer glass-card border text-primary hover:bg-border hover:shadow-secondary-btn;
   }
 
   .btn-outline {
