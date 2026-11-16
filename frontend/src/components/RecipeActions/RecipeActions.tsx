@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch } from '../../store/store';
-import { recipesApi } from '../../services/recipesApi';
-import { showToast } from '../../store/toastSlice';
-import { Recipe } from '../../types';
+import { useAppDispatch, showToast } from '@/store';
+import { recipesApi } from '@/services/recipesApi';
+import { Recipe } from '@/types';
 import { RiEdit2Fill, RiDeleteBin6Line } from 'react-icons/ri';
-// import './RecipeActions.css';
 
 interface RecipeActionsProps {
   recipe: Recipe;

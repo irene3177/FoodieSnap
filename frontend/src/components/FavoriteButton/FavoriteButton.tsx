@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch, useAppSelector }from '../../store/store';
-import { addToFavorites, removeFromFavorites, fetchFavorites } from '../../store/favoritesSlice';
-import { Recipe } from '../../types';
-import { showToast } from '../../store/toastSlice';
-import { useAuth } from '../../hooks/useAuth';
+import { useAppDispatch, useAppSelector, showToast }from '@/store';
+import { addToFavorites, removeFromFavorites, fetchFavorites } from '@/store/favoritesSlice';
+import { Recipe } from '@/types';
+import { useAuth } from '@/hooks';
 import { GoHeart, GoHeartFill } from 'react-icons/go';
 import { HiMiniSparkles } from 'react-icons/hi2';
 

@@ -1,18 +1,17 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch } from '../../store/store';
-import { showToast } from '../../store/toastSlice';
-import { recipesApi } from '../../services/recipesApi';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { NewRecipe, Recipe } from '../../types';
-import { MdClose, MdMenuBook } from 'react-icons/md';
-import { RiEdit2Fill } from 'react-icons/ri';
+import { useAppDispatch, showToast } from '@/store';
+import { recipesApi } from '@/services/recipesApi';
+import { useScrollLock } from '@/hooks';
+import { NewRecipe, Recipe } from '@/types';
 import { BasicInfoSection } from './BasicInfoSection';
 import { MediaSection } from './MediaSection';
 import { PreparationSection } from './PreparationSection';
 import { IngredientsSection } from './IngredientsSection';
 import { InstructionsSection } from './InstructionsSection';
 import { Difficulty } from './PreparationSection';
+import { RiEdit2Fill } from 'react-icons/ri';
+import { MdClose, MdMenuBook } from 'react-icons/md';
 
 interface RecipeFormModalProps {
   isOpen: boolean;

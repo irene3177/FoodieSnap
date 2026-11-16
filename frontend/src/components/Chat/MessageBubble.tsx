@@ -1,6 +1,6 @@
 import React from 'react';
-import { Message } from '../../types';
-import Avatar from '../Avatar';
+import { Message } from '@/types';
+import { Avatar } from '@/components/ui';
 
 interface MessageBubbleProps {
   message: Message;

@@ -1,6 +1,6 @@
 import { MdSchedule } from 'react-icons/md';
 import clsx from 'clsx';
-import { DIFFICULTY_OPTIONS } from '../../constants';
+import { DIFFICULTY_OPTIONS } from '@/constants';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 

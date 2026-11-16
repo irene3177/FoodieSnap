@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store/store';
-import { hideToast, clearToast } from '../../store/toastSlice';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { hideToast, clearToast } from '@/store/toastSlice';
 import Toast from './Toast';
 import './Toast.css';
 

@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-// import { useScrollLock } from '../../hooks/useScrollLock';
-import { followApi } from '../../services/followApi';
-import { UserListItem } from '../../types';
-import Loader from '../Loader/Loader';
+import { useAuth } from '@/hooks/useAuth';
+// import { useScrollLock } from '@/hooks';
+import { followApi } from '@/services/followApi';
+import { UserListItem } from '@/types';
+import { Avatar, Loader } from '@/components/ui';
 import { MdClose, MdOutlinePeopleAlt } from 'react-icons/md';
-import Avatar from '../Avatar';
 
 interface FollowModalProps {
   isOpen: boolean;

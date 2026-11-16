@@ -1,20 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextareaAutosize from 'react-textarea-autosize';
-import { selectCommentsByRecipeId } from '../../store/commentsSlice';
-import { useAppDispatch, useAppSelector } from '../../store/store';
+import { useAuth } from '@/hooks';
+import { useAppDispatch, useAppSelector, showToast } from '@/store';
 import {
+  selectCommentsByRecipeId,
   fetchRecipeComments,
   createComment,
   updateComment,
   deleteComment,
   toggleLike
-} from '../../store/commentsSlice';
-import Avatar from '../Avatar';
-import RatingStars from '../RatingStars/RatingStars';
-import { Comment } from '../../types';
-import { useAuth } from '../../hooks/useAuth';
-import { showToast } from '../../store/toastSlice';
+} from '@/store/commentsSlice';
+import { Avatar } from '@/components/ui';
+import RatingStars from '@/components/RatingStars/RatingStars';
+import { Comment } from '@/types';
 import { MdEdit, MdDelete, MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 import { Link } from 'react-router-dom';
 

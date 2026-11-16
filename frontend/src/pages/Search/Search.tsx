@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { useAppDispatch, useAppSelector } from '../../store/store';
-import { fetchFiltersData } from '../../store/filtersSlice';
-import { useSearchRecipes } from '../../hooks/useSearchRecipes';
-import { RecipesFilters } from '../../types';
-import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import { RecipeCardSkeleton } from '../../components/Skeleton/RecipeCardSkeleton';
 import Masonry from 'react-masonry-css';
-import { RecipeFilters as FiltersComponent } from '../../components/RecipeFilters/RecipeFilters';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { MdClose, MdFilterList, MdSearch } from 'react-icons/md';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchFiltersData } from '@/store/filtersSlice';
+import { useSearchRecipes } from '@/hooks/useSearchRecipes';
+import { RecipesFilters } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import { RecipeFilters as FiltersComponent } from '@/components/RecipeFilters/RecipeFilters';
+import { EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { RecipeCardSkeleton } from '@/components/ui/Skeleton/RecipeCardSkeleton';
+import { MdClose, MdFilterList, MdOutlineSearchOff, MdSearch } from 'react-icons/md';
 
 const BREAKPOINT_COLS = {
   default: 3,
@@ -125,11 +125,11 @@ function Search() {
 
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-8 md:py-10 min-h-screen">
+    <div className="max-w-[1400px] mx-auto p-8 md:py-10 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start cursor-default">
         <div>
           <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">Search Recipes</h1>
-          <p className=" text-muted font-body-lg text-body-lg mt-2 mb-6">
+          <p className="text-muted font-body-lg text-body-lg mt-2 mb-6">
             Find recipes from our collection
           </p>
         </div>
@@ -190,48 +190,37 @@ function Search() {
       {!isLoading && !isError && recipes.length === 0 && (
         <div className="text-center py-12 px-6 bg-secondary rounded-xl max-w-md mx-auto my-8">
           {debouncedSearch ? (
-            <>
-              <p className="text-lg font-medium text-primary mb-2">No recipes found for "{debouncedSearch}"</p>
-              <p className="text-secondary text-sm">
-                Try different keywords or check your spelling
-              </p>
-            </>
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title={`No recipes found for "${debouncedSearch}"`}
+              description="Try different keywords or check your spelling."
+            />
           ) : activeFiltersCount > 0 ? (
-            <>
-              <p className="text-lg font-medium text-primary mb-2">No recipes match your filters</p>
-              <button 
-                onClick={() => {
-                  setFilters({});
-                }} 
-                className="mt-4 px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors"
-              >
-                Reset Filters
-              </button>
-            </>
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title="No recipes match your filters"
+              description="Try removing some filters to see more results."
+              secondaryAction={{
+                label: 'Reset Filters',
+                onClick: () => setFilters({}),
+              }}
+            />
           ) : (
-            <>
-              <p className="text-lg font-medium text-primary mb-2">Start searching for recipes!</p>
-              <p className="text-secondary text-sm">
-                Search by name or use filters to find your favorite dishes
-              </p>
-            </>
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title="Start searching for recipes!"
+              description="Search by name or use filters to find your favorite dishes."
+            />
           )}
         </div>
       )}
 
       {/* Error */}
       {isError && (
-        <div className="text-center py-12 px-4 bg-error-bg rounded-xl max-w-md mx-auto my-8">
-          <p className="text-error-text text-lg mb-4">
-            {error instanceof Error ? error.message : 'Failed to load recipes'}
-          </p>
-          <button
-            className="px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors"
-            onClick={() => refetch()}
-          >
-            Try Again
-          </button>
-        </div>
+        <ErrorState
+          message={error instanceof Error ? error.message : 'Failed to load recipes'}
+          onRetry={() => refetch()}
+        />
       )}
 
       {/* Results */}
@@ -288,7 +277,7 @@ function Search() {
 
       <ScrollToTop threshold={300} behavior="smooth" />
 
-      {/* Фильтры */}
+      {/* Filters */}
       <FiltersComponent
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}

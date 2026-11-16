@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { recipesApi } from '../services/recipesApi';
+import { recipesApi } from '@/services/recipesApi';
 
 interface FiltersState {
   categories: string[];

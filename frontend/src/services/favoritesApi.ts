@@ -1,4 +1,4 @@
-import { get, post, del, put } from '../utils/apiClient';
+import { get, post, del, put } from '@/utils/apiClient';
 import {
   FavoriteActionResponse,
   CheckFavoriteData,
@@ -6,7 +6,7 @@ import {
   ClearAllResponse,
   ApiResponse,
   Recipe
-} from '../types';
+} from '@/types';
 
 export const favoritesApi = {
   // Get all favorites

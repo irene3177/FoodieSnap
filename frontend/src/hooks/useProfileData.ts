@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UserProfile, Recipe } from '../types';
-import { usersApi } from '../services/usersApi';
-import { authApi } from '../services/authApi';
+import { UserProfile, Recipe } from '@/types';
+import { usersApi } from '@/services/usersApi';
+import { authApi } from '@/services/authApi';
 
 interface UseProfileDataReturn {
   profile: UserProfile | null;

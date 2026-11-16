@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@/hooks';
 import { MdClose, MdPersonRemoveAlt1 } from 'react-icons/md';
 import { IoWarningOutline } from 'react-icons/io5';
 
@@ -24,6 +24,7 @@ function DeleteAccountModal({
       {isOpen && (
         <motion.div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1100] p-4"
+          data-testid="modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -51,6 +52,7 @@ function DeleteAccountModal({
                   duration-700
                   "
                 onClick={onClose}
+                aria-label="Close modal"
               >
                 <MdClose className="w-6 h-6" />
               </button>

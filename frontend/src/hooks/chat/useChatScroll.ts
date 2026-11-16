@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Message } from '../../types';
+import { Message } from '@/types';
 
 export const useChatScroll = (messages: Message[]) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -26,6 +26,7 @@ export const useChatScroll = (messages: Message[]) => {
   useEffect(() => {
     if (messages.length === 0) return;
 
+    const isFirstLoad = prevMessagesLengthRef.current === 0;
     const isNewMessage = messages.length > prevMessagesLengthRef.current;
     prevMessagesLengthRef.current = messages.length;
 
@@ -33,8 +34,10 @@ export const useChatScroll = (messages: Message[]) => {
     // Scroll only if:
     // 1. It's a new message AND user was at bottom, OR
     // 2. It's the first time loading messages (prevLength was 0)
-    const shouldScroll = (isNewMessage && wasAtBottomRef.current)
-      || prevMessagesLengthRef.current === messages.length;
+    // const shouldScroll = (isNewMessage && wasAtBottomRef.current)
+    //   || prevMessagesLengthRef.current === messages.length;
+    const shouldScroll =
+      isFirstLoad || (isNewMessage && wasAtBottomRef.current);
     
     if (shouldScroll) {
       setTimeout(() => {
@@ -44,13 +47,13 @@ export const useChatScroll = (messages: Message[]) => {
   }, [messages]);
 
   // Set initial scroll position to bottom without animation
-  useEffect(() => {
-    if (messages.length > 0 && messagesContainerRef.current) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 150);
-    }
-  }, [messages.length]);
+  // useEffect(() => {
+  //   if (messages.length > 0 && messagesContainerRef.current) {
+  //     setTimeout(() => {
+  //       scrollToBottom();
+  //     }, 150);
+  //   }
+  // }, [messages.length]);
 
   return {
     showScrollButton,

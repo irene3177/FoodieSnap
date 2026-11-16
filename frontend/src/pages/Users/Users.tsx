@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../store/store';
+import { useDebounce } from '@/hooks';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   fetchUsers,
   searchUsers,
@@ -10,13 +11,10 @@ import {
   selectUsersPages,
   selectSearchQuery,
   setPage
-} from '../../store/usersSlice';
-import { UsersSkeleton } from '../../components/Skeleton/UsersSkeleton';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { useDebounce } from '../../hooks/useDebounce';
+} from '@/store/usersSlice';
+import { Avatar, EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { UsersSkeleton } from '@/components/ui/Skeleton/UsersSkeleton';
 import { MdSearch, MdClose, MdGroups, MdPersonAddAlt1 } from 'react-icons/md';
-import Avatar from '../../components/Avatar';
-import EmptyState from '../../components/EmptyState';
 
 function Users() {
   const dispatch = useAppDispatch();
@@ -32,6 +30,14 @@ function Users() {
   const [searchTerm, setSearchTerm] = useState(searchQuery);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleRetry = useCallback(() => {
+    if (debouncedSearch) {
+      dispatch(searchUsers(debouncedSearch));
+    } else {
+      dispatch(fetchUsers({ page: 1, limit: 20 }));
+    }
+  }, [dispatch, debouncedSearch]);
 
   // Load users on mount and when page changes
   useEffect(() => {
@@ -110,16 +116,12 @@ function Users() {
       </div>
 
       {/* Error state */}
-      {error && (
-        <div className="text-center py-8 px-4 bg-error rounded-xl text-error my-6">
-          <p className="mb-3">{error}</p>
-          <button
-            className="px-5 py-2 bg-accent text-white rounded-md border-none cursor-pointer hover:bg-accent-hover transition-colors"
-            onClick={() => dispatch(fetchUsers({ page: 1, limit: 20 }))}
-          >
-            Try Again
-          </button>
-        </div>
+      {error && !loading && (
+        <ErrorState
+          title="Failed to load users"
+          message={error}
+          onRetry={handleRetry}
+        />
       )}
 
       {/* Users List */}

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Masonry from 'react-masonry-css';
-import { Recipe, UserProfile } from '../../types';
-import RecipeCard from '../RecipeCard/RecipeCard';
-import EmptyState from '../EmptyState';
+import { Recipe, UserProfile } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import { EmptyState } from '@/components/ui';
 import { LuNotebookPen } from 'react-icons/lu';
 import { MdOutlineBookmarks, MdOutlineExplore } from 'react-icons/md';
 

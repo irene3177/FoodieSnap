@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recipesApi } from '../../services/recipesApi';
-import { Recipe } from '../../types';
-import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import EmptyState from '../../components/EmptyState';
+import { recipesApi } from '@/services/recipesApi';
+import { Recipe } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import BookmarkButton from '@/components/FavoriteButton/BookmarkButton';
+import { Avatar, EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { RecipeCardSkeleton } from '@/components/ui/Skeleton/Skeleton';
 import { MdAccessTime, MdExplore, MdOutlineStarBorder, MdStar, MdWorkspacePremium } from 'react-icons/md';
-import BookmarkButton from '../../components/FavoriteButton/BookmarkButton';
-import Avatar from '../../components/Avatar';
 
 function TopRated() {
   const navigate = useNavigate();
@@ -16,22 +14,22 @@ function TopRated() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadTopRated = async () => {
-      setLoading(true);
-      setError(null);
+  const loadTopRated = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      const result = await recipesApi.getTopRatedRecipes(10);
-      if (result.success && result.data) {
-        setRecipes(result.data);
-      } else {
-        setError(result.error || 'Failed to load top rated recipes');
-      }
-      setLoading(false);
-    };
-    loadTopRated();
+    const result = await recipesApi.getTopRatedRecipes(10);
+    if (result.success && result.data) {
+      setRecipes(result.data);
+    } else {
+      setError(result.error || 'Failed to load top rated recipes');
+    }
+    setLoading(false);
   }, []);
 
+  useEffect(() => {
+    loadTopRated();
+  }, [loadTopRated]);
   
   const topRecipe = recipes.length > 0 ? recipes[0] : null;
   const restRecipes = recipes.length > 1 ? recipes.slice(1) : [];
@@ -68,8 +66,13 @@ function TopRated() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="text-center py-8 px-4 bg-error rounded-xl text-error my-6">{error}</div>
+      {error && !loading && (
+        <ErrorState
+          title="Failed to load top rated recipes"
+          message={error}
+          onRetry={loadTopRated}
+          retryLabel="Try Again"
+        />
       )}
 
       {/* Loading */}

@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { useAppDispatch } from '../../store/store';
-import { resetUnread } from '../../store/unreadSlice'; 
-import { useChatRecipient } from '../../hooks/chat/useChatRecipient';
-import { useChatMessages } from '../../hooks/chat/useChatMessages';
-import { useChatScroll } from '../../hooks/chat/useChatScroll';
-import { useChatOptions } from '../../hooks/chat/useChatOptions';
-import { ChatHeader } from '../../components/Chat/ChatHeader';
-import { MessageList } from '../../components/Chat/MessageList';
-import { MessageInput } from '../../components/Chat/MessageInput';
-import { ScrollToBottomButton } from '../../components/Chat/ScrollToBottomButton';
-import { ChatDetailSkeleton } from '../../components/Skeleton/ChatDetailSkeleton';
-import * as socket from '../../services/socket';
+import {
+  useAuth,
+  useChatRecipient,
+  useChatMessages,
+  useChatScroll,
+  useChatOptions,
+} from '@/hooks';
+import { useAppDispatch, resetUnread } from '@/store';
+import { ChatHeader } from '@/components/Chat/ChatHeader';
+import { MessageList } from '@/components/Chat/MessageList';
+import { MessageInput } from '@/components/Chat/MessageInput';
+import { ScrollToBottomButton } from '@/components/Chat/ScrollToBottomButton';
+import { ChatDetailSkeleton } from '@/components/ui/Skeleton/ChatDetailSkeleton';
+import * as socket from '@/services/socket';
 
 function ChatDetail() {
   const dispatch = useAppDispatch();

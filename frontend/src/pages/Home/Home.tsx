@@ -1,10 +1,9 @@
-// pages/Home/Home.tsx
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
-import { recipesApi } from '../../services/recipesApi';
-import LoginModal from '../../components/Auth/LoginModal';
+import { useAuth } from '@/hooks';
+import { recipesApi } from '@/services/recipesApi';
+import LoginModal from '@/components/Auth/LoginModal';
 import {
   MdExplore,
   MdSearch,
@@ -142,7 +141,7 @@ function Home() {
             {/* Explore */}
             <Link
               to="/recipes"
-              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-2 bg-tertiary"
+              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-2 bg-tertiary hover:shadow-secondary-btn"
             >
               <div>
                 <div className="flex gap-2 mb-4">
@@ -160,7 +159,7 @@ function Home() {
             {/* Search */}
             <Link
               to="/search"
-              className="group p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-1"
+              className="group p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-1 hover:shadow-secondary-btn"
             >
               <div>
                 <div className="flex gap-2 mb-4">
@@ -178,7 +177,7 @@ function Home() {
             {/* Chats */}
             <Link
               to="/chats"
-              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-4 lg:col-span-1 bg-border"
+              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-4 lg:col-span-1 bg-border hover:shadow-secondary-btn"
             >
               <div>
                 <div className="flex gap-2 mb-4">
@@ -196,7 +195,7 @@ function Home() {
             {/* Top Rated */}
             <Link
               to="/top-rated"
-              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-1"
+              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-1 hover:shadow-secondary-btn"
             >
               <div>
                 <div className="flex gap-2 mb-4">
@@ -214,7 +213,7 @@ function Home() {
             {/* Community */}
             <Link
               to="/users"
-              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-3 bg-accent-secondary-bg"
+              className="group p-6 md:p-8 rounded-xl border flex flex-col justify-between min-h-[200px] hover:border-accent hover:-translate-y-0.5 transition-all duration-700 md:col-span-2 lg:col-span-3 bg-accent-secondary-bg hover:shadow-secondary-btn"
             >
               <div>
                 <div className="flex gap-2 mb-4">
@@ -233,7 +232,7 @@ function Home() {
 
         {/* === FINAL CTA === */}
         <section className="text-center py-12 px-8 lg:px-16 rounded-2xl glass-card border cursor-default">
-          <h2 className="font-headline-sm text-2xl md:text-3xl mb-3">
+          <h2 className="font-headline-sm text-secondary text-2xl md:text-3xl mb-3">
             Ready to cook something new?
           </h2>
           <p className="text-secondary mb-6 max-w-xl mx-auto">

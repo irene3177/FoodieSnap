@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { selectTotalUnread } from '../../store/unreadSlice';
-import { NavLinks, PersonalLinks } from '../../constants';
+import { useScrollLock } from '@/hooks';
+import { selectTotalUnread } from '@/store';
+import { NavLinks, PersonalLinks } from '@/constants';
+import { User } from '@/types';
+import { Avatar, ThemeToggle, ConfirmModal } from '@/components/ui';
 import { RiChatDeleteLine, RiDeleteBin5Line } from 'react-icons/ri';
 import { MdClose, MdOutlineDarkMode } from 'react-icons/md';
-import Avatar from '../Avatar';
-import ThemeToggle from '../ThemeToggle/ThemeToggle';
-import ConfirmModal from '../ConfirmModal';
-import { User } from '../../types';
-
 
 interface ChatOptionsProps {
   isOpen: boolean;

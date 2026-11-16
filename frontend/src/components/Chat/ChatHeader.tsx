@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useUserStatus } from '../../hooks/chat/useUserStatus';
+import { useUserStatus } from '@/hooks/chat/useUserStatus';
 import { ChatOptions } from './ChatOptions';
 import { MdArrowBack } from 'react-icons/md';
 import { CiMenuKebab } from 'react-icons/ci';
-import Avatar from '../Avatar';
-import { Participant, User } from '../../types';
+import { Avatar } from '@/components/ui';
+import { Participant, User } from '@/types';
 
 interface ChatHeaderProps {
   recipient?: Participant | null;

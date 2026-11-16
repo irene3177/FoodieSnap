@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useAppDispatch } from '../store/store';
-import { showToast } from '../store/toastSlice';
-import { followApi } from '../services/followApi';
-import { UserListItem } from '../types';
+import { useAppDispatch, showToast } from '@/store';
+import { followApi } from '@/services/followApi';
+import { UserListItem } from '@/types';
 
 interface UseFollowOptions {
   onFollowChange?: (isFollowing: boolean, followersCount?: number) => void;

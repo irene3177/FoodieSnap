@@ -4,7 +4,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { ThemeMode, ThemeContextType, ThemeProviderProps } from '../types';
+import { ThemeMode, ThemeContextType, ThemeProviderProps } from '@/types';
 
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

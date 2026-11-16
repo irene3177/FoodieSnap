@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import ThemeToggle from '../ThemeToggle/ThemeToggle';
-import LoginModal from '../Auth/LoginModal';
-import RegisterModal from '../Auth/RegisterModal';
-import UserMenu from '../Auth/UserMenu';
+import { NavLinks } from '@/constants';
+import { useAuth } from '@/hooks';
+import LoginModal from '@/components/Auth/LoginModal';
+import RegisterModal from '@/components/Auth/RegisterModal';
+import UserMenu from '@/components/Menu/UserMenu';
+import AppMenu from '@/components/Menu/AppMenu';
+import { Avatar, ThemeToggle }from '@/components/ui';
 import { RiMenu3Fill } from 'react-icons/ri';
-import { NavLinks } from '../../constants';
 import { PiBowlFoodLight } from 'react-icons/pi';
-import AppMenu from '../AppMenu';
-import Avatar from '../Avatar';
 
 function Header() {
   const { isAuthenticated, user } = useAuth();
@@ -46,7 +45,7 @@ function Header() {
                   onClick={closeMenu}>
                   {({ isActive }) => (
                     <span className={`
-                      relative block px-3 py-2 text-left md:text-left md:px-0 md:py-2 md:text-[clamp(1rem,1.8vw,2.5rem)]
+                      relative block px-3 py-2 text-left md:text-left md:px-0 md:py-2 md:text-[clamp(1rem,1.8vw,2rem)]
                       ${isActive ? 'text-accent' : 'text-secondary hover:text-accent transition-colors duration-700'}
                     `}>
                       {label}
@@ -70,7 +69,7 @@ function Header() {
           {isAuthenticated ? (
             <button
               onClick={() => setIsUserMenuOpen(true)}
-              className=""
+              aria-label="Open user menu"
             >
               <Avatar src={user?.avatar} border />
             </button>
@@ -99,6 +98,7 @@ function Header() {
           `}
           onClick={() => isAuthenticated ? setIsUserMenuOpen(!isUserMenuOpen) : setIsAppMenuOpen(!isAppMenuOpen)}
           aria-label="Menu"
+          data-testid="mobile-menu-button"
         >
           <RiMenu3Fill className="w-8 h-8" />
         </button>

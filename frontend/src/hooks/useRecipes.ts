@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { recipesApi } from '../services/recipesApi';
+import { recipesApi } from '@/services/recipesApi';
 
 interface UseRecipesOptions {
   initialCount?: number;

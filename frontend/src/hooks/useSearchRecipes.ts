@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { recipesApi } from '../services/recipesApi';
-import { RecipesFilters } from '../types';
+import { recipesApi } from '@/services/recipesApi';
+import { RecipesFilters } from '@/types';
 
 interface UseSearchRecipesOptions {
   searchQuery?: string;

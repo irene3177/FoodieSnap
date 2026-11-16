@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector }from '../../store/store';
-import { addToFavorites, removeFromFavorites, fetchFavorites } from '../../store/favoritesSlice';
-import { Recipe } from '../../types';
-import { showToast } from '../../store/toastSlice';
-import { useAuth } from '../../hooks/useAuth';
-// import { GoHeart, GoHeartFill } from 'react-icons/go';
+import { useAuth } from '@/hooks';
+import { useAppDispatch, useAppSelector, showToast }from '@/store';
+import { addToFavorites, removeFromFavorites, fetchFavorites } from '@/store/favoritesSlice';
+import { Recipe } from '@/types';
 import { MdBookmarkBorder, MdBookmark } from 'react-icons/md';
 
 interface BookmarkButtonProps {

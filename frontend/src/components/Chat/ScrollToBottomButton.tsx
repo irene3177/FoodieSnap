@@ -7,6 +7,7 @@ interface ScrollToBottomButtonProps {
 export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({ onClick }) => {
   return (
     <button 
+      type="button"
       className=" 
         w-11 h-11 rounded-full 
         bg-secondary text-accent

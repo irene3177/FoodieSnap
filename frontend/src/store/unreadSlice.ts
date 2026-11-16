@@ -1,6 +1,5 @@
-// store/unreadSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { messagesApi } from '../services/messagesApi';
+import { messagesApi } from '@/services/messagesApi';
 import { RootState } from './store';
 
 interface UnreadState {

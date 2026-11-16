@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useAppDispatch } from '../../store/store';
-import { showToast } from '../../store/toastSlice';
-import { changePassword } from '../../store/authSlice';
+import { useScrollLock } from '@/hooks/useScrollLock';
+import { useAppDispatch, showToast, changePassword } from '@/store';
 import { MdLockReset, MdClose, MdKey, MdVisibilityOff, MdVisibility } from 'react-icons/md';
 
 interface ChangePasswordModalProps {
@@ -22,7 +20,7 @@ function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  useScrollLock(isOpen);
+  useScrollLock(!!isOpen);
 
   // Reset form when modal is closed
   useEffect(() => {

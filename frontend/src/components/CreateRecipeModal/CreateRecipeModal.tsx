@@ -1,4 +1,4 @@
-import RecipeFormModal from '../RecipeFormModal/RecipeFormModal';
+import RecipeFormModal from '@/components/RecipeFormModal/RecipeFormModal';
 
 interface CreateRecipeModalProps {
   isOpen: boolean;

@@ -1,21 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { ProfileSkeleton } from '../../components/Skeleton/ProfileSkeleton';
-import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
-import CreateRecipeModal from '../../components/CreateRecipeModal/CreateRecipeModal';
-import FollowModal from '../../components/FollowModal/FollowModal';
-import MessageModal from '../../components/MessageModal/MessageModal';
-import EditRecipeModal from '../../components/EditRecipeModal/EditRecipeModal';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { useProfileData } from '../../hooks/useProfileData';
-import { useAppDispatch } from '../../store/store';
-import { recipesApi } from '../../services/recipesApi';
-import { showToast } from '../../store/toastSlice';
-import { Recipe } from '../../types';
-import ProfileHeader from '../../components/Profile/ProfileHeader';
-import ProfileAbout from '../../components/Profile/ProfileAbout';
-import ProfileTabs from '../../components/Profile/ProfileTabs';
+import { useAuth, useProfileData } from '@/hooks';
+import { useAppDispatch, showToast } from '@/store';
+import { recipesApi } from '@/services/recipesApi';
+import { Recipe } from '@/types';
+import { ProfileSkeleton } from '@/components/ui/Skeleton/ProfileSkeleton';
+import EditProfileModal from '@/components/EditProfileModal/EditProfileModal';
+import CreateRecipeModal from '@/components/CreateRecipeModal/CreateRecipeModal';
+import FollowModal from '@/components/FollowModal/FollowModal';
+import MessageModal from '@/components/MessageModal/MessageModal';
+import EditRecipeModal from '@/components/EditRecipeModal/EditRecipeModal';
+import { ErrorState, ScrollToTop } from '@/components/ui';
+import ProfileHeader from '@/components/Profile/ProfileHeader';
+import ProfileAbout from '@/components/Profile/ProfileAbout';
+import ProfileTabs from '@/components/Profile/ProfileTabs';
 
 function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -130,7 +128,12 @@ function ProfilePage() {
   }
 
   if (loading) return <ProfileSkeleton />;
-  if (error) return <div className="profile-error">{error}</div>;
+  if (error) return (
+      <ErrorState
+        message={error}
+        onRetry={refresh}
+      />
+    );
   if (!profile) return <div className="profile-error">User not found</div>;
 
   return (

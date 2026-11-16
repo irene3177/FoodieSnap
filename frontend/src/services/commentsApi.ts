@@ -1,10 +1,10 @@
-import { get, post, del, put } from '../utils/apiClient';
+import { get, post, del, put } from '@/utils/apiClient';
 import {
   ApiResponse,
   Comment,
   LikeResponse,
   CreateCommentData
-} from '../types';
+} from '@/types';
 
 export const commentsApi = {
   // Get comments for a recipe

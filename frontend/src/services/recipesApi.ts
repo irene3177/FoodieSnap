@@ -1,4 +1,4 @@
-import  { get, post, put, del } from '../utils/apiClient';
+import  { get, post, put, del } from '@/utils/apiClient';
 import {
   Recipe,
   NewRecipe,
@@ -7,7 +7,7 @@ import {
   FilterRecipesResponse,
   RecipesFilters,
   ApiResponse
-} from '../types';
+} from '@/types';
 
 export const recipesApi = {
   // Get random recipes (TheMealDB)

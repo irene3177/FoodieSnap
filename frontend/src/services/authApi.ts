@@ -1,4 +1,4 @@
-import { get, post, put, postWithFormData, del } from '../utils/apiClient';
+import { get, post, put, postWithFormData, del } from '@/utils/apiClient';
 import {
   User,
   ApiResponse,
@@ -7,7 +7,7 @@ import {
   UpdateProfileData,
   ChangePasswordData,
   UserProfile
-} from '../types';
+} from '@/types';
 
 
 export const authApi = {

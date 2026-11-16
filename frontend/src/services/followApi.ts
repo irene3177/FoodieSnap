@@ -1,6 +1,5 @@
-import { get, post, del } from '../utils/apiClient';
-import { ApiResponse } from '../types';
-import { UserListItem, FollowResponse, CheckFollowResponse } from '../types';
+import { get, post, del } from '@/utils/apiClient';
+import { ApiResponse, UserListItem, FollowResponse, CheckFollowResponse } from '@/types';
 
 export const followApi = {
   // Follow a user

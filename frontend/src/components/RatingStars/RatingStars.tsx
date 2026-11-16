@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '../../store/store';
-import { rateRecipe, fetchRecipeRating, fetchUserRatings, deleteRating } from '../../store/ratingSlice';
-import { useAuth } from '../../hooks/useAuth';
+import { useAppDispatch, useAppSelector, showToast } from '@/store';
+import { rateRecipe, fetchRecipeRating, fetchUserRatings, deleteRating } from '@/store/ratingSlice';
+import { useAuth } from '@/hooks';
 import clsx from 'clsx';
 import { MdStar } from 'react-icons/md';
-import { showToast } from '../../store/toastSlice';
 
 interface RatingStarsProps {
   recipeId: string;

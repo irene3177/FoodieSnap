@@ -86,7 +86,7 @@
     --text-button: #5b1604;
     
     /* Accent (Terracotta - brighter in dark) */
-    --accent-primary: #ffb4a1;     /* primary */
+    --accent-primary: #f49e89;     /* primary */
     --accent-secondary: #e07a5f;   /* primary-container */
     --accent-secondary-bg: rgba(224, 122, 95, 0.1);
     --accent-hover: #ffb4a1;       /* primary (hover becomes primary) */

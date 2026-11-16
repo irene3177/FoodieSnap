@@ -1,12 +1,10 @@
 import { useRef, useState } from 'react';
-import { useFollow } from '../../hooks/useFollow';
-import { showToast } from '../../store/toastSlice';
-import { refreshUser } from '../../store/authSlice';
-import { authApi } from '../../services/authApi';
-import { User, UserProfile } from '../../types';
+import { useAuth, useFollow } from '@/hooks';
+import { useAppDispatch, showToast } from '@/store';
+import { authApi } from '@/services/authApi';
+import { User, UserProfile } from '@/types';
 import { MdAdd, MdEdit, MdOutlineMail, MdOutlinePhotoCamera } from 'react-icons/md';
-import { useAppDispatch } from '../../store/store';
-import Avatar from '../Avatar';
+import { Avatar } from '@/components/ui';
 
 
 interface ProfileHeaderProps {
@@ -36,6 +34,7 @@ function ProfileHeader({
 }: ProfileHeaderProps) {
 
   const dispatch = useAppDispatch();
+  const { refreshUser } = useAuth();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,9 +128,9 @@ function ProfileHeader({
         </div>
 
         {/* Username & Bio */}
-        <h1 className="text-2xl md:text-3xl font-headline-md text-secondary mb-2">{profile?.username}</h1>
+        <h1 className="text-2xl md:text-3xl font-headline-md text-secondary mb-2 cursor-default">{profile?.username}</h1>
         {profile?.bio && (
-          <p className="text-muted text-base leading-relaxed max-w-xl mx-auto mb-4 px-4">{profile.bio}</p>
+          <p className="text-muted text-base leading-relaxed max-w-xl mx-auto mb-4 px-4 cursor-default">{profile.bio}</p>
         )}
         
         {/* Stats */}

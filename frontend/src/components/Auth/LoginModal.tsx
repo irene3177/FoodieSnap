@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useAuth, useScrollLock } from '@/hooks';
 import { IoMdArrowRoundForward } from 'react-icons/io';
 import { MdClose, MdMailOutline, MdKey, MdVisibilityOff, MdVisibility } from 'react-icons/md';
 

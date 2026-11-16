@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Recipe } from '../types';
-import { favoritesApi } from '../services/favoritesApi';
+import { Recipe } from '@/types';
+import { favoritesApi } from '@/services/favoritesApi';
 
 interface FavoritesState {
   items: Recipe[];

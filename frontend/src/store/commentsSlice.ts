@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
-import { Comment } from '../types';
-import { commentsApi } from '../services/commentsApi';
+import { Comment } from '@/types';
+import { commentsApi } from '@/services/commentsApi';
 import { RootState } from './store';
 
 export interface CommentState {

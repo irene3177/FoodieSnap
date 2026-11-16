@@ -1,20 +1,19 @@
-// pages/RecipeDetail/RecipeDetail.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { recipesApi } from '../../services/recipesApi';
-import { Recipe } from '../../types';
-import { RecipeDetailSkeleton } from '../../components/Skeleton/Skeleton';
-import RatingStars from '../../components/RatingStars/RatingStars';
-import ShareButtons from '../../components/ShareButtons/ShareButtons';
-import CommentSection from '../../components/CommentSection/CommentSection';
+import { recipesApi } from '@/services/recipesApi';
+import { Recipe } from '@/types';
+import { RecipeDetailSkeleton } from '@/components/ui/Skeleton/Skeleton';
+import RatingStars from '@/components/RatingStars/RatingStars';
+import ShareButtons from '@/components/ShareButtons/ShareButtons';
+import CommentSection from '@/components/CommentSection/CommentSection';
+import { Avatar, ErrorState } from '@/components/ui';
+import BookmarkButton from '@/components/FavoriteButton/BookmarkButton';
+import { GoDotFill } from 'react-icons/go';
 import {
   MdArrowBack,
   MdPlayArrow,
   MdAccessTime,
 } from 'react-icons/md';
-import Avatar from '../../components/Avatar';
-import BookmarkButton from '../../components/FavoriteButton/BookmarkButton';
-import { GoDotFill } from 'react-icons/go';
 
 function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -52,17 +51,12 @@ function RecipeDetail() {
 
   if (error || !recipe) {
     return (
-      <div className="text-center py-16 px-8 max-w-lg mx-auto">
-        <h2 className="text-2xl font-headline-md text-primary mb-4">
-          {error || 'Recipe not found'}
-        </h2>
-        <button
-          onClick={() => navigate('/recipes')}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          <MdArrowBack /> Back to Recipes
-        </button>
-      </div>
+      <ErrorState
+        title="Recipe not found"
+        message={error || "This recipe doesn't exist or was removed."}
+        onRetry={() => navigate('/recipes')}
+        retryLabel="Back to Recipes"
+      />
     );
   }
 
@@ -119,7 +113,7 @@ function RecipeDetail() {
               </div>
 
               {/* Content */}
-              <div className=" md:w-2/5 p-8 flex flex-col justify-center gap-4 z-20">
+              <div className=" md:w-2/5 p-8 flex flex-col justify-center gap-4 z-20 cursor-default">
                 <div className="flex items-start justify-between gap-4">
                   <h2 className="text-3xl text-secondary group-hover:text-accent transition-colors duration-500">
                     {recipe.title}
@@ -167,7 +161,7 @@ function RecipeDetail() {
                   <div className="flex gap-2">
                     {recipe.author && (
                       <>
-                        <Avatar src={recipe.author?.avatar} username={recipe.author?.username} border />
+                        <Avatar src={recipe.author?.avatar} username={recipe.author?.username} to={`/user/${recipe.author?._id}`} border />
                         <h3 className="text-secondary text-xl font-semibold">{recipe.author?.username}</h3>
                       </>
                     )}
@@ -210,7 +204,7 @@ function RecipeDetail() {
           {/* Tab Content */}
           <div className="pb-8">
             {activeTab === 'ingredients' && (
-              <section className="animate-fade-in">
+              <section className="animate-fade-in cursor-default">
                 <ul className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
                   {recipe.ingredients.map((ingredient, index) => {
                     return (
@@ -224,7 +218,7 @@ function RecipeDetail() {
             )}
 
             {activeTab === 'instructions' && recipe.instructions && (
-              <section className="animate-fade-in px-4">
+              <section className="animate-fade-in px-4 cursor-default">
                 <ol className="space-y-4">
                   {recipe.instructions.map((step, index) => (
                     <li key={index} className="flex gap-4">

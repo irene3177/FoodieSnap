@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Recipe } from '../../types';
-import RecipeCard from '../RecipeCard/RecipeCard';
+import { Recipe } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
 
 interface SortableRecipeCardProps {
   recipe: Recipe;

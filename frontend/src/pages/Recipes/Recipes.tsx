@@ -1,13 +1,12 @@
 import { useMemo, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import Masonry from 'react-masonry-css';
-import { useRecipes } from '../../hooks/useRecipes';
-// import { recipesApi } from '../../services/recipesApi';
-import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { RecipeCardSkeleton } from '../../components/Skeleton/RecipeCardSkeleton';
-// import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import { Recipe } from '../../types';
+import { useRecipes } from '@/hooks/useRecipes';
+import { Recipe } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import { EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { RecipeCardSkeleton } from '@/components/ui/Skeleton/RecipeCardSkeleton';
+import { MdOutlineRestaurantMenu } from 'react-icons/md';
 
 const BREAKPOINT_COLS = {
   default: 3,
@@ -62,10 +61,11 @@ function Explore() {
       }));
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="max-w-[1400px] mx-auto px-8 py-12">
-        <HeaderContent />
+  return (
+    <div className="max-w-[1400px] mx-auto px-8 py-12">
+      <HeaderContent />
+
+      {isLoading ? (
         <Masonry
           breakpointCols={BREAKPOINT_COLS}
           className="flex w-auto -ml-6"
@@ -77,76 +77,58 @@ function Explore() {
             </div>
           ))}
         </Masonry>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="max-w-[1400px] mx-auto px-8 py-12">
-        <HeaderContent />
-        <div className="text-center py-12 px-4 bg-error rounded-lg max-w-md mx-auto">
-          <p className="text-error text-lg mb-4">
-            {error instanceof Error ? error.message : 'Failed to load recipes'}
-          </p>
-          <button
-            className="px-6 py-2.5 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors"
-            onClick={() => refetch()}
-          >
-            Try Again
-          </button>
+      ) : isError ? (
+        <ErrorState
+          message={error instanceof Error ? error.message : 'Failed to load recipes'}
+          onRetry={() => refetch()}
+        />
+      ) : !recipes.length ? (
+        <div className="flex justify-center">
+          <EmptyState
+            icon={<MdOutlineRestaurantMenu />}
+            title="No recipes found"
+            description="Please try again later."
+            action={{
+              label: 'Retry',
+              to: '/recipes',
+            }}
+          />
         </div>
-      </div>
-    );
-  }
-
-  if (!recipes.length) {
-    return (
-      <div className="max-w-[1400px] mx-auto px-8 py-12">
-        <HeaderContent />
-        <div className="text-center py-12">
-          <p className="text-lg text-secondary">No recipes found. Please try again later.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-[1400px] mx-auto px-8 py-12">
-      <HeaderContent />
-
-      <Masonry
-        breakpointCols={BREAKPOINT_COLS}
-        className="flex w-auto -ml-6"
-        columnClassName="pl-6 bg-clip-padding"
-      >
-        {recipes.map((recipe: Recipe, index: number) => {
-          const isLastItem = index === recipes.length - 1;
-          return (
-            <div
-              key={`${recipe._id}-${index}`}
-              ref={isLastItem ? ref : undefined}
-              className="mb-6 w-full max-w-[450px] justify-self-center"
-            >
-              <RecipeCard
-                recipe={recipe}
-                aspectRatio={getAspectRatio(index)}
-              />
-            </div>
-          );
-        })}
-
-        {/* Skeletons for next page loading */}
-        {isFetchingNextPage && (
-          <>
-            {skeletonItems.map((item) => (
-              <div key={`${item.id}-more`} className="mb-6 w-full max-w-[450px]">
-                <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+      ) : (
+        <Masonry
+          breakpointCols={BREAKPOINT_COLS}
+          className="flex w-auto -ml-6"
+          columnClassName="pl-6 bg-clip-padding"
+        >
+          {recipes.map((recipe: Recipe, index: number) => {
+            const isLastItem = index === recipes.length - 1;
+            return (
+              <div
+                key={`${recipe._id}-${index}`}
+                ref={isLastItem ? ref : undefined}
+                className="mb-6 w-full max-w-[450px] justify-self-center"
+              >
+                <RecipeCard
+                  recipe={recipe}
+                  aspectRatio={getAspectRatio(index)}
+                />
               </div>
-            ))}
-          </>
-        )}
-      </Masonry>
+            );
+          })}
+
+          {/* Skeletons for next page loading */}
+          {isFetchingNextPage && (
+            <>
+              {skeletonItems.map((item) => (
+                <div key={`${item.id}-more`} className="mb-6 w-full max-w-[450px]">
+                  <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+                </div>
+              ))}
+            </>
+          )}
+        </Masonry>
+      )}
+
 
       {/* Load Indicator */}
       {isFetchingNextPage && (

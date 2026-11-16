@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdAccessTime } from 'react-icons/md';
-import { Recipe } from '../../types';
-import BookmarkButton from '../FavoriteButton/BookmarkButton';
-import RatingStars from '../RatingStars/RatingStars';
-import RecipeActions from '../RecipeActions/RecipeActions';
+import { Recipe } from '@/types';
+import BookmarkButton from '@/components/FavoriteButton/BookmarkButton';
+import RatingStars from '@/components/RatingStars/RatingStars';
+import RecipeActions from '@/components/RecipeActions/RecipeActions';
 
 interface RecipeCardProps {
   recipe: Recipe;

@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useAppDispatch } from '../../store/store';
-import { showToast } from '../../store/toastSlice';
-import { authApi } from '../../services/authApi';
+import { useAuth, useScrollLock } from '@/hooks';
+import { useAppDispatch, showToast } from '@/store';
+import { authApi } from '@/services/authApi';
+import { Avatar } from '@/components/ui';
 import { MdClose } from 'react-icons/md';
 import { RiEdit2Fill } from 'react-icons/ri';
-import Avatar from '../Avatar';
 
 interface EditProfileModalProps {
   isOpen: boolean;

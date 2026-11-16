@@ -1,22 +1,16 @@
-// src/components/MessageModal/MessageModal.tsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch } from '../../store/store';
-import { resetUnread } from '../../store/unreadSlice';
-import { messagesApi } from '../../services/messagesApi';
-import { useAuth } from '../../hooks/useAuth';
-import { useChatMessages } from '../../hooks/chat/useChatMessages';
-import { useChatScroll } from '../../hooks/chat/useChatScroll';
-import { MessageList } from '../Chat/MessageList';
-import { MessageInput } from '../Chat/MessageInput';
-import { ScrollToBottomButton } from '../Chat/ScrollToBottomButton';
-import { MessageModalSkeleton } from '../Skeleton/MessageModalSkeleton';
-import * as socket from '../../services/socket';
+import { useAppDispatch, resetUnread } from '@/store';
+import { messagesApi } from '@/services/messagesApi';
+import { useAuth, useScrollLock, useChatMessages, useChatScroll } from '@/hooks';
+import { MessageList } from '@/components/Chat/MessageList';
+import { MessageInput } from '@/components/Chat/MessageInput';
+import { ScrollToBottomButton } from '@/components/Chat/ScrollToBottomButton';
+import { MessageModalSkeleton } from '@/components/ui/Skeleton/MessageModalSkeleton';
+import * as socket from '@/services/socket';
+import { Participant } from '@/types';
+import { Avatar } from '@/components/ui';
 import { MdClose } from 'react-icons/md';
-// import { LuSend } from 'react-icons/lu';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { Participant } from '../../types';
-import Avatar from '../Avatar';
 
 interface MessageModalProps {
   isOpen: boolean;

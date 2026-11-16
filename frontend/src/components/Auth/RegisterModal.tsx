@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useAuth, useScrollLock } from '@/hooks';
 import TextareaAutosize from 'react-textarea-autosize';
 import { IoMdArrowRoundForward } from 'react-icons/io';
 import { MdClose, MdMailOutline, MdKey, MdVisibilityOff, MdVisibility, MdOutlinePersonOutline } from 'react-icons/md';

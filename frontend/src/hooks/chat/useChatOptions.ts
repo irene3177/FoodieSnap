@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../../store/store';
-import { showToast } from '../../store/toastSlice';
-import { messagesApi } from '../../services/messagesApi';
+import { useAppDispatch, showToast } from '@/store';
+import { messagesApi } from '@/services/messagesApi';
 
 export const useChatOptions = (conversationId: string | undefined, onClearMessages: () => void) => {
   const navigate = useNavigate();

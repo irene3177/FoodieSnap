@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import * as socket from '../../services/socket';
+import * as socket from '@/services/socket';
 import TextareaAutosize from 'react-textarea-autosize';
 import { LuSend } from 'react-icons/lu';
 
@@ -19,7 +19,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const typingTimeoutRef = useRef<number>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -131,6 +131,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             type="submit"
             className="py-3 px-3 bg-accent text-white border-none rounded-full font-medium cursor-pointer transition-all duration-200 hover:bg-accent-hover hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             disabled={!newMessage.trim() || disabled || sending}
+            aria-label="Send message"
           >
             {sending ? (
               '...'

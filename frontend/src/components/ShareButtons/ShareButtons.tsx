@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SharePlatform } from '../../types';
+import { SharePlatform } from '@/types';
 import { FaTwitter, FaFacebook, FaPinterest, FaCopy } from 'react-icons/fa';
 import { MdDone } from 'react-icons/md';
 

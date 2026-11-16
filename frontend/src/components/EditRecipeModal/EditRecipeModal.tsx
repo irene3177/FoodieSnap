@@ -1,5 +1,5 @@
-import RecipeFormModal from '../RecipeFormModal/RecipeFormModal';
-import { Recipe } from '../../types';
+import RecipeFormModal from '@/components/RecipeFormModal/RecipeFormModal';
+import { Recipe } from '@/types';
 
 interface EditRecipeModalProps {
   isOpen: boolean;

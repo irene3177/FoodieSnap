@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { RecipesFilters as RecipeFiltersType } from '../../types';
-import { MdCheck, MdClose, MdExpandMore, MdFilterList, MdLocalOffer, MdOutlinePermMedia, MdOutlineRestaurant, MdPublic, MdSchedule, MdSort, MdStar, MdStarOutline } from 'react-icons/md';
-import { DIFFICULTY_OPTIONS } from '../../constants';
+import { useScrollLock } from '@/hooks';
+import { RecipesFilters as RecipeFiltersType } from '@/types';
+import { DIFFICULTY_OPTIONS } from '@/constants';
 import clsx from 'clsx';
+import { MdCheck, MdClose, MdExpandMore, MdFilterList, MdLocalOffer, MdOutlinePermMedia, MdOutlineRestaurant, MdPublic, MdSchedule, MdSort, MdStar, MdStarOutline } from 'react-icons/md';
 import { TbCategoryPlus } from 'react-icons/tb';
 
 interface RecipeFiltersProps {

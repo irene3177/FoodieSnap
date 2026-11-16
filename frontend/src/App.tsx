@@ -1,21 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, Outlet, ScrollRestoration } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from './store/store';
+import { useAppDispatch } from '@/store';
 import {
   selectUser,
   selectIsAuthenticated,
   checkSession,
   selectHasCheckedSession,
   selectAuthLoading
-} from './store/authSlice';
-import { loadUnreadCounts } from './store/unreadSlice';
-import { selectIsLoggingOut } from './store/authSlice';
-import { useUnreadListener } from './hooks/chat/useUnreadListener';
-import * as socket from './services/socket';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-import AnimatedPage from './components/AnimatedPage/AnimatedPage';
+} from '@/store/authSlice';
+import { loadUnreadCounts } from '@/store/unreadSlice';
+import { selectIsLoggingOut } from '@/store/authSlice';
+import { useUnreadListener } from '@/hooks/chat/useUnreadListener';
+import * as socket from '@/services/socket';
+import Header from '@/components/Header/Header';
+import Footer from '@/components/Footer/Footer';
+import AnimatedPage from '@/components/AnimatedPage/AnimatedPage';
 
 function App() {
   const dispatch = useAppDispatch();

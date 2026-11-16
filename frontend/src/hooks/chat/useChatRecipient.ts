@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { messagesApi } from '../../services/messagesApi';
-import { Participant, ConversationResponse } from '../../types';
+import { messagesApi } from '@/services/messagesApi';
+import { Participant, ConversationResponse } from '@/types';
 
 export const useChatRecipient = (conversationId: string | undefined, userId: string | undefined) => {
   const location = useLocation();
@@ -11,11 +11,9 @@ export const useChatRecipient = (conversationId: string | undefined, userId: str
   useEffect(() => {
     if (location.state?.recipient) {
       setRecipient(location.state.recipient);
+      return;
     }
-  }, [location]);
 
-  // Load recipient info from conversation if not available
-  useEffect(() => {
     const loadRecipient = async () => {
       if (!conversationId || recipient?._id || !userId) return;
 
@@ -36,7 +34,8 @@ export const useChatRecipient = (conversationId: string | undefined, userId: str
     };
 
     loadRecipient();
-  }, [conversationId, recipient?._id, userId]);
+
+  }, [conversationId, userId, location.state?.recipient?._id]);
 
   return { recipient };
 };
