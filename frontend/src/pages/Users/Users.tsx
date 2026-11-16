@@ -1,21 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../store/store';
+import { useDebounce } from '@/hooks';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   fetchUsers,
   searchUsers,
   selectUsers,
   selectUsersLoading,
   selectUsersError,
-  selectUsersTotal,
   selectUsersPages,
   selectSearchQuery,
   setPage
-} from '../../store/usersSlice';
-import { UsersSkeleton } from '../../components/Skeleton/UsersSkeleton';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { useDebounce } from '../../hooks/useDebounce';
-import './Users.css';
+} from '@/store/usersSlice';
+import { Avatar, EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { UsersSkeleton } from '@/components/ui/Skeleton/UsersSkeleton';
+import { MdSearch, MdClose, MdGroups, MdPersonAddAlt1 } from 'react-icons/md';
 
 function Users() {
   const dispatch = useAppDispatch();
@@ -24,7 +23,6 @@ function Users() {
   const users = useAppSelector(selectUsers);
   const loading = useAppSelector(selectUsersLoading);
   const error = useAppSelector(selectUsersError);
-  const total = useAppSelector(selectUsersTotal);
   const totalPages = useAppSelector(selectUsersPages);
   const currentPage = useAppSelector(state => state.users.page);
   const searchQuery = useAppSelector(selectSearchQuery);
@@ -32,6 +30,14 @@ function Users() {
   const [searchTerm, setSearchTerm] = useState(searchQuery);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleRetry = useCallback(() => {
+    if (debouncedSearch) {
+      dispatch(searchUsers(debouncedSearch));
+    } else {
+      dispatch(fetchUsers({ page: 1, limit: 20 }));
+    }
+  }, [dispatch, debouncedSearch]);
 
   // Load users on mount and when page changes
   useEffect(() => {
@@ -75,100 +81,88 @@ function Users() {
   }
 
   return (
-    <div className="users-page">
-      <div className="users-page__header">
-        <h1 className="users-page__title">Foodie Community</h1>
-        <p className="users-page__subtitle">
-          Discover and connect with fellow food enthusiasts
-        </p>
+    <div className="max-w-3xl mx-auto p-8 md:py-10">
 
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start mb-8 cursor-default">
+        <div>
+          <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">
+            Foodie Community
+          </h1>
+          <p className="text-muted font-body-lg text-body-lg mt-2">
+            Discover and connect with fellow food enthusiasts
+          </p>
+        </div>
         {/* Search Bar */}
-        <div className="users-page__search">
+        <div className="relative max-w-md md:mx-0 mt-4 md:mt-2">
           <input
             type="text"
             placeholder="Search by username..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="users-page__search-input"
+            className="input px-10"
           />
+          <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xl" />
           {searchTerm && (
             <button
-              className="users-page__search-clear"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-muted w-8 h-8 flex items-center justify-center rounded-full hover:bg-border transition-colors cursor-pointer"
               onClick={handleClearSearch}
+              aria-label="Clear search"
             >
-              ✕
+              <MdClose className="text-xl" />
             </button>
           )}
         </div>
-
-        {/* Results count */}
-        {!loading && total > 0 && (
-          <div className="users-page__results-count">
-            {isSearching ? (
-              <>Found {total} {total === 1 ? 'user' : 'users'} matching "{searchTerm}"</>
-            ) : (
-              <>Total {total} members</>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Error state */}
-      {error && (
-        <div className="users-page__error">
-          <p>{error}</p>
-          <button onClick={() => dispatch(fetchUsers({ page: 1, limit: 20 }))}>
-            Try Again
-          </button>
-        </div>
+      {error && !loading && (
+        <ErrorState
+          title="Failed to load users"
+          message={error}
+          onRetry={handleRetry}
+        />
       )}
 
-      {/* Users List - как в чатах */}
+      {/* Users List */}
       {!loading && users.length > 0 && (
         <>
-          <div className="users-page__list">
+          <div className="flex flex-col gap-2">
             {users.map((user) => (
               <div
                 key={user._id}
-                className="user-item"
+                className="flex items-center gap-4 p-4 bg-secondary rounded-xl cursor-pointer transition-all duration-200 border hover:bg-border hover:translate-x-1"
                 onClick={() => handleUserClick(user._id)}
               >
-                <div className="user-item__avatar">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.username} />
-                  ) : (
-                    <span>{user.username?.charAt(0).toUpperCase() || '?'}</span>
-                  )}
-                </div>
+                <Avatar src={user.avatar} username={user.username} size="xl" border />
                 
-                <div className="user-item__info">
-                  <div className="user-item__header">
-                    <span className="user-item__name">{user.username}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h4 className="font-semibold text-primary text-base">{user.username}</h4>
                     {user.isFollowing && (
-                      <span className="user-item__follow-badge">Following</span>
+                      <span className="text-xs px-2 py-0.5 bg-accent text-white rounded-full">Following</span>
                     )}
                   </div>
                   {user.bio && (
-                    <p className="user-item__bio">{user.bio.length > 60 ? `${user.bio.substring(0, 60)}...` : user.bio}</p>
+                    <p className="text-sm text-secondary truncate">{user.bio.length > 60 ? `${user.bio.substring(0, 60)}...` : user.bio}</p>
                   )}
                 </div>
-                
               </div>
             ))}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="users-page__pagination">
+            <div className="flex justify-center items-center gap-3 mt-6 flex-wrap">
               <button
-                className="users-page__pagination-prev"
+                className="px-4 py-2 bg-secondary border rounded-lg cursor-pointer text-primary hover:bg-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 ← Previous
               </button>
 
-              <div className="users-page__pagination-pages">
+              <div className="flex gap-1.5 items-center">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
                   if (totalPages <= 5) {
@@ -184,7 +178,9 @@ function Users() {
                   return (
                     <button
                       key={pageNum}
-                      className={`users-page__pagination-page ${pageNum === currentPage ? 'users-page__pagination--active' : ''}`}
+                      className={`w-9 h-9 rounded-lg bg-secondary border cursor-pointer text-primary hover:bg-border transition-colors ${
+                        pageNum === currentPage ? 'bg-accent text-white border-accent' : ''
+                      }`}
                       onClick={() => handlePageChange(pageNum)}
                     >
                       {pageNum}
@@ -194,9 +190,9 @@ function Users() {
 
                 {totalPages > 5 && currentPage < totalPages - 2 && (
                   <>
-                    <span>...</span>
+                    <span className="text-muted">...</span>
                     <button
-                      className="users-page__pagination-page"
+                      className="w-9 h-9 rounded-lg bg-secondary border cursor-pointer text-primary hover:bg-border transition-colors"
                       onClick={() => handlePageChange(totalPages)}
                     >
                       {totalPages}
@@ -206,7 +202,7 @@ function Users() {
               </div>
 
               <button
-                className="users-page__pagination-next"
+                className="px-4 py-2 bg-secondary border rounded-lg cursor-pointer text-primary hover:bg-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
@@ -219,13 +215,25 @@ function Users() {
 
       {/* Empty state */}
       {!loading && users.length === 0 && !error && (
-        <div className="users-page__empty">
-          <div className="users-page__empty-icon">👥</div>
-          <h2>No users found</h2>
+        <div className="flex justify-center">
           {searchTerm ? (
-            <p>No users matching "{searchTerm}". Try a different search term.</p>
+            <EmptyState
+              icon={<MdGroups />}
+              title="No users found"
+              description={`No users matching "${searchTerm}". Try a different search term.`}
+            />
           ) : (
-            <p>Be the first to join our community!</p>
+            <EmptyState
+              icon={<MdGroups />}
+              title="No users found"
+              description="Be the first to join our community!"
+              action={{
+                label: "Join FoodieSnap",
+                to: "/",
+                state: { openSignUp: true },
+                icon: <MdPersonAddAlt1 />
+              }}
+            />
           )}
         </div>
       )}

@@ -1,6 +1,6 @@
-import  { get, post, put, del } from '../utils/apiClient';
-import { RatingStats } from '../store/ratingSlice';
-import { ApiResponse, RatingResponse, DeleteRatingResponse } from '../types';
+import  { get, post, put, del } from '@/utils/apiClient';
+import { RatingStats } from '@/store/ratingSlice';
+import { ApiResponse, RatingResponse, DeleteRatingResponse } from '@/types';
 
 export const ratingApi = {
   // Get rating stats for a recipe

@@ -176,6 +176,7 @@ export const markAsRead = async (
     }
     if (!conversation.unreadCount) conversation.unreadCount = {};
     conversation.unreadCount[userId] = 0;
+    conversation.markModified('unreadCount');
     await conversation.save();
 
 

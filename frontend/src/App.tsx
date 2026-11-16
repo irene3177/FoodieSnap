@@ -1,22 +1,21 @@
 import { useEffect, useRef } from 'react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { useLocation, Outlet, ScrollRestoration } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from './store/store';
+import { useAppDispatch } from '@/store';
 import {
   selectUser,
   selectIsAuthenticated,
   checkSession,
   selectHasCheckedSession,
   selectAuthLoading
-} from './store/authSlice';
-import { loadUnreadCounts } from './store/unreadSlice';
-import { selectIsLoggingOut } from './store/authSlice';
-import { useUnreadListener } from './hooks/chat/useUnreadListener';
-import * as socket from './services/socket';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-import AnimatedPage from './components/AnimatedPage/AnimatedPage';
-import './App.css'
+} from '@/store/authSlice';
+import { loadUnreadCounts } from '@/store/unreadSlice';
+import { selectIsLoggingOut } from '@/store/authSlice';
+import { useUnreadListener } from '@/hooks/chat/useUnreadListener';
+import * as socket from '@/services/socket';
+import Header from '@/components/Header/Header';
+import Footer from '@/components/Footer/Footer';
+import AnimatedPage from '@/components/AnimatedPage/AnimatedPage';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -74,9 +73,10 @@ function App() {
   
   const isChatPage = location.pathname.startsWith('/chat/');
   return (
-    <div className="App">
+    <div className="min-h-screen flex flex-col bg-primary text-primary">
+      <ScrollRestoration />
       {!isChatPage && <Header />}
-      <main className={`main-content ${isChatPage ? 'main-content--full' : ''}`}>
+      <main className={`flex-1 overflow-y-auto scrollbar-thin ${isChatPage ? 'h-screen overflow-hidden' : ''}`}>
         <AnimatedPage key={location.pathname}>
           <Outlet />
         </AnimatedPage>

@@ -1,14 +1,17 @@
 import axios, { Method, AxiosRequestConfig } from 'axios';
-import { config } from '../config';
+import { config } from '@/config';
 import { handleApiError } from './apiErrorHandler';
-import { selectIsLoggingOut } from '../store/authSlice';
-import { store } from '../store/store';
-import { ApiBody, ApiParams, ApiResponse } from '../types';
+import { selectIsLoggingOut } from '@/store/authSlice';
+import { store } from '@/store/store';
+import { ApiBody, ApiParams, ApiResponse } from '@/types';
 
 const apiClient = axios.create({
   baseURL: config.apiUrl,
   timeout: config.timeout,
-  withCredentials: true
+  withCredentials: true,
+  paramsSerializer: {
+    indexes: null,
+  },
 });
 // let isRedirecting = false;
 let isHandling401 = false;

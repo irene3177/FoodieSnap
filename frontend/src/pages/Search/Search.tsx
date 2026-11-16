@@ -1,290 +1,293 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { recipesApi } from '../../services/recipesApi';
-import { Recipe, RecipesFilters } from '../../types';
-import RecipeCard from '../../components/RecipeCard/RecipeCard';
-import { RecipeCardSkeleton } from '../../components/Skeleton/Skeleton';
-import { RecipeFilters as FiltersComponent } from '../../components/RecipeFilters/RecipeFilters';
-import { ScrollToTop } from '../../components/ScrollToTop/ScrollToTop';
-import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import './Search.css';
+import { useState, useEffect, useMemo } from 'react';
+import { useInView } from 'react-intersection-observer';
+import Masonry from 'react-masonry-css';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchFiltersData } from '@/store/filtersSlice';
+import { useSearchRecipes } from '@/hooks/useSearchRecipes';
+import { RecipesFilters } from '@/types';
+import RecipeCard from '@/components/RecipeCard/RecipeCard';
+import { RecipeFilters as FiltersComponent } from '@/components/RecipeFilters/RecipeFilters';
+import { EmptyState, ErrorState, ScrollToTop } from '@/components/ui';
+import { RecipeCardSkeleton } from '@/components/ui/Skeleton/RecipeCardSkeleton';
+import { MdClose, MdFilterList, MdOutlineSearchOff, MdSearch } from 'react-icons/md';
+
+const BREAKPOINT_COLS = {
+  default: 3,
+  1024: 2,
+  768: 2,
+  640: 1,
+};
 
 function Search() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { categories, tags, areas, loading: filtersLoading, initialized } = useAppSelector(state => state.filters);
+
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(false);
-  const [totalResults, setTotalResults] = useState<number>(0);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [filters, setFilters] = useState<RecipesFilters>({});
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [activeFiltersCount, setActiveFiltersCount] = useState<number>(0);
-
-  const initialLoaded = useRef(false);
+ 
+  useEffect(() => {
+    if (!initialized) {
+      dispatch(fetchFiltersData());
+    }
+  }, [dispatch, initialized]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.difficulty) count++;
     if (filters.maxCookingTime) count++;
     if (filters.minCookingTime) count++;
     if (filters.minRating) count++;
-    if (filters.category) count++;
+    if (filters.categories?.length) count++;
     if (filters.area) count++;
     if (filters.source) count++;
     if (filters.hasVideo) count++;
     if (filters.hasImage) count++;
     if (filters.minRatingCount) count++;
-    if (filters.tags && filters.tags.length > 0) count++;
-    setActiveFiltersCount(count);
+    if (filters.tags?.length) count++;
+    return count;
   }, [filters]);
 
-  const loadRecipes = useCallback(async (resetPage = true) => {
-    const currentPage = resetPage ? 1 : page;
-    if (resetPage) setPage(1);
-
-    setLoading(resetPage);
-    setError(null);
-
-    const allFilters: RecipesFilters = {
-      ...filters,
-      ...(searchQuery.trim() && { search: searchQuery.trim() })
-    };
-
-    const response = await recipesApi.filterRecipes(allFilters, currentPage, 12);
-
-    if (response.success && response.data) {
-      const data = response.data;
-      if (resetPage) {
-        setRecipes(data.recipes);
-      } else {
-        setRecipes(prev => {
-          const existingIds = new Set(prev.map(r => r._id));
-          const newRecipes = data.recipes.filter(r => !existingIds.has(r._id));
-          return [...prev, ...newRecipes];
-        });
-      }
-      setTotalResults(data.pagination.total);
-      setHasMore(currentPage < data.pagination.pages);
-    } else {
-      setError(response.error || 'Failed to load recipes');
-      if (resetPage) {
-        setRecipes([]);
-        setTotalResults(0);
-      }
-    }
-    setLoading(false);
-  }, [filters, searchQuery, page]);
-
-  const loadMoreRecipes = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-
-    setLoadingMore(true);
-    const nextPage = page + 1;
-    
-    const allFilters: RecipesFilters = {
-      ...filters,
-      ...(searchQuery.trim() && { search: searchQuery.trim() })
-    };
-    
-    const response = await recipesApi.filterRecipes(allFilters, nextPage, 12);
-    
-    if (response.success && response.data) {
-      const data = response.data;
-      setRecipes(prev => {
-        const existingIds = new Set(prev.map(r => r._id));
-        const newRecipes = data.recipes.filter(r => !existingIds.has(r._id));
-        return [...prev, ...newRecipes];
-      });
-      setPage(nextPage);
-      setHasMore(nextPage < data.pagination.pages);
-    }
-    setLoadingMore(false);
-  }, [page, loadingMore, hasMore, filters, searchQuery]);
-
-  const { lastElementRef } = useInfiniteScroll({
-    hasMore: hasMore && !loadingMore,
-    loadMore: loadMoreRecipes
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useSearchRecipes({
+    searchQuery: debouncedSearch,
+    filters,
   });
 
-  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
+  const recipes = useMemo(() => {
+    return data?.pages.flatMap((page) => page.recipes) ?? [];
+  }, [data]);
 
-    if (searchTimeout) {
-      window.clearTimeout(searchTimeout);
+  const totalResults = useMemo(() => {
+    return data?.pages[0]?.total || 0;
+  }, [data]);
+
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: '200px 0px',
+  });
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const timeoutId = window.setTimeout(() => {
-      loadRecipes(true);
-    }, 500);
-
-    setSearchTimeout(timeoutId);
+  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
   };
 
   const handleFilterChange = (newFilters: RecipesFilters) => {
     setFilters(newFilters);
-    loadRecipes(true);
     setShowFilters(false);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
-    setFilters({});
-    loadRecipes(true);
+    setDebouncedSearch('');
   };
 
   const toggleFilters = () => {
     setShowFilters(!showFilters);
   };
 
-  useEffect(() => {
-    if (!initialLoaded.current) {
-      loadRecipes(true);
-      initialLoaded.current = true;
-    }
-  }, [loadRecipes]);
+  const getAspectRatio = (index: number): 'portrait' | 'square' | 'landscape' => {
+    if (index % 3 === 0) return 'portrait';
+    if (index % 3 === 1) return 'square';
+    return 'landscape';
+  };
 
-  useEffect(() => {
-    return () => {
-      if (searchTimeout) {
-        window.clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchTimeout]);
+  const skeletonItems = useMemo(() => {
+    return Array(4)
+      .fill(null)
+      .map((_, index) => ({
+        id: `skeleton-${index}`,
+        aspectRatio: getAspectRatio(index),
+      }));
+  }, []);
+
 
   return (
-    <div className="search-page">
-      <div className="search-page__header">
-        <h1 className="search-page__title">Search Recipes</h1>
-        <p className="search-page__subtitle">
-          Find recipes from our collection
-        </p>
-
-        <div className="search-page__search-section">
-          <div className="search-page__search-bar">
+    <div className="max-w-[1400px] mx-auto p-8 md:py-10 min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-start cursor-default">
+        <div>
+          <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">Search Recipes</h1>
+          <p className="text-muted font-body-lg text-body-lg mt-2 mb-6">
+            Find recipes from our collection
+          </p>
+        </div>
+        {/* Search Section */}
+        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl md:mt-2 mb-4">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search by name (e.g., 'chicken', 'pasta')..."
               value={searchQuery}
               onChange={handleSearchInput}
-              className="search-page__search-input"
+              className="input px-10"
             />
+            <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xl" />
             {searchQuery && (
               <button
-                className="search-page__search-clear"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none text-muted w-8 h-8 flex items-center justify-center rounded-lg hover:bg-border transition-colors duration-500 cursor-pointer"
                 onClick={clearSearch}
+                aria-label="Clear search"
               >
-                ✕
+                <MdClose className="text-xl" />
               </button>
             )}
           </div>
 
           <button
-            className={`search-page__filter-toggle ${activeFiltersCount > 0 ? 'search-page__filter-toggle--active' : ''}`}
+            className={`
+              flex items-center gap-2 whitespace-nowrap
+              ${activeFiltersCount > 0 
+                ? 'btn-primary' 
+                : 'btn-secondary'
+              }
+            `}
             onClick={toggleFilters}
-            disabled={loading}
+            disabled={isLoading}
           >
-            <svg className="search-page__filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 4h16v2l-6 6v6l-4 2v-8L4 6V4z" />
-            </svg>
+            <MdFilterList className="w-5 h-5" />
             Filters
             {activeFiltersCount > 0 && (
-              <span className="search-page__filter-count">{activeFiltersCount}</span>
+              <span className="rounded-lg bg-white px-2 text-sm text-button">
+                {activeFiltersCount}
+              </span>
             )}
-            <svg className="search-page__filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d={showFilters ? "M6 9l6 6 6-6" : "M6 15l6-6 6 6"} />
-            </svg>
           </button>
         </div>
 
-        {showFilters && (
-          <div className="search-page__filters-panel">
-            <FiltersComponent 
-              onFilterChange={handleFilterChange} 
-              isLoading={loading} 
-            />
-          </div>
-        )}
-
-        {!loading && !error && recipes.length > 0 && (
-          <div className="search-page__results-count">
-            Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}
-            {searchQuery && ` for "${searchQuery}"`}
-            {activeFiltersCount > 0 && ` with ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied`}
-          </div>
-        )}
       </div>
-
-      {error && (
-        <div className="search-page__error">
-          <p>{error}</p>
-          <button onClick={() => loadRecipes(true)}>
-            Try Again
-          </button>
+      {/* Results count */}
+      {!isLoading && !isError && recipes.length > 0 && (
+        <div className="text-center text-sm text-muted mb-2">
+          Found {totalResults} {totalResults === 1 ? 'recipe' : 'recipes'}
+          {debouncedSearch && ` for "${debouncedSearch}"`}
+          {activeFiltersCount > 0 && ` with ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied`}
         </div>
       )}
 
-      {/* Recipe grid */}
-      <div className="search-page__grid">
-        {recipes.map((recipe, index) => (
-          <div
-            key={`${recipe._id}-${index}`}
-            ref={index === recipes.length - 1 ? lastElementRef : null}
-          >
-            <RecipeCard recipe={recipe} />
-          </div>
-        ))}
-
-        {(loading || loadingMore) && !error && (
-          <>
-            {[...Array(4)].map((_, index) => (
-              <RecipeCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </>
-        )}
-      </div>
-
-      {/* No results */}
-      {!loading && !error && recipes.length === 0 && (
-        <div className="search-page__no-results">
-          {searchQuery ? (
-            <>
-              <p>No recipes found for "{searchQuery}"</p>
-              <p className="search-page__no-results-hint">
-                Try different keywords or check your spelling
-              </p>
-            </>
+      {/* No Results */}
+      {!isLoading && !isError && recipes.length === 0 && (
+        <div className="text-center py-12 px-6 bg-secondary rounded-xl max-w-md mx-auto my-8">
+          {debouncedSearch ? (
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title={`No recipes found for "${debouncedSearch}"`}
+              description="Try different keywords or check your spelling."
+            />
           ) : activeFiltersCount > 0 ? (
-            <>
-              <p>No recipes match your filters</p>
-              <button onClick={() => {
-                setFilters({});
-                loadRecipes(true);
-              }} className="search-page__reset-filters">
-                Reset Filters
-              </button>
-            </>
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title="No recipes match your filters"
+              description="Try removing some filters to see more results."
+              secondaryAction={{
+                label: 'Reset Filters',
+                onClick: () => setFilters({}),
+              }}
+            />
           ) : (
-            <>
-              <p>Start searching for recipes!</p>
-              <p className="search-page__no-results-hint">
-                Search by name or use filters to find your favorite dishes
-              </p>
-            </>
+            <EmptyState
+              icon={<MdOutlineSearchOff />}
+              title="Start searching for recipes!"
+              description="Search by name or use filters to find your favorite dishes."
+            />
           )}
         </div>
       )}
 
-      {/* End message */}
-      {!hasMore && !loading && recipes.length > 0 && (
-        <div className="search-page__end-message">
-          <p>You've reached the end! 🎉</p>
-        </div>
+      {/* Error */}
+      {isError && (
+        <ErrorState
+          message={error instanceof Error ? error.message : 'Failed to load recipes'}
+          onRetry={() => refetch()}
+        />
       )}
-      {/* Scroll to Top Button */}
+
+      {/* Results */}
+      {recipes.length > 0 && (
+        <>
+          <Masonry
+            breakpointCols={BREAKPOINT_COLS}
+            className="flex w-auto -ml-6"
+            columnClassName="pl-6 bg-clip-padding"
+          >
+            {recipes.map((recipe, index) => {
+              const isLastItem = index === recipes.length - 1;
+              return (
+                <div
+                  key={`${recipe._id}-${index}`}
+                  ref={isLastItem ? ref : undefined}
+                  className="mb-6 w-full max-w-[450px]"
+                >
+                  <RecipeCard
+                    recipe={recipe}
+                    aspectRatio={getAspectRatio(index)}
+                  />
+                </div>
+              );
+            })}
+
+            {/* Loading Skeletons */}
+            {(isLoading || isFetchingNextPage) && !isError && (
+              <>
+                {skeletonItems.map((item) => (
+                  <div key={`${item.id}-loading`} className="mb-6 w-full max-w-[450px]">
+                    <RecipeCardSkeleton aspectRatio={item.aspectRatio} />
+                  </div>
+                ))}
+              </>
+            )}
+          </Masonry>
+
+          {/* Loading Indicator */}
+          {isFetchingNextPage && (
+            <div className="text-center py-4 text-muted text-sm">
+              <span className="inline-block animate-pulse">Loading more recipes...</span>
+            </div>
+          )}
+
+          {/* End of the List */}
+          {!hasNextPage && recipes.length > 0 && (
+            <div className="text-center py-6 text-muted text-sm">
+              <p>You've reached the end! 🎉</p>
+            </div>
+          )}
+        </>
+      )}
+
       <ScrollToTop threshold={300} behavior="smooth" />
+
+      {/* Filters */}
+      <FiltersComponent
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        onFilterChange={handleFilterChange}
+        isLoading={isLoading}
+        categories={categories}
+        tags={tags}
+        areas={areas}
+        filtersLoading={filtersLoading}
+      />
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { get, post, put, del } from '../utils/apiClient';
+import { get, post, put, del } from '@/utils/apiClient';
 import {
   ApiResponse,
   Message,
   Conversation,
   ConversationResponse
-} from '../types';
+} from '@/types';
 
 export const messagesApi = {
   // Get all conversations for current user

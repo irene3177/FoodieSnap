@@ -1,4 +1,4 @@
-import { get, post, del } from '../utils/apiClient';
+import { get, post, del } from '@/utils/apiClient';
 import {
   ApiResponse,
   UserProfile,
@@ -11,7 +11,7 @@ import {
   FavoritesListResponse,
   CheckFollowResponse,
   ApiParams
-} from '../types';
+} from '@/types';
 
 export const usersApi = {
   // Get user by ID (public)

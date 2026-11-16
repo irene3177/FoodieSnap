@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../store/store';
+import { useAppDispatch } from '@/store';
 import { 
   selectUser, 
   selectIsAuthenticated, 
@@ -12,8 +12,8 @@ import {
   updateProfile,
   refreshUser,
   clearError
-} from '../store/authSlice';
-import { LoginCredentials, RegisterCredentials, UpdateProfileData, AuthResult } from '../types';
+} from '@/store/authSlice';
+import { LoginCredentials, RegisterCredentials, UpdateProfileData, AuthResult } from '@/types';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();

@@ -5,20 +5,16 @@ import {
   removeFromFavorites,
   checkFavorite,
   clearAllFavorites,
-  reorderFavorites
+  reorderFavorites,
 } from '../../controllers/favorites.controller';
 import { UserModel } from '../../models/User.model';
 import { RecipeModel } from '../../models/Recipe.model';
-import NotFoundError from '../../errors/notFoundError';
 
-// Mock dependencies
 jest.mock('../../models/User.model');
 jest.mock('../../models/Recipe.model');
-jest.mock('../../utils/validation');
-jest.mock('../../errors/notFoundError');
 
 describe('Favorites Controller Unit Tests', () => {
-  let req: Partial<Request & { userId?: string }>;
+  let req: any;
   let res: Partial<Response>;
   let next: jest.Mock;
   let jsonMock: jest.Mock;
@@ -28,10 +24,12 @@ describe('Favorites Controller Unit Tests', () => {
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
     next = jest.fn();
-    res = {
-      json: jsonMock,
-      status: statusMock
-    };
+    res = { json: jsonMock, status: statusMock };
+  };
+
+  const getNextError = (): any => {
+    expect(next).toHaveBeenCalled();
+    return (next as jest.Mock).mock.calls[0][0];
   };
 
   beforeEach(() => {
@@ -41,70 +39,60 @@ describe('Favorites Controller Unit Tests', () => {
       body: {},
       params: {},
       query: {},
-      userId: 'user123'
+      userId: 'user123',
     };
   });
 
+  // ---------- getFavorites ----------
+
   describe('getFavorites', () => {
     it('should return user favorites', async () => {
-      // Arrange
       const mockFavorites = [{ _id: 'recipe1', title: 'Recipe 1' }];
-      const mockUser = {
-        _id: 'user123',
-        favorites: mockFavorites
-      };
+      const mockUser = { _id: 'user123', favorites: mockFavorites };
+
       (UserModel.findById as jest.Mock).mockReturnValue({
-        populate: jest.fn().mockResolvedValue(mockUser)
+        populate: jest.fn().mockResolvedValue(mockUser),
       });
 
-      // Act
-      await getFavorites(req as any, res as Response, next);
+      await getFavorites(req, res as Response, next);
 
-      // Assert
       expect(UserModel.findById).toHaveBeenCalledWith('user123');
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
-        data: mockFavorites
+        data: mockFavorites,
       });
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return NotFoundError if user not found', async () => {
-      // Arrange
+    it('should call next with NotFoundError if user not found', async () => {
       (UserModel.findById as jest.Mock).mockReturnValue({
-        populate: jest.fn().mockResolvedValue(null)
+        populate: jest.fn().mockResolvedValue(null),
       });
 
-      // Act
-      await getFavorites(req as any, res as Response, next);
+      await getFavorites(req, res as Response, next);
 
-      // Assert
-      expect(NotFoundError).toHaveBeenCalledWith('User not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
+
+  // ---------- addToFavorites ----------
 
   describe('addToFavorites', () => {
     const recipeId = 'recipe123';
 
     it('should add recipe to favorites successfully', async () => {
-      // Arrange
       req.params = { recipeId };
       (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
-      
-      const mockUser = {
-        _id: 'user123',
-        favorites: [{ _id: recipeId }],
-        favoritesCount: 1
-      };
+
+      const mockUser = { _id: 'user123', favorites: [{ _id: recipeId }] };
       (UserModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-        populate: jest.fn().mockResolvedValue(mockUser)
+        populate: jest.fn().mockResolvedValue(mockUser),
       });
 
-      // Act
-      await addToFavorites(req as any, res as Response, next);
+      await addToFavorites(req, res as Response, next);
 
-      // Assert
       expect(RecipeModel.findById).toHaveBeenCalledWith(recipeId);
       expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
@@ -116,44 +104,52 @@ describe('Favorites Controller Unit Tests', () => {
         data: {
           recipeId,
           isFavorite: true,
-          favoritesCount: 1
-        }
+          favoritesCount: 1,
+        },
       });
     });
 
-    it('should return NotFoundError if recipe not found', async () => {
-      // Arrange
+    it('should call next with NotFoundError if recipe not found', async () => {
       req.params = { recipeId };
       (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
 
-      // Act
-      await addToFavorites(req as any, res as Response, next);
+      await addToFavorites(req, res as Response, next);
 
-      // Assert
-      expect(NotFoundError).toHaveBeenCalledWith('Recipe not found');
-      expect(next).toHaveBeenCalled();
+      const err = getNextError();
+      expect(err.message).toBe('Recipe not found');
+      expect(err.statusCode).toBe(404);
+      expect(UserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should call next with NotFoundError if user not found', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
+      (UserModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
+
+      await addToFavorites(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
+
+  // ---------- removeFromFavorites ----------
 
   describe('removeFromFavorites', () => {
     const recipeId = 'recipe123';
 
     it('should remove recipe from favorites successfully', async () => {
-      // Arrange
       req.params = { recipeId };
       (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
-      
-      const mockUser = {
-        _id: 'user123',
-        favorites: [],
-        favoritesCount: 0
-      };
+
+      const mockUser = { _id: 'user123', favorites: [] };
       (UserModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(mockUser);
 
-      // Act
-      await removeFromFavorites(req as any, res as Response, next);
+      await removeFromFavorites(req, res as Response, next);
 
-      // Assert
       expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
         { $pull: { favorites: recipeId } },
@@ -164,58 +160,117 @@ describe('Favorites Controller Unit Tests', () => {
         data: {
           recipeId,
           isFavorite: false,
-          favoritesCount: 0
-        }
+          favoritesCount: 0,
+        },
       });
     });
+
+    it('should call next with NotFoundError if recipe not found', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await removeFromFavorites(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('Recipe not found');
+      expect(err.statusCode).toBe(404);
+    });
+
+    it('should call next with NotFoundError if user not found', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
+      (UserModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+
+      await removeFromFavorites(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
+    });
   });
+
+  // ---------- checkFavorite ----------
 
   describe('checkFavorite', () => {
     const recipeId = 'recipe123';
 
-    it('should return true if recipe is favorite', async () => {
-      // Arrange
+    it('should return isFavorite=true when recipe is in favorites', async () => {
       req.params = { recipeId };
       (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
-      
+
       const mockUser = {
         _id: 'user123',
-        favorites: [{ _id: recipeId }],
-        favoritesCount: 1
+        favorites: [{ toString: () => recipeId }],
       };
       (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
-      
-      // Mock the some method
-      mockUser.favorites.some = jest.fn().mockReturnValue(true);
 
-      // Act
-      await checkFavorite(req as any, res as Response, next);
+      await checkFavorite(req, res as Response, next);
 
-      // Assert
       expect(jsonMock).toHaveBeenCalledWith({
         success: true,
         data: {
           recipeId,
           isFavorite: true,
-          favoritesCount: 1
-        }
+          favoritesCount: 1,
+        },
       });
+    });
+
+    it('should return isFavorite=false when recipe is not in favorites', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
+
+      const mockUser = {
+        _id: 'user123',
+        favorites: [{ toString: () => 'some-other-recipe' }],
+      };
+      (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+
+      await checkFavorite(req, res as Response, next);
+
+      expect(jsonMock).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          recipeId,
+          isFavorite: false,
+          favoritesCount: 1,
+        },
+      });
+    });
+
+    it('should call next with NotFoundError if recipe not found', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await checkFavorite(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('Recipe not found');
+      expect(err.statusCode).toBe(404);
+    });
+
+    it('should call next with NotFoundError if user not found', async () => {
+      req.params = { recipeId };
+      (RecipeModel.findById as jest.Mock).mockResolvedValue({ _id: recipeId });
+      (UserModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await checkFavorite(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
 
+  // ---------- clearAllFavorites ----------
+
   describe('clearAllFavorites', () => {
     it('should clear all favorites successfully', async () => {
-      // Arrange
-      const mockUser = {
-        _id: 'user123',
-        favorites: []
-      };
+      const mockUser = { _id: 'user123', favorites: [] };
       (UserModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(mockUser);
 
-      // Act
-      await clearAllFavorites(req as any, res as Response, next);
+      await clearAllFavorites(req, res as Response, next);
 
-      // Assert
       expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
         { $set: { favorites: [] } },
@@ -225,30 +280,36 @@ describe('Favorites Controller Unit Tests', () => {
         success: true,
         data: {
           message: 'All favorites cleared successfully',
-          favoritesCount: 0
-        }
+          favoritesCount: 0,
+        },
       });
+    });
+
+    it('should call next with NotFoundError if user not found', async () => {
+      (UserModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+
+      await clearAllFavorites(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
 
+  // ---------- reorderFavorites ----------
+
   describe('reorderFavorites', () => {
     it('should reorder favorites successfully', async () => {
-      // Arrange
       const reorderedIds = ['recipe3', 'recipe1', 'recipe2'];
       req.body = { reorderedIds };
-      
-      const mockUser = {
-        _id: 'user123',
-        favorites: reorderedIds
-      };
+
+      const mockUser = { _id: 'user123', favorites: reorderedIds };
       (UserModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-        populate: jest.fn().mockResolvedValue(mockUser)
+        populate: jest.fn().mockResolvedValue(mockUser),
       });
 
-      // Act
-      await reorderFavorites(req as any, res as Response, next);
+      await reorderFavorites(req, res as Response, next);
 
-      // Assert
       expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
         { $set: { favorites: reorderedIds } },
@@ -258,9 +319,22 @@ describe('Favorites Controller Unit Tests', () => {
         success: true,
         data: {
           message: 'Favorites reordered successfully',
-          favorites: reorderedIds
-        }
+          favorites: reorderedIds,
+        },
       });
+    });
+
+    it('should call next with NotFoundError if user not found', async () => {
+      req.body = { reorderedIds: ['recipe1'] };
+      (UserModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
+
+      await reorderFavorites(req, res as Response, next);
+
+      const err = getNextError();
+      expect(err.message).toBe('User not found');
+      expect(err.statusCode).toBe(404);
     });
   });
 });

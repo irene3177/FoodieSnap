@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import {
@@ -5,7 +6,7 @@ import {
   createComment,
   updateComment,
   toggleLike,
-  deleteComment
+  deleteComment,
 } from '../../controllers/comments.controller';
 import { CommentModel } from '../../models/Comment.model';
 import { RecipeModel } from '../../models/Recipe.model';
@@ -13,7 +14,7 @@ import { UserModel } from '../../models/User.model';
 import bcrypt from 'bcryptjs';
 
 describe('Comment Controller Integration Tests', () => {
-  let req: Partial<Request & { userId?: string; user?: any }>;
+  let req: any;
   let res: Partial<Response>;
   let next: jest.Mock;
   let jsonMock: jest.Mock;
@@ -25,51 +26,58 @@ describe('Comment Controller Integration Tests', () => {
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
     next = jest.fn();
-    res = {
-      json: jsonMock,
-      status: statusMock
-    };
+    res = { json: jsonMock, status: statusMock };
   };
 
-  beforeAll(async () => {
-    // Create test user
+  const createTestUser = async () => {
     const hashedPassword = await bcrypt.hash('password123', 10);
-    const user = await UserModel.create({
-      username: 'testuser',
-      email: 'test@test.com',
+    return UserModel.create({
+      username: `cm_${Math.random().toString(36).slice(2, 8)}`,
+      email: `cm_${Date.now()}@cmtest.com`,
       password: hashedPassword,
-      avatar: 'https://picsum.photos/200/200'
+      avatar: 'https://picsum.photos/200/200',
+      favorites: [],
+      createdRecipes: [],
     });
+  };
+
+  beforeEach(async () => {
+    await CommentModel.deleteMany({});
+    await RecipeModel.deleteMany({});
+    await UserModel.deleteMany({ email: /@cmtest\.com$/ });
+
+    const user = await createTestUser();
     testUserId = user._id.toString();
 
-    // Create test recipe
     const recipe = await RecipeModel.create({
       title: 'Test Recipe',
       ingredients: ['ingredient 1'],
       instructions: ['step 1'],
       author: testUserId,
-      source: 'user'
+      source: 'user',
     });
     testRecipeId = recipe._id.toString();
-  });
 
-  afterAll(async () => {
-    await UserModel.deleteMany({});
-    await RecipeModel.deleteMany({});
-    await CommentModel.deleteMany({});
-  });
-
-  beforeEach(async () => {
-    await CommentModel.deleteMany({});
     setupResponseMocks();
     req = {
       body: {},
       params: {},
       query: {},
       userId: testUserId,
-      user: { username: 'testuser', avatar: 'https://picsum.photos/200/200' }
+      user: {
+        username: user.username,
+        avatar: user.avatar,
+      },
     };
   });
+
+  afterAll(async () => {
+    await CommentModel.deleteMany({});
+    await RecipeModel.deleteMany({});
+    await UserModel.deleteMany({ email: /@cmtest\.com$/ });
+  });
+
+  // ---------- getRecipeComments ----------
 
   describe('getRecipeComments', () => {
     beforeEach(async () => {
@@ -79,22 +87,22 @@ describe('Comment Controller Integration Tests', () => {
           recipeId: testRecipeId,
           userId: testUserId,
           userName: 'testuser',
-          userAvatar: 'avatar.jpg'
+          userAvatar: 'avatar.jpg',
         },
         {
           text: 'Comment 2',
           recipeId: testRecipeId,
           userId: testUserId,
           userName: 'testuser',
-          userAvatar: 'avatar.jpg'
-        }
+          userAvatar: 'avatar.jpg',
+        },
       ]);
     });
 
     it('should return all comments for a recipe', async () => {
       req.params = { recipeId: testRecipeId };
 
-      await getRecipeComments(req as any, res as Response, next);
+      await getRecipeComments(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
@@ -102,30 +110,65 @@ describe('Comment Controller Integration Tests', () => {
       expect(responseData.data).toHaveLength(2);
       expect(next).not.toHaveBeenCalled();
     });
+
+    it('should return empty array when recipe has no comments', async () => {
+      const anotherRecipe = await RecipeModel.create({
+        title: 'No Comments Recipe',
+        ingredients: ['a'],
+        instructions: ['b'],
+        author: testUserId,
+        source: 'user',
+      });
+      req.params = { recipeId: anotherRecipe._id.toString() };
+
+      await getRecipeComments(req, res as Response, next);
+
+      const responseData = jsonMock.mock.calls[0][0];
+      expect(responseData.success).toBe(true);
+      expect(responseData.data).toHaveLength(0);
+    });
   });
 
+  // ---------- createComment ----------
+
   describe('createComment', () => {
-    it('should create a comment successfully', async () => {
+    it('should create a comment with rating successfully', async () => {
       req.body = {
         text: 'Great recipe!',
         recipeId: testRecipeId,
-        rating: 5
+        rating: 5,
       };
 
-      await createComment(req as any, res as Response, next);
+      await createComment(req, res as Response, next);
 
       expect(statusMock).toHaveBeenCalledWith(201);
       const responseData = jsonMock.mock.calls[0][0];
       expect(responseData.success).toBe(true);
       expect(responseData.data.text).toBe('Great recipe!');
       expect(responseData.data.rating).toBe(5);
+      expect(responseData.data.likes).toBe(0);
+      expect(responseData.data.likedBy).toEqual([]);
       expect(next).not.toHaveBeenCalled();
 
-      // Verify in database
       const comment = await CommentModel.findOne({ recipeId: testRecipeId });
       expect(comment).toBeTruthy();
     });
+
+    it('should create a comment without rating', async () => {
+      req.body = {
+        text: 'Nice!',
+        recipeId: testRecipeId,
+      };
+
+      await createComment(req, res as Response, next);
+
+      expect(statusMock).toHaveBeenCalledWith(201);
+      const comment = await CommentModel.findOne({ recipeId: testRecipeId });
+      expect(comment?.rating).toBeUndefined();
+    });
   });
+
+  // ---------- updateComment ----------
 
   describe('updateComment', () => {
     let commentId: string;
@@ -136,7 +179,7 @@ describe('Comment Controller Integration Tests', () => {
         recipeId: testRecipeId,
         userId: testUserId,
         userName: 'testuser',
-        userAvatar: 'avatar.jpg'
+        userAvatar: 'avatar.jpg',
       });
       commentId = comment._id.toString();
     });
@@ -145,7 +188,7 @@ describe('Comment Controller Integration Tests', () => {
       req.params = { id: commentId };
       req.body = { text: 'Updated comment' };
 
-      await updateComment(req as any, res as Response, next);
+      await updateComment(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
@@ -154,23 +197,42 @@ describe('Comment Controller Integration Tests', () => {
       expect(responseData.data.isEdited).toBe(true);
       expect(next).not.toHaveBeenCalled();
 
-      // Verify in database
       const comment = await CommentModel.findById(commentId);
       expect(comment?.text).toBe('Updated comment');
+      expect(comment?.isEdited).toBe(true);
     });
 
     it('should return 404 if comment not found', async () => {
       req.params = { id: new mongoose.Types.ObjectId().toString() };
       req.body = { text: 'Updated comment' };
 
-      await updateComment(req as any, res as Response, next);
+      await updateComment(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
       expect(error.message).toBe('Comment not found');
       expect(error.statusCode).toBe(404);
     });
+
+    it('should return 404 if user is not the author', async () => {
+      const otherUser = await createTestUser();
+      req.userId = otherUser._id.toString();
+      req.params = { id: commentId };
+      req.body = { text: 'Hacked' };
+
+      await updateComment(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('Comment not found');
+      expect(error.statusCode).toBe(404);
+
+      const comment = await CommentModel.findById(commentId);
+      expect(comment?.text).toBe('Original comment');
+    });
   });
+
+  // ---------- toggleLike ----------
 
   describe('toggleLike', () => {
     let commentId: string;
@@ -183,7 +245,7 @@ describe('Comment Controller Integration Tests', () => {
         userName: 'testuser',
         userAvatar: 'avatar.jpg',
         likes: 0,
-        likedBy: []
+        likedBy: [],
       });
       commentId = comment._id.toString();
     });
@@ -191,7 +253,7 @@ describe('Comment Controller Integration Tests', () => {
     it('should add like to comment', async () => {
       req.params = { id: commentId };
 
-      await toggleLike(req as any, res as Response, next);
+      await toggleLike(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
@@ -200,30 +262,30 @@ describe('Comment Controller Integration Tests', () => {
       expect(responseData.data.likes).toBe(1);
       expect(next).not.toHaveBeenCalled();
 
-      // Verify in database
       const comment = await CommentModel.findById(commentId);
       expect(comment?.likes).toBe(1);
-      const likedByStrings = comment?.likedBy.map(id => id.toString());
-      expect(likedByStrings).toContain(testUserId);
+      expect(comment?.likedBy).toHaveLength(1);
+      expect(comment?.likedBy.map((id) => id.toString())).toContain(testUserId);
     });
 
     it('should remove like from comment', async () => {
-      // First add like
       req.params = { id: commentId };
-      await toggleLike(req as any, res as Response, next);
-
-      // Then remove like
-      await toggleLike(req as any, res as Response, next);
+      await toggleLike(req, res as Response, next);
+      await toggleLike(req, res as Response, next);
 
       const responseData = jsonMock.mock.calls[1][0];
       expect(responseData.data.hasLiked).toBe(false);
       expect(responseData.data.likes).toBe(0);
+
+      const comment = await CommentModel.findById(commentId);
+      expect(comment?.likes).toBe(0);
+      expect(comment?.likedBy).toHaveLength(0);
     });
 
     it('should return 404 if comment not found', async () => {
       req.params = { id: new mongoose.Types.ObjectId().toString() };
 
-      await toggleLike(req as any, res as Response, next);
+      await toggleLike(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
@@ -231,6 +293,8 @@ describe('Comment Controller Integration Tests', () => {
       expect(error.statusCode).toBe(404);
     });
   });
+
+  // ---------- deleteComment ----------
 
   describe('deleteComment', () => {
     let commentId: string;
@@ -241,7 +305,7 @@ describe('Comment Controller Integration Tests', () => {
         recipeId: testRecipeId,
         userId: testUserId,
         userName: 'testuser',
-        userAvatar: 'avatar.jpg'
+        userAvatar: 'avatar.jpg',
       });
       commentId = comment._id.toString();
     });
@@ -249,7 +313,7 @@ describe('Comment Controller Integration Tests', () => {
     it('should delete comment successfully', async () => {
       req.params = { id: commentId };
 
-      await deleteComment(req as any, res as Response, next);
+      await deleteComment(req, res as Response, next);
 
       expect(jsonMock).toHaveBeenCalledTimes(1);
       const responseData = jsonMock.mock.calls[0][0];
@@ -257,7 +321,6 @@ describe('Comment Controller Integration Tests', () => {
       expect(responseData.message).toBe('Comment deleted successfully');
       expect(next).not.toHaveBeenCalled();
 
-      // Verify in database
       const comment = await CommentModel.findById(commentId);
       expect(comment).toBeNull();
     });
@@ -265,12 +328,28 @@ describe('Comment Controller Integration Tests', () => {
     it('should return 404 if comment not found', async () => {
       req.params = { id: new mongoose.Types.ObjectId().toString() };
 
-      await deleteComment(req as any, res as Response, next);
+      await deleteComment(req, res as Response, next);
 
       expect(next).toHaveBeenCalled();
       const error = next.mock.calls[0][0];
       expect(error.message).toBe('Comment not found');
       expect(error.statusCode).toBe(404);
+    });
+
+    it('should return 404 if user is not the author', async () => {
+      const otherUser = await createTestUser();
+      req.userId = otherUser._id.toString();
+      req.params = { id: commentId };
+
+      await deleteComment(req, res as Response, next);
+
+      expect(next).toHaveBeenCalled();
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('Comment not found');
+      expect(error.statusCode).toBe(404);
+
+      const comment = await CommentModel.findById(commentId);
+      expect(comment).not.toBeNull();
     });
   });
 });

@@ -1,17 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom';
-import Home from '../pages/Home/Home';
-import Recipes from '../pages/Recipes/Recipes';
-import Search from '../pages/Search/Search';
-import Favorites from '../pages/Favorites/Favorites';
-import RecipeDetail from '../pages/RecipeDetail/RecipeDetail';
-import TopRated from '../pages/TopRated/TopRated';
-import ProfilePage from '../pages/Profile/ProfilePage';
-import Users from '../pages/Users/Users';
-import Chats from '../pages/Chats/Chats';
-import ChatDetail from '../pages/ChatDetail/ChatDetail';
-import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute';
-import NotFound from '../pages/NotFound/NotFound';
-import App from '../App';
+import Home from '@/pages/Home/Home';
+import Recipes from '@/pages/Recipes/Recipes';
+import Search from '@/pages/Search/Search';
+import Favorites from '@/pages/Favorites/Favorites';
+import RecipeDetail from '@/pages/RecipeDetail/RecipeDetail';
+import TopRated from '@/pages/TopRated/TopRated';
+import ProfilePage from '@/pages/Profile/ProfilePage';
+import Users from '@/pages/Users/Users';
+import Chats from '@/pages/Chats/Chats';
+import ChatDetail from '@/pages/ChatDetail/ChatDetail';
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import NotFound from '@/pages/NotFound/NotFound';
+import App from '@/App';
 
 export const router = createBrowserRouter([
   {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import * as socket from '../../services/socket';
-import { useAuth } from '../useAuth';
+import * as socket from '@/services/socket';
+import { useAuth } from '@/hooks';
 
 export const useUserStatus = (userId: string) => {
   const [isOnline, setIsOnline] = useState(false);

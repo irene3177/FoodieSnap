@@ -14,13 +14,13 @@ import {
   SortableContext,
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
-import { useAppDispatch, useAppSelector } from '../../store/store';
-import { fetchFavorites, clearAllFavorites, reorderFavorites } from '../../store/favoritesSlice';
-import { showToast } from '../../store/toastSlice';
-import SortableRecipeCard from '../../components/SortableRecipeCard/SortableRecipeCard';
-import { FavoritesSkeleton } from '../../components/Skeleton/Skeleton';
-import { useAuth } from '../../hooks/useAuth';
-import './Favorites.css';
+import { useAppDispatch, useAppSelector, showToast } from '@/store';
+import { fetchFavorites, clearAllFavorites, reorderFavorites } from '@/store/favoritesSlice';
+import { useAuth } from '@/hooks/useAuth';
+import SortableRecipeCard from '@/components/SortableRecipeCard/SortableRecipeCard';
+import { FavoritesGridSkeleton } from '@/components/ui/Skeleton/FavoritesGridSkeleton';
+import { ErrorState, EmptyState } from '@/components/ui';
+import { MdOutlineBookmarks, MdOutlineExplore } from 'react-icons/md';
 
 function Favorites() {
   const dispatch = useAppDispatch();
@@ -55,18 +55,18 @@ function Favorites() {
       dispatch(reorderFavorites(reorderedItems));
 
       dispatch(showToast({
-        message: 'Favorites reordered!',
+        message: 'Saved reordered!',
         type: 'info'
       }));
     }
   };
 
   const handleClearAll = async () => {
-    if (window.confirm('Are you sure you want to clear all favorites?')) {
+    if (window.confirm('Are you sure you want to clear all saved recipes?')) {
       await dispatch(clearAllFavorites());
 
       dispatch(showToast({
-        message: 'All favorites cleared!',
+        message: 'All saved cleared!',
         type: 'info'
       }));
     }
@@ -74,52 +74,41 @@ function Favorites() {
 
   if (!user) {
     return (
-      <div className="favorites-page__unauthorized">
-        <div className="favorites-page__empty-icon">❤️</div>
-        <h2 className="favorites-page__empty-title">Please log in</h2>
-        <p className="favorites-page__empty-message">
-          You need to be logged in to view your favorites
+      <div className="max-w-[1400px] mx-auto px-4 py-16 text-center bg-secondary rounded-xl border shadow-theme my-8">
+        <h2 className="text-2xl font-headline-sm text-primary mb-2">Please log in</h2>
+        <p className="text-secondary mb-8 leading-relaxed">
+          You need to be logged in to view your saved recipes
         </p>
-        <a href="/login" className="favorites-page__explore-link">
+        <a href="/login" className="inline-block px-8 py-3 rounded bg-accent text-white font-medium hover:bg-accent-hover transition-colors">
           Go to Login
         </a>
       </div>
     );
   }
 
-  if (loading && favorites.length === 0) {
-    return <FavoritesSkeleton />;
-  }
-
   if (error) {
     return (
-      <div className="favorites-page__error">
-        <h2>Oops! Something went wrong</h2>
-        <p>{error}</p>
-        <button
-        className="favorites-page__retry-button"
-        onClick={() => dispatch(fetchFavorites())}
-        >
-          Try Again
-        </button>
-      </div>
+      <ErrorState
+        message={error}
+        onRetry={() => dispatch(fetchFavorites())}
+      />
     );
   }
 
   return (
-    <div className="favorites-page">
-      <div className="favorites-page__header">
+    <div className="max-w-[1400px] mx-auto p-8 md:py-10 min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4 cursor-default">
         <div>
-          <h1 className="favorites-page__title">My Favorite Recipes</h1>
+          <h1 className="font-display-lg text-display-lg text-secondary tracking-tight">My Saved Recipes</h1>
           {favorites.length > 0 && (
-            <p className="favorites-page__subtitle">
-              Drag the card to reorder your favorites
+            <p className="text-muted font-body-lg text-body-lg mt-2 md:mb-4">
+              Drag the card to reorder your saved recipes
             </p>
           )}
         </div>
         {favorites.length > 0 && (
           <button
-          className="favorites-page__clear-button"
+          className="btn-secondary bg-red-400 md:mt-3"
           onClick={handleClearAll}
           aria-label="Clear all favorites"
           >
@@ -128,21 +117,25 @@ function Favorites() {
         )}
       </div>
 
-      {favorites.length === 0 ? (
-        <div className="favorites-page__empty">
-          <div className="favorites-page__empty-icon">❤️</div>
-          <h2 className="favorites-page__empty-title">No favorites yet</h2>
-          <p className="favorites-page__empty-message">
-            Start exploring recipes and click the heart icon to save them here!
-          </p>
-          <a href="/recipes" className="favorites-page__explore-link">
-            Explore Recipes
-          </a>
+      {loading && favorites.length === 0 ? (
+        <FavoritesGridSkeleton />
+      ) : favorites.length === 0 ? (
+        <div className="flex justify-center mt-6">
+          <EmptyState
+            icon={<MdOutlineBookmarks />}
+            title="No Saved Recipes Yet"
+            description="You haven't saved any recipes yet."
+            action={{
+              label: "Explore Recipes",
+              to: "/recipes",
+              icon: <MdOutlineExplore />
+            }}
+          />
         </div>
       ) : (
         <>
-          <div className="favorites-page__stats">
-            <span className="favorites-page__count">
+          <div className="text-center mb-4">
+            <span className="text-center text-sm text-muted">
               {favorites.length} saved {favorites.length === 1 ? 'recipe' : 'recipes'}
             </span>
           </div>
@@ -156,7 +149,7 @@ function Favorites() {
               items={favorites.map(r => r._id)}
               strategy={rectSortingStrategy}
             >
-              <div className="favorites-page__grid">
+              <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 md:gap-8">
                 {favorites.map((recipe) => (
                   <SortableRecipeCard
                     key={recipe._id}
@@ -167,9 +160,10 @@ function Favorites() {
             </SortableContext>
           </DndContext>
 
-          <div className="favorites-page__tips">
-            <h3 className="favorites-page__tips-title">💡 Pro Tips</h3>
-            <ul className="favorites-page__tips-list">
+          {/* Tips */}
+          <div className="bg-secondary rounded-lg p-6 mt-8 border">
+            <h3 className="text-primary text-base font-medium m-0 mb-2">Tips</h3>
+            <ul className="m-0 pl-6 text-secondary text-sm list-disc space-y-1">
               <li>Drag the card to reorder your favorites</li>
               <li>The order you set here will be saved automatically</li>
               <li>Use keyboard (Tab + Space) to reorder without mouse</li>

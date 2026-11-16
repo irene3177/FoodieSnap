@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { incrementUnread, resetUnread, updateLastMessage } from '../../store/unreadSlice';
-import * as socket from '../../services/socket';
-import { Message } from '../../types';
+import { incrementUnread, resetUnread, updateLastMessage } from '@/store/unreadSlice';
+import * as socket from '@/services/socket';
+import { Message } from '@/types';
 
 export const useUnreadListener = (userId: string | undefined | null) => {
   const dispatch = useDispatch();

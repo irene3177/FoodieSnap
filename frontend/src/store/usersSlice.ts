@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { usersApi } from '../services/usersApi';
-import { UserListItem, GetUsersParams } from '../types';
+import { usersApi } from '@/services/usersApi';
+import { UserListItem, GetUsersParams } from '@/types';
 import { RootState } from './store';
 
 export interface UsersState {

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { ratingApi } from '../services/ratingApi';
+import { ratingApi } from '@/services/ratingApi';
 
 export interface RatingStats {
   averageRating: number;

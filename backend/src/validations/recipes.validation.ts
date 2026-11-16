@@ -168,10 +168,6 @@ export const validateFilterRecipes = [
     .isInt({ min: 1, max: 5 })
     .withMessage('Min rating must be between 1 and 5'),
   
-  query('category')
-    .optional()
-    .trim(),
-  
   query('area')
     .optional()
     .trim(),

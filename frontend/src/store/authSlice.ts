@@ -1,18 +1,17 @@
-// store/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authApi } from '../services/authApi';
+import { authApi } from '@/services/authApi';
 import { 
   User, 
   LoginCredentials, 
   RegisterCredentials, 
   UpdateProfileData 
-} from '../types';
+} from '@/types';
 import { 
   connectSocket, 
   setAutoConnect, 
   forceDisconnect, 
   setLoggedOut 
-} from '../services/socket';
+} from '@/services/socket';
 import { RootState } from './store';
 
 interface AuthState {

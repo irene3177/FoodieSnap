@@ -1,6 +1,9 @@
 {
   "files": [],
   "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "types": ["vitest/globals", "@testing-library/jest-dom"],
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },

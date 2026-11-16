@@ -1,7 +1,6 @@
-// src/components/ProtectedRoute/ProtectedRoute.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import OverlayLoader from '../Loader/OverlayLoader';
+import { useAuth } from '@/hooks';
+import { OverlayLoader } from '@/components/ui';
 
 interface ProtectedRouteProps {
   redirectTo?: string;

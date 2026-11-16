@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import * as socket from '../../services/socket';
-import { messagesApi } from '../../services/messagesApi';
-import { Message, User } from '../../types';
+import * as socket from '@/services/socket';
+import { messagesApi } from '@/services/messagesApi';
+import { Message, User } from '@/types';
 
 export const useChatMessages = (conversationId: string | undefined, currentUser: User | null) => {
   const [messages, setMessages] = useState<Message[]>([]);

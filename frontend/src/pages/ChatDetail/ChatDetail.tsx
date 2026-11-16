@@ -1,19 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { useAppDispatch } from '../../store/store';
-import { resetUnread } from '../../store/unreadSlice'; 
-import { useChatRecipient } from '../../hooks/chat/useChatRecipient';
-import { useChatMessages } from '../../hooks/chat/useChatMessages';
-import { useChatScroll } from '../../hooks/chat/useChatScroll';
-import { useChatOptions } from '../../hooks/chat/useChatOptions';
-import { ChatHeader } from '../../components/Chat/ChatHeader';
-import { MessageList } from '../../components/Chat/MessageList';
-import { MessageInput } from '../../components/Chat/MessageInput';
-import { ScrollToBottomButton } from '../../components/Chat/ScrollToBottomButton';
-import { ChatDetailSkeleton } from '../../components/Skeleton/ChatDetailSkeleton';
-import * as socket from '../../services/socket';
-import './ChatDetail.css';
+import {
+  useAuth,
+  useChatRecipient,
+  useChatMessages,
+  useChatScroll,
+  useChatOptions,
+} from '@/hooks';
+import { useAppDispatch, resetUnread } from '@/store';
+import { ChatHeader } from '@/components/Chat/ChatHeader';
+import { MessageList } from '@/components/Chat/MessageList';
+import { MessageInput } from '@/components/Chat/MessageInput';
+import { ScrollToBottomButton } from '@/components/Chat/ScrollToBottomButton';
+import { ChatDetailSkeleton } from '@/components/ui/Skeleton/ChatDetailSkeleton';
+import * as socket from '@/services/socket';
 
 function ChatDetail() {
   const dispatch = useAppDispatch();
@@ -31,9 +31,7 @@ function ChatDetail() {
 
   // Custom hooks
   const {
-    recipientName,
-    recipientAvatar,
-    recipientId
+    recipient
   } = useChatRecipient(conversationId, user?._id);
   const {
     messages,
@@ -49,8 +47,9 @@ function ChatDetail() {
     handleScroll
   } = useChatScroll(messages);
   const {
-    showOptions,
-    setShowOptions,
+    isOpen,
+    setIsOpen,
+    onClose,
     deleting,
     optionsMenuRef,
     handleDeleteConversation,
@@ -109,8 +108,8 @@ function ChatDetail() {
 
 
   const handleViewProfile = () => {
-    if (recipientId) {
-      window.location.href = `/user/${recipientId}`;
+    if (recipient?._id) {
+      window.location.href = `/user/${recipient?._id}`;
     }
   };
 
@@ -122,22 +121,22 @@ function ChatDetail() {
     return <ChatDetailSkeleton />;
   }
 
+  console.log(showScrollButton);
+
   return (
-    <div className="chat-detail">
+    <div className="flex flex-col h-screen w-full bg-primary relative overflow-hidden px-8">
       <ChatHeader
-        recipientId={recipientId}
-        recipientName={recipientName}
-        recipientAvatar={recipientAvatar}
+        recipient={recipient}
         onBack={handleBack}
         onViewProfile={handleViewProfile}
-        showOptions={showOptions}
-        setShowOptions={setShowOptions}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onClose={onClose}
         optionsMenuRef={optionsMenuRef}
         onClearChat={handleClearChat}
         onDeleteChat={handleDeleteConversation}
         deleting={deleting}
-        currentUserId={user?._id}
-        currentUserAvatar={user?.avatar}
+        currentUser={user}
       />
 
       <MessageList
@@ -148,14 +147,25 @@ function ChatDetail() {
         currentUserId={user?._id}
       />
 
-      {showScrollButton && <ScrollToBottomButton onClick={scrollToBottom} />}
+      <div className="relative flex-shrink-0 justify-center w-full">
+        <div className="relative max-w-[792px] mx-auto">
 
-      <MessageInput
-        conversationId={conversationId || ''}
-        userId={user?._id || ''}
-        onSendMessage={sendMessage}
-        disabled={deleting}
-      />
+        {showScrollButton && (
+          <div className="absolute bottom-[calc(100%+16px)] right-4 z-10">
+            <ScrollToBottomButton onClick={scrollToBottom} />
+          </div>
+        )}
+
+        <MessageInput
+          conversationId={conversationId || ''}
+          userId={user?._id || ''}
+          onSendMessage={sendMessage}
+          disabled={deleting}
+        />
+        </div>
+      </div>
+      
+
     </div>
   );
 }
